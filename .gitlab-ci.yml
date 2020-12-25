@@ -21,6 +21,7 @@ stages:
     - pip install poetry
     - poetry --version
     - poetry config virtualenvs.in-project true
+    - poetry config http-basic.simulation gitlab-ci-token ${CI_JOB_TOKEN}
     - poetry install -vv
 
 .quality-template: &quality

@@ -7,7 +7,29 @@ So before you can start developing you will have to install `poetry`.
 Please refer to the [poetry documentation](https://python-poetry.org/docs/#introduction) on how to install
 and use `poetry`.
 
-After you have installed poetry you can use it to install a local development clone of the repository using:
+
+### Configure Access Token
+
+!!! Important
+    This package depends on [cr-kyoushi-simulation](https://git-service.ait.ac.at/sct-cyberrange/tools/kyoushi/simulation)
+    which is a private package. To install it you must configure poetry with your private GitLab access token.
+
+1. You will have to create a GitLab Access token with at least **read_api** and **read_registry** privileges.
+    1. Go to https://git-service.ait.ac.at/-/profile
+    2. Open the `Access Tokens` settings
+    3. Enter a name for your access token
+    4. Select at least **read_api** and **read_registry**
+    5. Click *Create personal access token*
+    6. Copy and save the created access token
+ 2. Add the access token to your poetry config
+   ```bash
+   $ poetry config http-basic.simulation __token__
+   Password: <enter the access token>
+   ```
+
+### Install for development
+
+After you have installed poetry and added your access token you can use it to install a local development clone of the repository using:
 
 ```bash
 $ poetry install
