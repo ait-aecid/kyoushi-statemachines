@@ -5,6 +5,9 @@ as part of simulations.
 
 from enum import Enum
 from pathlib import Path
+from typing import Any
+from typing import Dict
+from typing import List
 from typing import Optional
 from typing import Union
 
@@ -12,6 +15,7 @@ from pydantic import AnyUrl
 from pydantic import BaseModel
 from pydantic import Field
 from pydantic import PositiveInt
+from pydantic import validator
 from pydantic.errors import EnumMemberError
 from selenium import webdriver
 from selenium.webdriver.edge.options import Options as EdgeOptions
@@ -130,6 +134,41 @@ class SeleniumConfig(BaseModel):
         description="The windows height in pixels",
     )
 
+    arguments: List[str] = Field(
+        [],
+        description="Additional commandline arguments for the webdriver",
+    )
+
+    capabilities: Dict[str, Any] = Field(
+        {},
+        description="List of desired capabilities",
+    )
+
+    @validator("arguments")
+    def edge_no_arguments(cls, arguments, values, **kwargs):
+        # only validate if we have a valid type
+        if (
+            "type" in values
+            and values["type"] == WebdriverType.EDGE
+            and len(arguments) > 0
+        ):
+            raise ValueError("Edge does not support webdriver arguments")
+        return arguments
+
+    @validator("headless")
+    def ie_edge_no_headless(cls, headless, values, **kwargs):
+        # only validate if we have a valid type
+        if (
+            "type" in values
+            and (
+                values["type"] == WebdriverType.IE
+                or values["type"] == WebdriverType.EDGE
+            )
+            and headless
+        ):
+            raise ValueError("Edge and IE do not support headless mode")
+        return headless
+
 
 """Mapping of driver types to their selenium classes"""
 _MANAGER_MAP = {
@@ -224,6 +263,14 @@ def get_webdriver(
     driver_info = _MANAGER_MAP[config.type]
     driver_path = install_webdriver(config)
     options = driver_info["driver_options"]
+
+    # configure webdriver capabilities
+    for cap, cap_val in config.capabilities.items():
+        options.set_capability(cap, cap_val)
+
+    # configure webdriver arguments
+    for arg in config.arguments:
+        options.add_argument(arg)
 
     if config.type != WebdriverType.EDGE and config.type != WebdriverType.IE:
         # configure headless mode via driver options
