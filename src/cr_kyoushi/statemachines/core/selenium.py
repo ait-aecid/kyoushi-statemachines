@@ -33,6 +33,16 @@ from cr_kyoushi.simulation.model import LogLevel
 from .util import filter_none_keys
 
 
+__all__ = [
+    "WebdriverType",
+    "WebdriverManagerConfig",
+    "SeleniumConfig",
+    "get_webdriver_manager",
+    "install_webdriver",
+    "get_webdriver",
+]
+
+
 class WebdriverType(str, Enum):
     """Enum for the different Selenium webdriver types"""
 
@@ -112,6 +122,11 @@ class SeleniumConfig(BaseModel):
     headless: bool = Field(
         False,
         description="If the browser should be run in headless mode or not.",
+    )
+
+    implicit_wait: float = Field(
+        0,
+        description="The implicit time the selenium driver waits when looking up an element",
     )
 
     window_x_position = int = Field(
@@ -245,6 +260,7 @@ def install_webdriver(config: SeleniumConfig) -> str:
 
 def get_webdriver(
     config: SeleniumConfig,
+    driver_path: Optional[str] = None,
 ) -> Union[
     webdriver.Chrome,
     webdriver.Firefox,
@@ -261,7 +277,11 @@ def get_webdriver(
         The initialized and configured Selenium webdriver instance
     """
     driver_info = _MANAGER_MAP[config.type]
-    driver_path = install_webdriver(config)
+
+    # install webdriver and get path if not already given
+    if driver_path is None:
+        driver_path = install_webdriver(config)
+
     options = driver_info["driver_options"]
 
     # configure webdriver capabilities
@@ -284,6 +304,9 @@ def get_webdriver(
         executable_path=driver_path,
         options=options,
     )
+
+    # configure driver implicit wait time
+    driver.implicitly_wait(config.implicit_wait)
 
     # configure browser display size and position
     driver.set_window_size(width=config.window_width, height=config.window_height)
