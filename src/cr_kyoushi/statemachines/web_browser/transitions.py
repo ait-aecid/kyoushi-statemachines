@@ -49,7 +49,7 @@ class Idle:
     def __init__(
         self,
         idle_amount: ApproximateFloat,
-        end_time: Optional[datetime],
+        end_time: Optional[datetime] = None,
     ):
         self._idle_amount: ApproximateFloat = idle_amount
         self._end_time: Optional[datetime] = end_time
