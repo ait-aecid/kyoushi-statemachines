@@ -3,6 +3,18 @@ name = "cr-kyoushi-statemachines"
 version = "0.1.0"
 description = ""
 authors = ["Maximilian Frank <maximilian.frank@ait.ac.at>"]
+license = "MIT"
+readme = 'README.md'  # Markdown files are supported
+repository = "https://git-service.ait.ac.at/sct-cyberrange/tools/kyoushi/statemachines"
+homepage = "https://git-service.ait.ac.at/sct-cyberrange/tools/kyoushi/statemachines"
+packages = [
+  { include = "cr_kyoushi", from = "src" }
+]
+
+
+[tool.poetry.plugins."cr_kyoushi.simulation"]
+"ait.web_browser" = "cr_kyoushi.statemachines.web_browser:StatemachineFactory"
+
 
 [[tool.poetry.source]]
 name = "simulation"
@@ -11,7 +23,9 @@ secondary = true
 
 [tool.poetry.dependencies]
 python = "^3.7"
-cr-kyoushi-simulation = "^0.2.1"
+cr-kyoushi-simulation = "^0.2.2"
+selenium = "^3.141.0"
+webdriver-manager = "^3.2.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

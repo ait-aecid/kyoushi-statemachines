@@ -1,0 +1,22 @@
+"Web Browser" {
+  initial,
+  selecting_activity,
+  idling,
+  on_website:
+    exit / website_depth=0,
+  leaving_website;
+
+  initial => selecting_activity;
+  selecting_activity => idling: idle: [0.3];
+  selecting_activity => on_website: visit_website
+    [0.7 && website_count<max_visit]
+    / website_count++;
+  idling => selecting_activity;
+  on_website => leaving_website: leave_website: [0.3];
+  on_website => on_website: visit_link:
+   [0.7 && website_depth<max_depth]
+    / website_depth++;
+  leaving_website => selecting_activity: background_website: [0.5];
+  leaving_website => selecting_activity: close_website: [0.5];
+
+};

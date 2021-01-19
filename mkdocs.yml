@@ -27,6 +27,13 @@ edit_uri: edit/master/docs/
 nav:
 - Overview: index.md
 - Contributing: contributing.md
+- Code Reference:
+  - Core:
+    - Model: reference/core/model.md
+    - Util: reference/core/util.md
+    - Selenium: reference/core/selenium.md
+- State Machines:
+    Web Browser: statemachines/web_browser.md
 - License: license.md
 
 markdown_extensions:
