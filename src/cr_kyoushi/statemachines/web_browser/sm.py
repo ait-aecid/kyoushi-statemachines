@@ -49,6 +49,7 @@ class Statemachine(sm.WorkHoursStatemachine):
         )
         self._selenium_config = selenium_config
         self._webdriver_path = None
+        self.context: Optional[Context] = None
 
     def setup_context(self):
         # we assume we only install once at the start of the sm
@@ -63,7 +64,8 @@ class Statemachine(sm.WorkHoursStatemachine):
         )
 
     def destroy_context(self):
-        self.context.driver.close()
+        if self.context is not None:
+            self.context.driver.quit()
 
     def _resume_work(self):
         self.current_state = self.initial_state
