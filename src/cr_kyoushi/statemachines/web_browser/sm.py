@@ -84,7 +84,7 @@ class StatemachineFactory(sm.StatemachineFactory):
     def build(self, config: StatemachineConfig):
         # setup transitions
         idle_transition = transitions.Transition(
-            transition_function=Idle(config.idle_time, config.end_time),
+            transition_function=Idle(config.user.idle_time, config.end_time),
             name="idle",
             target="selecting_activity",
         )
@@ -111,24 +111,27 @@ class StatemachineFactory(sm.StatemachineFactory):
             name="selecting_activity",
             max_websites_day=config.user.max_websites_day,
             website_transition=website_transition,
-            website_weight=config.user.visit_website,
+            website_weight=config.states.selecting_activity.visit_website,
             idle_transition=idle_transition,
-            idle_weight=1.0 - config.user.visit_website,
+            idle_weight=config.states.selecting_activity.idle,
         )
 
         on_website = WebsiteState(
             name="on_website",
             website_transition=link_transition,
-            website_weight=config.user.visit_link,
+            website_weight=config.states.on_website.visit_link,
             leave_transition=leave_website,
-            leave_weight=1.0 - config.user.visit_link,
+            leave_weight=config.states.on_website.leave_website,
             max_depth=config.user.max_depth,
         )
 
         leaving_website = states.ProbabilisticState(
             name="leaving_website",
             transitions=[background_website, close_website],
-            weights=[config.user.leave_open, 1.0 - config.user.leave_open],
+            weights=[
+                config.states.leaving_website.background,
+                config.states.leaving_website.close,
+            ],
         )
 
         return Statemachine(
