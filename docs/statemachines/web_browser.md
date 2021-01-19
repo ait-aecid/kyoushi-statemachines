@@ -6,8 +6,11 @@
 {%- endif -%}
 {% endmacro %}
 
+# Web Browser (`ait.web_browser`)
+
 The Web Browser state machine simulates a person browsing the internet. It connects
 to random websites and browses links on it using Selenium.
+
 
 <figure>
   <a data-fancybox="gallery" href="{{ image_url("statemachines/web_browser.svg") }}">
