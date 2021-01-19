@@ -18,7 +18,15 @@ from ..core.config import ProbVal
 from ..core.selenium import SeleniumConfig
 
 
-__all__ = ["UserConfig", "StatemachineConfig", "Context"]
+__all__ = [
+    "UserConfig",
+    "StatemachineConfig",
+    "Context",
+    "ActivitySelectionStateConfig",
+    "WebsiteStateConfig",
+    "LeaveWebsiteStateConfig",
+    "StatesConfig",
+]
 
 
 class UserConfig(BaseModel):
@@ -112,7 +120,53 @@ class StatesConfig(BaseModel):
 
 
 class StatemachineConfig(BaseModel):
-    """Web browser state machine configuration model"""
+    """Web browser state machine configuration model
+
+    Example:
+        ```yaml
+        max_error: 0
+        start_time: 2021-01-23T9:00
+        end_time: 2021-01-29T00:01
+        schedule:
+        work_days:
+            monday:
+                start_time: 09:00
+                end_time: 17:30
+            friday:
+                start_time: 11:21
+                end_time: 19:43
+        selenium:
+            driver_manager:
+                cache_valid_range: 5 # days
+            type: firefox
+            window_width: 800
+            window_height: 600
+            accept_insecure_ssl: yes
+        user:
+            max_websites_day: 5
+            max_depth: 2
+            wait_time:
+                min: 3.5 # seconds
+                max: 10  # seconds
+            idle_time:
+                min: 300 # 60*5 = 5m
+                max: 10800 # 60*60*3 = 3h
+            websites:
+                - http://ait.ac.at
+                - https://orf.at
+                - http://google.at
+        states:
+            selecting_activity:
+                visit_website: 0.7
+                idle: 0.3
+            on_website:
+                visit_link: 0.7
+                leave_website: 0.3
+            leaving_website:
+                background: 0.5
+                close: 0.5
+        ```
+    """
 
     max_errors: int = Field(
         0,
