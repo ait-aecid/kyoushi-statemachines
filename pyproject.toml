@@ -12,7 +12,7 @@ packages = [
 ]
 
 
-[tool.poetry.plugins.cr_kyoushi-simulation]
+[tool.poetry.plugins."cr_kyoushi.simulation"]
 "ait.web_browser" = "cr_kyoushi.statemachines.web_browser:StatemachineFactory"
 
 
@@ -23,7 +23,7 @@ secondary = true
 
 [tool.poetry.dependencies]
 python = "^3.7"
-cr-kyoushi-simulation = "^0.2.1"
+cr-kyoushi-simulation = "^0.2.2"
 selenium = "^3.141.0"
 webdriver-manager = "^3.2.2"
 
