@@ -15,9 +15,12 @@ from pydantic import AnyUrl
 from pydantic import BaseModel
 from pydantic import Field
 from pydantic import PositiveInt
+from pydantic import SecretStr
 from pydantic import validator
 from pydantic.errors import EnumMemberError
 from selenium import webdriver
+from selenium.webdriver.common.proxy import Proxy
+from selenium.webdriver.common.proxy import ProxyType
 from selenium.webdriver.edge.options import Options as EdgeOptions
 from selenium.webdriver.opera.options import Options as OperaOptions
 from webdriver_manager.chrome import ChromeDriverManager
@@ -101,6 +104,45 @@ class WebdriverManagerConfig(BaseModel):
     )
 
 
+class SeleniumProxyConfig(BaseModel):
+    """Selenium webdriver proxy configuration"""
+
+    enabled: bool = Field(
+        False,
+        description="If a proxy should be used or not",
+    )
+
+    host: str = Field(
+        "localhost",
+        description="The proxy host",
+    )
+
+    port: PositiveInt = Field(
+        8080,
+        description="The proxy port",
+    )
+
+    socks: bool = Field(
+        False,
+        description="If a socks proxy should be used instead of a HTTP proxy",
+    )
+
+    socks_version: PositiveInt = Field(
+        5,
+        description="The SOCKS protocol version to use",
+    )
+
+    username: Optional[str] = Field(
+        None,
+        description="The socks username to use for authentication",
+    )
+
+    password: Optional[SecretStr] = Field(
+        None,
+        description="The socks password to use for authentication",
+    )
+
+
 class SeleniumConfig(BaseModel):
     """Configuration class for selenium drivers"""
 
@@ -122,6 +164,11 @@ class SeleniumConfig(BaseModel):
     headless: bool = Field(
         False,
         description="If the browser should be run in headless mode or not.",
+    )
+
+    proxy: SeleniumProxyConfig = Field(
+        SeleniumProxyConfig(),
+        description="The proxy configuration to use for the webdriver",
     )
 
     implicit_wait: float = Field(
@@ -298,6 +345,32 @@ def get_webdriver(
 
     # configure SSL cert insecure option
     options.set_capability("acceptInsecureCerts", config.accept_insecure_ssl)
+
+    # configure proxy
+    if config.proxy.enabled:
+        proxy_url = f"{config.proxy.host}:{str(config.proxy.port)}"
+        proxy = Proxy()
+
+        proxy.proxy_type = ProxyType.MANUAL
+        proxy.autodetect = False
+        proxy.ftp_proxy = proxy_url
+        if config.proxy.socks:
+            proxy.socks_proxy = proxy_url
+            # auth settings
+            if config.proxy.username is not None and config.proxy.password is not None:
+                proxy.socks_username = config.proxy.username
+                proxy.socks_password = config.proxy.password
+        else:
+            proxy.http_proxy = proxy_url
+            proxy.ssl_proxy = proxy_url
+
+        # options: webdriver.ChromeOptions
+        # apply proxy settings
+        proxy.add_to_capabilities(options.capabilities)
+        if config.proxy.socks:
+            # need to manually set the socksVersion since
+            # the proxy config object does not expose the setting
+            options.capabilities["proxy"]["socksVersion"] = config.proxy.socks_version
 
     # create driver
     driver = driver_info["driver"](
