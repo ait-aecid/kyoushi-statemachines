@@ -14,6 +14,7 @@ packages = [
 
 [tool.poetry.plugins."cr_kyoushi.simulation"]
 "ait.web_browser" = "cr_kyoushi.statemachines.web_browser:StatemachineFactory"
+"ait.horde_user" = "cr_kyoushi.statemachines.horde_user:StatemachineFactory"
 
 
 [[tool.poetry.source]]
