@@ -10,11 +10,11 @@ from cr_kyoushi.simulation.model import WorkSchedule
 from ..core.selenium import SeleniumConfig
 from ..core.selenium import get_webdriver
 from ..core.selenium import install_webdriver
+from ..core.transitions import IdleTransition
 from .config import Context
 from .config import StatemachineConfig
 from .states import ActivitySelectionState
 from .states import WebsiteState
-from .transitions import Idle
 from .transitions import OpenLink
 from .transitions import VisitWebsite
 from .transitions import background_website
@@ -85,8 +85,10 @@ class StatemachineFactory(sm.StatemachineFactory):
 
     def build(self, config: StatemachineConfig):
         # setup transitions
-        idle_transition = transitions.Transition(
-            transition_function=Idle(config.user.idle_time, config.end_time),
+
+        idle_transition = IdleTransition(
+            idle_amount=config.user.idle_time,
+            end_time=config.end_time,
             name="idle",
             target="selecting_activity",
         )
