@@ -15,6 +15,14 @@ from selenium.webdriver.support.wait import WebDriverWait
 TIMEOUT = 30
 
 
+class CheckTitleContains:
+    def __init__(self, title: str):
+        self.title = title
+
+    def __call__(self, driver: webdriver.Remote) -> Optional[Any]:
+        return self.title in driver.title
+
+
 def horde_wait(
     driver: webdriver.Remote,
     check_func: Callable[[webdriver.Remote], Optional[Any]],

@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
+from faker import Faker
 from pydantic import BaseModel
 from pydantic import Field
 from selenium import webdriver
@@ -71,6 +72,9 @@ class StatemachineConfig(BaseModel):
 class Context(BaseModel):
     driver: webdriver.Remote
     """The selenium web driver"""
+
+    fake: Faker
+    """Faker instance to use for generating various random content"""
 
     class Config:
         arbitrary_types_allowed = True

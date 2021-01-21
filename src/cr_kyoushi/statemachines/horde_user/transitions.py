@@ -1,5 +1,8 @@
 import random
 
+from typing import Any
+from typing import Callable
+from typing import Optional
 from urllib.parse import parse_qs
 from urllib.parse import urlparse
 
@@ -12,6 +15,7 @@ from selenium.webdriver.common.by import By
 from structlog.stdlib import BoundLogger
 
 from .config import Context
+from .wait import CheckTitleContains
 from .wait import check_address_book_page
 from .wait import check_admin_groups_page
 from .wait import check_calendar_page
@@ -203,14 +207,20 @@ navigate_notes_menu = NavigateNotesMenu()
 
 
 class NavigateSettingsMenu(NavigateMainMenu):
-    def __init__(self, sub_menu: int, link_text: str, expected_title: str, name: str):
+    def __init__(
+        self,
+        sub_menu: int,
+        link_text: str,
+        on_page_check: Callable[[webdriver.Remote], Optional[Any]],
+        name: str,
+    ):
         self.sub_menu: int = sub_menu
         self.link_text: str = link_text
-        self.expected_title: str = expected_title
+        self.on_page_check: Callable[[webdriver.Remote], Optional[Any]] = on_page_check
         super().__init__(7, name)
 
     def click_menu(self, log: BoundLogger, context: Context):
-        if self.expected_title not in context.driver.title:
+        if not self.on_page_check(context.driver):
             menu_nav = context.driver.find_element_by_css_selector(
                 f"div.horde-navipoint:nth-child({self.menu_item}) > ul:nth-child(2) > li:nth-child(1) > ul:nth-child(2) > li:nth-child({self.sub_menu})"
             )
@@ -230,7 +240,7 @@ class NavigateAdminConfiguration(NavigateSettingsMenu):
         super().__init__(
             sub_menu=1,
             link_text="Configuration",
-            expected_title="Horde Configuration",
+            on_page_check=CheckTitleContains("Horde Configuration"),
             name="Admin Configuration",
         )
 
@@ -243,7 +253,7 @@ class NavigateAdminUsers(NavigateSettingsMenu):
         super().__init__(
             sub_menu=1,
             link_text="Users",
-            expected_title="User Administration",
+            on_page_check=CheckTitleContains("User Administration"),
             name="Admin Users",
         )
 
@@ -256,7 +266,7 @@ class NavigateAdminGroups(NavigateSettingsMenu):
         super().__init__(
             sub_menu=1,
             link_text="Groups",
-            expected_title="Group Administration",
+            on_page_check=check_admin_groups_page,
             name="Admin Groups",
         )
 
@@ -267,7 +277,7 @@ navigate_admin_groups = NavigateAdminGroups()
 def add_user_group(log: BoundLogger, context: Context):
     driver: webdriver.Remote = context.driver
     if check_admin_groups_page(driver):
-        group_name = "sometext"  # ToDo Randomize
+        group_name = context.fake.word()
 
         # add group to log context
         log = log.bind(horde_group=group_name)
@@ -350,7 +360,7 @@ class NavigateAdminPermissions(NavigateSettingsMenu):
         super().__init__(
             sub_menu=1,
             link_text="Permissions",
-            expected_title="Permissions Administration",
+            on_page_check=CheckTitleContains("Permissions Administration"),
             name="Admin Permissions",
         )
 
@@ -363,7 +373,7 @@ class NavigateAdminLocks(NavigateSettingsMenu):
         super().__init__(
             sub_menu=1,
             link_text="Locks",
-            expected_title="Locks",
+            on_page_check=CheckTitleContains("Locks"),
             name="Admin Locks",
         )
 
@@ -376,7 +386,7 @@ class NavigateAdminAlarms(NavigateSettingsMenu):
         super().__init__(
             sub_menu=1,
             link_text="Alarms",
-            expected_title="Alarms",
+            on_page_check=CheckTitleContains("Alarms"),
             name="Admin Alarms",
         )
 
@@ -389,7 +399,7 @@ class NavigateAdminSessions(NavigateSettingsMenu):
         super().__init__(
             sub_menu=1,
             link_text="Sessions",
-            expected_title="Session Administration",
+            on_page_check=CheckTitleContains("Session Administration"),
             name="Admin Sessions",
         )
 
@@ -402,7 +412,7 @@ class NavigateAdminPHPShell(NavigateSettingsMenu):
         super().__init__(
             sub_menu=1,
             link_text="PHP Shell",
-            expected_title="PHP Shell",
+            on_page_check=CheckTitleContains("PHP Shell"),
             name="Admin PHPShell",
         )
 
@@ -415,7 +425,7 @@ class NavigateAdminSQLShell(NavigateSettingsMenu):
         super().__init__(
             sub_menu=1,
             link_text="SQL Shell",
-            expected_title="SQL Shell",
+            on_page_check=CheckTitleContains("SQL Shell"),
             name="Admin SQLShell",
         )
 
@@ -428,7 +438,7 @@ class NavigateAdminCLI(NavigateSettingsMenu):
         super().__init__(
             sub_menu=1,
             link_text="CLI",
-            expected_title="Command Shell",
+            on_page_check=CheckTitleContains("Command Shell"),
             name="Admin CLI",
         )
 
@@ -441,7 +451,7 @@ class NavigatePreferencesGlobal(NavigateSettingsMenu):
         super().__init__(
             sub_menu=2,
             link_text="Global Preferences",
-            expected_title="User Preferences",
+            on_page_check=CheckTitleContains("User Preferences"),
             name="Global Preferences",
         )
 

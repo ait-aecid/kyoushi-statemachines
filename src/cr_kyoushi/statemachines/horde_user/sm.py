@@ -2,8 +2,11 @@ from datetime import datetime
 from typing import List
 from typing import Optional
 
+from faker import Faker
+
 from cr_kyoushi.simulation import sm
 from cr_kyoushi.simulation import states
+from cr_kyoushi.simulation.config import get_seed
 from cr_kyoushi.simulation.model import WorkSchedule
 
 from ..core.selenium import SeleniumConfig
@@ -41,6 +44,9 @@ class Statemachine(sm.WorkHoursStatemachine):
         self._selenium_config = selenium_config
         self._webdriver_path = None
         self.context: Optional[Context] = None
+        # seed faker random with global seed
+        Faker.seed(get_seed())
+        self.fake: Faker = Faker()
 
     def setup_context(self):
         # we assume we only install once at the start of the sm
@@ -51,7 +57,8 @@ class Statemachine(sm.WorkHoursStatemachine):
             driver=get_webdriver(
                 self._selenium_config,
                 self._webdriver_path,
-            )
+            ),
+            fake=self.fake,
         )
 
     def destroy_context(self):
