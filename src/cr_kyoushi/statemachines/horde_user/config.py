@@ -71,12 +71,29 @@ class StatemachineConfig(BaseModel):
     )
 
 
+class GroupInfo(BaseModel):
+    gid: Optional[int] = Field(
+        None,
+        description="The horde group id",
+    )
+
+    name: Optional[str] = Field(
+        None,
+        description="The horde group name",
+    )
+
+
 class Context(BaseModel):
     driver: webdriver.Remote
     """The selenium web driver"""
 
     fake: Faker
     """Faker instance to use for generating various random content"""
+
+    current_group: GroupInfo = Field(
+        GroupInfo(),
+        description="The group that is currently being modified",
+    )
 
     class Config:
         arbitrary_types_allowed = True

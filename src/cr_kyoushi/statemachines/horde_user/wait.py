@@ -209,10 +209,16 @@ def check_horde_action_error(driver: webdriver.Remote) -> Optional[Any]:
     )(driver)
 
 
-def check_horde_delete_confirm(driver: webdriver.Remote) -> Optional[Any]:
+def check_horde_group_delete_confirm(driver: webdriver.Remote) -> Optional[Any]:
     return ec.visibility_of_all_elements_located(
         (
             By.XPATH,
             "//input[@class='horde-delete' and @type='submit' and @name='confirm' and @value='Delete']",
+        )
+        and ec.visibility_of_all_elements_located(
+            (
+                By.XPATH,
+                "//form[@name='delete' and @action='groups.php']/h1[@class='header']",
+            )
         )
     )

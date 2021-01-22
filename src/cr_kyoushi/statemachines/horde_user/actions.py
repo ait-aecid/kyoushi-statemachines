@@ -16,7 +16,7 @@ from .wait import (
     check_home_page,
     check_horde_action,
     check_horde_action_success,
-    check_horde_delete_confirm,
+    check_horde_group_delete_confirm,
     check_logged_out,
     horde_wait,
 )
@@ -101,13 +101,18 @@ def delete_user_group(log: BoundLogger, context: Context):
 
             # get group name and group id from link
             group_link = group_row.find_element_by_xpath(".//span[position()=3]/a")
-            group_id = parse_qs(urlparse(group_link.get_attribute("href")).query).get(
-                "gid", ["-1"]
-            )[0]
-            group_name = group_link.text
+            context.current_group.gid = int(
+                parse_qs(urlparse(group_link.get_attribute("href")).query).get(
+                    "gid", ["-1"]
+                )[0]
+            )
+            context.current_group.name = group_link.text
 
             # add gid and group name to log context
-            log = log.bind(horde_gid=group_id, horde_group=group_name)
+            log = log.bind(
+                horde_gid=context.current_group.gid,
+                horde_group=context.current_group.name,
+            )
 
             log.info("Deleting group")
             # get delete icon and click on it
@@ -116,26 +121,43 @@ def delete_user_group(log: BoundLogger, context: Context):
             ).click()
 
             # wait for confirm page to load
-            horde_wait(driver, check_horde_delete_confirm)
+            horde_wait(driver, check_horde_group_delete_confirm)
 
-            log.info("Confirming delete")
-            # get delete confirm button and click on it
-            driver.find_element_by_xpath(
-                "//input[@class='horde-delete' and @type='submit' and @name='confirm' and @value='Delete']"
-            ).click()
-
-            # horde wait for success/fail message
-            horde_wait(driver, check_horde_action)
-
-            if check_horde_action_success(driver):
-                log.info("Deleted group")
-            else:
-                log.info("Failed to remove group")
         else:
             log.warn("No group to delete")
     else:
         log.error(
             "Invalid action for current page",
             horde_action="delete_group",
+            current_page=driver.current_url,
+        )
+
+
+def confirm_delete_user_group(log: BoundLogger, context: Context):
+    driver: webdriver.Remote = context.driver
+    if check_horde_group_delete_confirm(driver):
+        # add gid and group name to log context
+        log = log.bind(
+            horde_gid=context.current_group.gid,
+            horde_group=context.current_group.name,
+        )
+
+        log.info("Confirming delete")
+        # get delete confirm button and click on it
+        driver.find_element_by_xpath(
+            "//input[@class='horde-delete' and @type='submit' and @name='confirm' and @value='Delete']"
+        ).click()
+
+        # horde wait for success/fail message
+        horde_wait(driver, check_horde_action)
+
+        if check_horde_action_success(driver):
+            log.info("Deleted group")
+        else:
+            log.info("Failed to remove group")
+    else:
+        log.error(
+            "Invalid action for current page",
+            horde_action="confirm_delete_group",
             current_page=driver.current_url,
         )
