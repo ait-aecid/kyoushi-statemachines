@@ -2,8 +2,10 @@
 This module contains various utility functions.
 """
 
-from typing import Dict
-from typing import TypeVar
+from typing import (
+    Dict,
+    TypeVar,
+)
 
 
 _FILTER_KEY = TypeVar("_FILTER_KEY")

@@ -1,10 +1,14 @@
-from typing import Optional
-from typing import Union
+from typing import (
+    Optional,
+    Union,
+)
 
 from structlog import BoundLogger
 
-from cr_kyoushi.simulation import states
-from cr_kyoushi.simulation import transitions
+from cr_kyoushi.simulation import (
+    states,
+    transitions,
+)
 from cr_kyoushi.simulation.util import now
 
 from .config import Context

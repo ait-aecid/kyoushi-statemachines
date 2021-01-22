@@ -1,25 +1,31 @@
-from typing import Any
-from typing import Callable
-from typing import Optional
+from typing import (
+    Any,
+    Callable,
+    Optional,
+)
 
 from pydantic import AnyUrl
 from selenium import webdriver
-from selenium.common.exceptions import ElementNotInteractableException
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import (
+    ElementNotInteractableException,
+    NoSuchElementException,
+)
 from selenium.webdriver.common.by import By
 from structlog.stdlib import BoundLogger
 
 from .config import Context
-from .wait import CheckTitleContains
-from .wait import check_address_book_page
-from .wait import check_admin_groups_page
-from .wait import check_calendar_page
-from .wait import check_home_page
-from .wait import check_mail_page
-from .wait import check_notes_page
-from .wait import check_personal_information
-from .wait import check_tasks_page
-from .wait import horde_wait
+from .wait import (
+    CheckTitleContains,
+    check_address_book_page,
+    check_admin_groups_page,
+    check_calendar_page,
+    check_home_page,
+    check_mail_page,
+    check_notes_page,
+    check_personal_information,
+    check_tasks_page,
+    horde_wait,
+)
 
 
 # from cr_kyoushi.simulation import transitions

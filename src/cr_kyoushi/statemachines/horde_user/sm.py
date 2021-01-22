@@ -1,19 +1,27 @@
 from datetime import datetime
-from typing import List
-from typing import Optional
+from typing import (
+    List,
+    Optional,
+)
 
 from faker import Faker
 
-from cr_kyoushi.simulation import sm
-from cr_kyoushi.simulation import states
+from cr_kyoushi.simulation import (
+    sm,
+    states,
+)
 from cr_kyoushi.simulation.config import get_seed
 from cr_kyoushi.simulation.model import WorkSchedule
 
-from ..core.selenium import SeleniumConfig
-from ..core.selenium import get_webdriver
-from ..core.selenium import install_webdriver
-from .config import Context
-from .config import StatemachineConfig
+from ..core.selenium import (
+    SeleniumConfig,
+    get_webdriver,
+    install_webdriver,
+)
+from .config import (
+    Context,
+    StatemachineConfig,
+)
 
 
 __all__ = ["Statemachine", "StatemachineFactory"]

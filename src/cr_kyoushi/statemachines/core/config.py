@@ -3,13 +3,17 @@ This module contains configuration and context classes or elements,
 which might be useful for many state machines.
 """
 
-from typing import Any
-from typing import Dict
-from typing import Union
+from typing import (
+    Any,
+    Dict,
+    Union,
+)
 
-from pydantic import BaseModel
-from pydantic import root_validator
-from pydantic import validator
+from pydantic import (
+    BaseModel,
+    root_validator,
+    validator,
+)
 
 
 ProbVal = Union[

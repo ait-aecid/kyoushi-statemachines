@@ -1,15 +1,21 @@
-from datetime import datetime
-from datetime import timedelta
+from datetime import (
+    datetime,
+    timedelta,
+)
 from typing import Optional
 
 from structlog import BoundLogger
 
-from cr_kyoushi.simulation.model import ApproximateFloat
-from cr_kyoushi.simulation.model import Context
+from cr_kyoushi.simulation.model import (
+    ApproximateFloat,
+    Context,
+)
 from cr_kyoushi.simulation.transitions import Transition
-from cr_kyoushi.simulation.util import now
-from cr_kyoushi.simulation.util import sleep
-from cr_kyoushi.simulation.util import sleep_until
+from cr_kyoushi.simulation.util import (
+    now,
+    sleep,
+    sleep_until,
+)
 
 
 __all__ = ["Idle", "IdleTransition"]

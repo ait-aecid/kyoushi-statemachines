@@ -1,5 +1,7 @@
-from typing import Any
-from typing import Dict
+from typing import (
+    Any,
+    Dict,
+)
 
 from pytest_mock import MockFixture
 

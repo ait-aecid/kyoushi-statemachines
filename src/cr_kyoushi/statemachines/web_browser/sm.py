@@ -1,25 +1,37 @@
 from datetime import datetime
-from typing import List
-from typing import Optional
+from typing import (
+    List,
+    Optional,
+)
 
-from cr_kyoushi.simulation import sm
-from cr_kyoushi.simulation import states
-from cr_kyoushi.simulation import transitions
+from cr_kyoushi.simulation import (
+    sm,
+    states,
+    transitions,
+)
 from cr_kyoushi.simulation.model import WorkSchedule
 
-from ..core.selenium import SeleniumConfig
-from ..core.selenium import get_webdriver
-from ..core.selenium import install_webdriver
+from ..core.selenium import (
+    SeleniumConfig,
+    get_webdriver,
+    install_webdriver,
+)
 from ..core.transitions import IdleTransition
-from .config import Context
-from .config import StatemachineConfig
-from .states import ActivitySelectionState
-from .states import WebsiteState
-from .transitions import OpenLink
-from .transitions import VisitWebsite
-from .transitions import background_website
-from .transitions import close_website
-from .transitions import leave_website
+from .config import (
+    Context,
+    StatemachineConfig,
+)
+from .states import (
+    ActivitySelectionState,
+    WebsiteState,
+)
+from .transitions import (
+    OpenLink,
+    VisitWebsite,
+    background_website,
+    close_website,
+    leave_website,
+)
 
 
 __all__ = ["Statemachine", "StatemachineFactory"]

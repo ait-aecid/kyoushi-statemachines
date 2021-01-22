@@ -5,29 +5,37 @@ as part of simulations.
 
 from enum import Enum
 from pathlib import Path
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Union
+from typing import (
+    Any,
+    Dict,
+    List,
+    Optional,
+    Union,
+)
 
-from pydantic import AnyUrl
-from pydantic import BaseModel
-from pydantic import Field
-from pydantic import PositiveInt
-from pydantic import SecretStr
-from pydantic import validator
+from pydantic import (
+    AnyUrl,
+    BaseModel,
+    Field,
+    PositiveInt,
+    SecretStr,
+    validator,
+)
 from pydantic.errors import EnumMemberError
 from selenium import webdriver
-from selenium.webdriver.common.proxy import Proxy
-from selenium.webdriver.common.proxy import ProxyType
+from selenium.webdriver.common.proxy import (
+    Proxy,
+    ProxyType,
+)
 from selenium.webdriver.edge.options import Options as EdgeOptions
 from selenium.webdriver.opera.options import Options as OperaOptions
 from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.firefox import GeckoDriverManager
 from webdriver_manager.manager import DriverManager
-from webdriver_manager.microsoft import EdgeChromiumDriverManager
-from webdriver_manager.microsoft import IEDriverManager
+from webdriver_manager.microsoft import (
+    EdgeChromiumDriverManager,
+    IEDriverManager,
+)
 from webdriver_manager.opera import OperaDriverManager
 from webdriver_manager.utils import ChromeType
 

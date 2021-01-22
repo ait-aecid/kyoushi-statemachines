@@ -2,8 +2,10 @@ from datetime import datetime
 from typing import Optional
 
 from faker import Faker
-from pydantic import BaseModel
-from pydantic import Field
+from pydantic import (
+    BaseModel,
+    Field,
+)
 from selenium import webdriver
 
 from cr_kyoushi.simulation.model import WorkSchedule

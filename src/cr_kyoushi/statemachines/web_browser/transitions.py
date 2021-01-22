@@ -1,7 +1,9 @@
 import random
 
-from typing import List
-from typing import Optional
+from typing import (
+    List,
+    Optional,
+)
 from urllib.parse import urlparse
 
 from pydantic import AnyUrl

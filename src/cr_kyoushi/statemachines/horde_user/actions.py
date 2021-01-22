@@ -1,7 +1,9 @@
 import random
 
-from urllib.parse import parse_qs
-from urllib.parse import urlparse
+from urllib.parse import (
+    parse_qs,
+    urlparse,
+)
 
 from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
@@ -9,13 +11,15 @@ from selenium.webdriver.common.by import By
 from structlog.stdlib import BoundLogger
 
 from .config import Context
-from .wait import check_admin_groups_page
-from .wait import check_home_page
-from .wait import check_horde_action
-from .wait import check_horde_action_success
-from .wait import check_horde_delete_confirm
-from .wait import check_logged_out
-from .wait import horde_wait
+from .wait import (
+    check_admin_groups_page,
+    check_home_page,
+    check_horde_action,
+    check_horde_action_success,
+    check_horde_delete_confirm,
+    check_logged_out,
+    horde_wait,
+)
 
 
 class LoginToHorde:

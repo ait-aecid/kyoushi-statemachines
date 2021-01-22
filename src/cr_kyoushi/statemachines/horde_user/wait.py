@@ -1,15 +1,19 @@
-from typing import Any
-from typing import Callable
-from typing import Optional
-from typing import Tuple
-from typing import Union
+from typing import (
+    Any,
+    Callable,
+    Optional,
+    Tuple,
+    Union,
+)
 
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
-from selenium.webdriver.support.wait import POLL_FREQUENCY
-from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support.wait import (
+    POLL_FREQUENCY,
+    WebDriverWait,
+)
 
 
 TIMEOUT = 30

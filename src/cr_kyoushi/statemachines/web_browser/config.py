@@ -1,20 +1,30 @@
-from datetime import date
-from datetime import datetime
-from typing import List
-from typing import Optional
+from datetime import (
+    date,
+    datetime,
+)
+from typing import (
+    List,
+    Optional,
+)
 
-from pydantic import AnyUrl
-from pydantic import BaseModel
-from pydantic import Field
+from pydantic import (
+    AnyUrl,
+    BaseModel,
+    Field,
+)
 from selenium import webdriver
 from selenium.webdriver.remote.webelement import WebElement
 
-from cr_kyoushi.simulation.model import ApproximateFloat
-from cr_kyoushi.simulation.model import WorkSchedule
+from cr_kyoushi.simulation.model import (
+    ApproximateFloat,
+    WorkSchedule,
+)
 from cr_kyoushi.simulation.util import now
 
-from ..core.config import ProbabilisticStateConfig
-from ..core.config import ProbVal
+from ..core.config import (
+    ProbabilisticStateConfig,
+    ProbVal,
+)
 from ..core.selenium import SeleniumConfig
 
 
