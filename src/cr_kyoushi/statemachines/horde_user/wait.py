@@ -95,10 +95,24 @@ def check_calendar_page(driver: webdriver.Remote) -> Optional[Any]:
 
 def check_address_book_page(driver: webdriver.Remote) -> Optional[Any]:
     try:
-        return ec.visibility_of_all_elements_located((By.NAME, "directory_search"))(
+        return CheckTitleContains("Address Book")(
             driver
         ) and ec.visibility_of_all_elements_located((By.LINK_TEXT, "New Contact"))(
             driver
+        )
+    except NoSuchElementException:
+        return False
+
+
+def check_address_book_search_page(driver: webdriver.Remote) -> Optional[Any]:
+    try:
+        return (
+            # check if this is a address book subpage
+            check_address_book_page(driver)
+            # check search bar is loaded
+            and ec.visibility_of_all_elements_located((By.NAME, "directory_search"))(
+                driver
+            )
         )
     except NoSuchElementException:
         return False

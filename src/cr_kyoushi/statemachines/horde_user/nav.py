@@ -131,6 +131,7 @@ navigate_address_book_menu = NavigateAddressBookMenu()
 def navigate_address_book_browse(log: BoundLogger, context: Context):
     driver: webdriver.Remote = context.driver
     if check_address_book_page(driver):
+        log.info("Navigate to address book browse")
         driver.find_element(By.LINK_TEXT, "Browse").click()
 
         # wait for browse page to load
