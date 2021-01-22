@@ -2,6 +2,7 @@
 This module contains configuration and utility functions for using Selenium webdrivers
 as part of simulations.
 """
+import time
 
 from enum import Enum
 from pathlib import Path
@@ -29,6 +30,7 @@ from selenium.webdriver.common.proxy import (
 )
 from selenium.webdriver.edge.options import Options as EdgeOptions
 from selenium.webdriver.opera.options import Options as OperaOptions
+from selenium.webdriver.remote.webelement import WebElement
 from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.firefox import GeckoDriverManager
 from webdriver_manager.manager import DriverManager
@@ -39,7 +41,10 @@ from webdriver_manager.microsoft import (
 from webdriver_manager.opera import OperaDriverManager
 from webdriver_manager.utils import ChromeType
 
-from cr_kyoushi.simulation.model import LogLevel
+from cr_kyoushi.simulation.model import (
+    ApproximateFloat,
+    LogLevel,
+)
 
 from .util import filter_none_keys
 
@@ -394,3 +399,28 @@ def get_webdriver(
     driver.set_window_position(x=config.window_x_position, y=config.window_y_position)
 
     return driver
+
+
+def slow_type(
+    element: WebElement,
+    text: str,
+    delay: Union[float, ApproximateFloat] = ApproximateFloat(
+        min=0.05,
+        max=0.5,
+    ),
+):
+    """Send a text to an element one character at a time with a delay.
+
+    Args:
+        element: The element to send the text to
+        text: The text to send
+        delay: The delay to use in between key strokes.
+    """
+    # get random delay value if we got a approximate float
+    if isinstance(delay, ApproximateFloat):
+        delay = delay.value
+
+    # type the text
+    for character in text:
+        element.send_keys(character)
+        time.sleep(delay)
