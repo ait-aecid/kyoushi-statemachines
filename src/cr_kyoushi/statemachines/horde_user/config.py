@@ -1,5 +1,8 @@
 from datetime import datetime
-from typing import Optional
+from typing import (
+    Optional,
+    Union,
+)
 
 from faker import Faker
 from pydantic import (
@@ -8,7 +11,10 @@ from pydantic import (
 )
 from selenium import webdriver
 
-from cr_kyoushi.simulation.model import WorkSchedule
+from cr_kyoushi.simulation.model import (
+    ApproximateFloat,
+    WorkSchedule,
+)
 
 from ..core.selenium import SeleniumConfig
 
@@ -110,6 +116,14 @@ class HordeContext(BaseModel):
     contact: ContactInfo = Field(
         ContactInfo(),
         description="The contact that is currently beeing modified",
+    )
+
+    form_field_delay: Union[float, ApproximateFloat] = Field(
+        ApproximateFloat(
+            min=0.5,
+            max=3,
+        ),
+        description="The delay to use in between form fields to fill out",
     )
 
 

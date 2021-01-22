@@ -176,7 +176,7 @@ def navigate_address_book_contact(log: BoundLogger, context: Context):
     else:
         log.error(
             "Invalid action for current page",
-            horde_action="delete_contact",
+            horde_action="goto_contact",
             current_page=driver.current_url,
         )
 

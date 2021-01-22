@@ -3,6 +3,7 @@ import random
 from typing import (
     Any,
     Dict,
+    Union,
 )
 from urllib.parse import (
     parse_qs,
@@ -13,8 +14,13 @@ from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.support.ui import Select
 from structlog.stdlib import BoundLogger
 
+from cr_kyoushi.simulation.model import ApproximateFloat
+from cr_kyoushi.simulation.util import sleep
+
+from ..core.selenium import slow_type
 from .config import (
     Context,
     HordeContext,
@@ -31,6 +37,8 @@ from .wait import (
     check_horde_group_delete_confirm,
     check_logged_out,
     check_new_contact_page,
+    check_new_task_general_tab,
+    check_tasks_page,
     horde_wait,
 )
 
@@ -186,6 +194,114 @@ def confirm_delete_contact(log: BoundLogger, context: Context):
         log.error(
             "Invalid action for current page",
             horde_action="delete_contact",
+            current_page=driver.current_url,
+        )
+
+
+def new_task(log: BoundLogger, context: Context):
+    driver: webdriver.Remote = context.driver
+    if check_tasks_page(driver):
+        log.info("Adding task")
+        driver.find_element_by_xpath(
+            "//div[@class='horde-new']//span[@class='horde-new-link']/a"
+        ).click()
+        # wait for new task form to load
+        horde_wait(driver, check_new_task_general_tab)
+    else:
+        log.error(
+            "Invalid action for current page",
+            horde_action="new_task",
+            current_page=driver.current_url,
+        )
+
+
+def save_new_task(log: BoundLogger, context: Context):
+    driver: webdriver.Remote = context.driver
+    form_delay: Union[ApproximateFloat, float] = context.horde.form_field_delay
+    if check_new_task_general_tab(driver):
+        # fill out form
+        # set task name
+        name = " ".join(context.fake.words(2))
+        slow_type(
+            element=driver.find_element_by_id("name"),
+            text=name,
+        )
+        sleep(form_delay)
+
+        # set tags field
+        tags_count = random.randint(0, 3)
+        tags = []
+        if tags_count > 0:
+            tags = context.fake.words(tags_count)
+            log.info("Enter tags", horde_tags=tags)
+            slow_type(
+                element=driver.find_element_by_id("tags"),
+                text=", ".join(tags),
+            )
+            sleep(form_delay)
+
+        # set assignee
+        assignee_select = Select(driver.find_element(By.CSS_SELECTOR, "#assignee"))
+        assignee_index = random.randint(
+            0,
+            len(assignee_select.options) - 1,
+        )
+        # get selected assignee value ("" means no assignee)
+        assignee = assignee_select.options[assignee_index].get_attribute("value")
+        assignee_select.select_by_index(assignee_index)
+        sleep(form_delay)
+
+        # set private setting
+        private = bool(random.getrandbits(1))
+        if private:
+            driver.find_element_by_id("private").click()
+        sleep(form_delay)
+
+        # select priority
+        priority_select = Select(driver.find_element(By.CSS_SELECTOR, "#priority"))
+        priority_index = random.randint(
+            0,
+            len(priority_select.options) - 1,
+        )
+        # get selected priority value ("" means no priority)
+        priority = priority_select.options[priority_index].get_attribute("value")
+        priority_select.select_by_index(priority_index)
+        sleep(form_delay)
+
+        # set time estimate
+        estimate = random.randint(1, 100)
+        estimate_input = driver.find_element_by_id("estimate")
+        slow_type(
+            element=estimate_input,
+            text=str(estimate),
+        )
+        sleep(form_delay)
+
+        log.info(
+            "Saving new task",
+            name=name,
+            tags=tags,
+            assignee=assignee,
+            private=private,
+            priority=priority,
+            estimate=estimate,
+        )
+        driver.find_element_by_xpath(
+            "//form[@id='nag_form_task']//input[@type='submit' and @value='Save']"
+        ).click()
+
+        horde_wait(driver, check_horde_action)
+        if check_horde_action_success(driver):
+            log.info("Saved task")
+        else:
+            log.info("Failed to save task")
+
+        # wait for task page to load
+        horde_wait(driver, check_tasks_page)
+    else:
+        log.error(
+            "Invalid action for current page",
+            horde_action="save_task",
             current_page=driver.current_url,
         )
 

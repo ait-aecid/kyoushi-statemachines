@@ -230,7 +230,32 @@ def check_contact_delete_confirm_page(driver: webdriver.Remote):
 
 
 def check_tasks_page(driver: webdriver.Remote) -> Optional[Any]:
-    return ec.presence_of_element_located((By.ID, "nag-toggle-my"))(driver)
+    try:
+        return ec.visibility_of_element_located((By.ID, "nag-toggle-my"))(driver)
+    except NoSuchElementException:
+        return False
+
+
+def check_new_task_general_tab(driver: webdriver.Remote) -> Optional[Any]:
+    try:
+        return (
+            # verify that we are on the general tab
+            ec.visibility_of_all_elements_located(
+                (
+                    By.XPATH,
+                    "//li[@id='nag_form_task_tab_1' and @class='horde-active']",
+                )
+            )(driver)
+            # verify input form is ready (due date has current date prefilled)
+            and ec.visibility_of_all_elements_located(
+                (
+                    By.XPATH,
+                    "//input[@id='due_date' and @value!='']",
+                )
+            )(driver)
+        )
+    except NoSuchElementException:
+        return False
 
 
 def check_notes_page(driver: webdriver.Remote) -> Optional[Any]:
