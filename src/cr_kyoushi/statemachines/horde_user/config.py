@@ -83,6 +83,36 @@ class GroupInfo(BaseModel):
     )
 
 
+class ContactInfo(BaseModel):
+    source: Optional[str] = Field(
+        None,
+        description="The contact source id",
+    )
+
+    key: Optional[str] = Field(
+        None,
+        description="The contact key",
+    )
+
+    name: Optional[str] = Field(
+        None,
+        description="The contact full name",
+    )
+
+
+class HordeContext(BaseModel):
+
+    group: GroupInfo = Field(
+        GroupInfo(),
+        description="The group that is currently being modified",
+    )
+
+    contact: ContactInfo = Field(
+        ContactInfo(),
+        description="The contact that is currently beeing modified",
+    )
+
+
 class Context(BaseModel):
     driver: webdriver.Remote
     """The selenium web driver"""
@@ -90,9 +120,9 @@ class Context(BaseModel):
     fake: Faker
     """Faker instance to use for generating various random content"""
 
-    current_group: GroupInfo = Field(
-        GroupInfo(),
-        description="The group that is currently being modified",
+    horde: HordeContext = Field(
+        HordeContext(),
+        description="The horde specific context variables",
     )
 
     class Config:

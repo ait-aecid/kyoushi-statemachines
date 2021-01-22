@@ -94,7 +94,125 @@ def check_calendar_page(driver: webdriver.Remote) -> Optional[Any]:
 
 
 def check_address_book_page(driver: webdriver.Remote) -> Optional[Any]:
-    return ec.presence_of_element_located((By.NAME, "directory_search"))(driver)
+    try:
+        return ec.visibility_of_all_elements_located((By.NAME, "directory_search"))(
+            driver
+        ) and ec.visibility_of_all_elements_located((By.LINK_TEXT, "New Contact"))(
+            driver
+        )
+    except NoSuchElementException:
+        return False
+
+
+def check_new_contact_page(driver: webdriver.Remote) -> Optional[Any]:
+    try:
+
+        return CheckTitleContains("New Contact")(
+            driver
+        ) and ec.visibility_of_element_located((By.ID, "turba_form_addcontact_active"))(
+            driver
+        )
+    except NoSuchElementException:
+        return False
+
+
+class CheckNewContactTab:
+    def __init__(self, section_id: int):
+        self.section_id: int = section_id
+
+    def __call__(self, driver: webdriver.Remote) -> Optional[Any]:
+        try:
+            form_div = driver.find_element_by_id("turba_form_addcontact_active")
+            return ec.visibility_of(
+                form_div.find_element_by_xpath(
+                    f".//li[@id='turba_form_addcontact_tab_{self.section_id}' and @class='horde-active']"
+                )
+            ) and ec.visibility_of_element_located(
+                (By.ID, f"turba_form_addcontact_section_{self.section_id}")
+            )(
+                driver
+            )
+        except NoSuchElementException:
+            return False
+
+
+def check_address_book_browse(driver: webdriver.Remote):
+    try:
+        return (
+            # check for empty contacts loaded
+            ec.visibility_of_all_elements_located(
+                (
+                    By.XPATH,
+                    "//div[@id='horde-content']//em[text()='No matching contacts']",
+                )
+            )(driver)
+            # if we have contacts check that the table is visible
+            or ec.visibility_of_all_elements_located(
+                (
+                    By.XPATH,
+                    "//form[@id='contacts']/table",
+                )
+            )(driver)
+        )
+    except NoSuchElementException:
+        return False
+
+
+def check_view_contact_page(driver: webdriver.Remote):
+    try:
+        return (
+            # check that the view form is visibale
+            ec.visibility_of_element_located((By.ID, "Turba_View_Contact_inactive"))(
+                driver
+            )
+            # and the user is loaded i.e., mandatory field last name is filled in
+            and len(
+                driver.find_element_by_id("object_lastname_").get_attribute("value")
+            )
+            > 0
+        )
+    except NoSuchElementException:
+        return False
+
+
+def check_edit_contact_page(driver: webdriver.Remote):
+    try:
+        return (
+            # check that the edit form is visible
+            ec.visibility_of_element_located((By.ID, "Turba_View_EditContact_active"))(
+                driver
+            )
+            # and the user is loaded i.e., mandatory field last name is filled in
+            and len(
+                driver.find_element_by_id("object_lastname_").get_attribute("value")
+            )
+            > 0
+        )
+    except NoSuchElementException:
+        return False
+
+
+def check_contact_page(driver: webdriver.Remote):
+    return check_view_contact_page(driver) or check_edit_contact_page(driver)
+
+
+def check_contact_delete_confirm_page(driver: webdriver.Remote):
+    try:
+        return (
+            # check confirm dialog is present
+            ec.visibility_of_all_elements_located(
+                (
+                    By.XPATH,
+                    "//div[@class='headerbox']/p[text()='Permanently delete this contact?']",
+                )
+            )(driver)
+            # check delete button is present
+            and ec.visibility_of_all_elements_located(
+                (By.XPATH, "//div[@class='headerbox']/input[@name='delete']")
+            )(driver)
+        )
+    except NoSuchElementException:
+        return False
 
 
 def check_tasks_page(driver: webdriver.Remote) -> Optional[Any]:
@@ -210,15 +328,19 @@ def check_horde_action_error(driver: webdriver.Remote) -> Optional[Any]:
 
 
 def check_horde_group_delete_confirm(driver: webdriver.Remote) -> Optional[Any]:
-    return ec.visibility_of_all_elements_located(
-        (
-            By.XPATH,
-            "//input[@class='horde-delete' and @type='submit' and @name='confirm' and @value='Delete']",
-        )
-        and ec.visibility_of_all_elements_located(
+    return (
+        # check that the delete form is loaded
+        ec.visibility_of_all_elements_located(
             (
                 By.XPATH,
                 "//form[@name='delete' and @action='groups.php']/h1[@class='header']",
             )
-        )
+        )(driver)
+        # and check that delete button is loaded
+        and ec.visibility_of_all_elements_located(
+            (
+                By.XPATH,
+                "//input[@class='horde-delete' and @type='submit' and @name='confirm' and @value='Delete']",
+            )
+        )(driver)
     )

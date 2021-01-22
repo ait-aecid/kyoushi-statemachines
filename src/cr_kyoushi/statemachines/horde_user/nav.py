@@ -1,7 +1,13 @@
+import random
+
 from typing import (
     Any,
     Callable,
     Optional,
+)
+from urllib.parse import (
+    parse_qs,
+    urlparse,
 )
 
 from pydantic import AnyUrl
@@ -13,9 +19,13 @@ from selenium.common.exceptions import (
 from selenium.webdriver.common.by import By
 from structlog.stdlib import BoundLogger
 
-from .config import Context
+from .config import (
+    Context,
+    HordeContext,
+)
 from .wait import (
     CheckTitleContains,
+    check_address_book_browse,
     check_address_book_page,
     check_admin_groups_page,
     check_calendar_page,
@@ -24,6 +34,7 @@ from .wait import (
     check_notes_page,
     check_personal_information,
     check_tasks_page,
+    check_view_contact_page,
     horde_wait,
 )
 
@@ -115,6 +126,58 @@ class NavigateAddressBookMenu(NavigateMainMenu):
 
 
 navigate_address_book_menu = NavigateAddressBookMenu()
+
+
+def navigate_address_book_browse(log: BoundLogger, context: Context):
+    driver: webdriver.Remote = context.driver
+    if check_address_book_page(driver):
+        driver.find_element(By.LINK_TEXT, "Browse").click()
+
+        # wait for browse page to load
+        horde_wait(driver, check_address_book_browse)
+    else:
+        log.error(
+            "Invalid action for current page",
+            horde_action="goto_address_book_browse",
+            current_page=driver.current_url,
+        )
+
+
+def navigate_address_book_contact(log: BoundLogger, context: Context):
+    driver: webdriver.Remote = context.driver
+    horde: HordeContext = context.horde
+    if (
+        check_address_book_browse(driver)
+        # can only navigate if there are contacts
+        and len(driver.find_elements(By.CSS_SELECTOR, 'a[href^="/turba/contact.php"]'))
+        > 0
+    ):
+        contacts = driver.find_elements(
+            By.CSS_SELECTOR, 'a[href^="/turba/contact.php"]'
+        )
+
+        # choose random contact
+        contact_link = random.choice(contacts)
+        # parse contact link
+        parsed_query = parse_qs(urlparse(contact_link.get_attribute("href")).query)
+
+        # get selected contacts info
+        horde.contact.source = parsed_query.get("source", [""])[0]
+        horde.contact.key = parsed_query.get("key", [""])[0]
+        horde.contact.name = contact_link.text
+
+        log.info("Navigate to contact page", contact=horde.contact)
+        contact_link.click()
+
+        # wait for contact view page to load
+        horde_wait(driver, check_view_contact_page)
+
+    else:
+        log.error(
+            "Invalid action for current page",
+            horde_action="delete_contact",
+            current_page=driver.current_url,
+        )
 
 
 class NavigateTasksMenu(NavigateMainMenu):
