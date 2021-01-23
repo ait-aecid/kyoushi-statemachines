@@ -88,6 +88,43 @@ class BaseInfo(BaseModel):
             self.__setattr__(field, None)
 
 
+class CalendarEventInfo(BaseInfo):
+    id: Optional[str] = Field(
+        None,
+        description="The event id",
+    )
+
+    calendar: Optional[str] = Field(
+        None,
+        description="The calendar id",
+    )
+
+    start: Optional[datetime] = Field(
+        None,
+        description="The event start date and time",
+    )
+
+    end: Optional[datetime] = Field(
+        None,
+        description="The event end date and time",
+    )
+
+    title: Optional[str] = Field(
+        None,
+        description="The event title",
+    )
+
+    description: Optional[List[str]] = Field(
+        None,
+        description="The event description",
+    )
+
+    location: Optional[str] = Field(
+        None,
+        description="The event location",
+    )
+
+
 class GroupInfo(BaseInfo):
     gid: Optional[int] = Field(
         None,
@@ -167,6 +204,10 @@ class MemoInfo(BaseInfo):
 
 
 class HordeContext(BaseModel):
+    event: CalendarEventInfo = Field(
+        CalendarEventInfo(),
+        description="The calendar event that is currently being modified",
+    )
 
     group: GroupInfo = Field(
         GroupInfo(),

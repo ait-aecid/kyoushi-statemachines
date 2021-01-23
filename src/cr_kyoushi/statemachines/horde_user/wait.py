@@ -95,18 +95,58 @@ def check_calendar_page(driver: webdriver.Remote) -> Optional[Any]:
     try:
         return (
             # ensure mini calendar is loaded
-            driver.find_element(
-                By.CSS_SELECTOR,
-                '#kronolith-minical * td[class*="kronolith-today"]',
-            )
+            ec.visibility_of_element_located(
+                (
+                    By.CSS_SELECTOR,
+                    '#kronolith-minical * td[class*="kronolith-today"]',
+                )
+            )(driver)
             # ensure big calendar is loaded
-            and driver.find_element(
-                By.CSS_SELECTOR,
-                '#kronolith-month-body * td[class*="kronolith-today"]',
-            )
+            and ec.visibility_of_element_located(
+                (
+                    By.CSS_SELECTOR,
+                    '#kronolith-month-body * td[class*="kronolith-today"]',
+                )
+            )(driver)
             # ensure calendar list is loaded
-            and driver.find_element(By.ID, "kronolithMyCalendars")
-            and driver.find_element(By.ID, "kronolithAddtasklists")
+            and ec.visibility_of_element_located(
+                (
+                    By.ID,
+                    "kronolithMyCalendars",
+                )
+            )(driver)
+            and ec.visibility_of_element_located(
+                (
+                    By.ID,
+                    "kronolithAddtasklists",
+                )
+            )(driver)
+        )
+    except NoSuchElementException:
+        return False
+
+
+def check_calendar_write_view(driver: webdriver.Remote) -> Optional[Any]:
+    try:
+        return (
+            # check event input for is visible
+            ec.visibility_of_element_located((By.ID, "kronolithEventForm"))(driver)
+            # and save button is visible
+            and ec.visibility_of_element_located((By.ID, "kronolithEventSave"))(driver)
+        )
+    except NoSuchElementException:
+        return False
+
+
+def check_calendar_edit_view(driver: webdriver.Remote) -> Optional[Any]:
+    try:
+        return (
+            # check event input dialog
+            check_calendar_write_view(driver)
+            # and has delete button
+            and ec.visibility_of_element_located((By.ID, "kronolithEventDelete"))
+            # and save as new button
+            and ec.visibility_of_element_located((By.ID, "kronolithEventSaveAsNew"))
         )
     except NoSuchElementException:
         return False

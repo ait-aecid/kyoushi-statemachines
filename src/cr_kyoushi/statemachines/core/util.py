@@ -7,6 +7,9 @@ from typing import (
     TypeVar,
 )
 
+from faker import Faker
+from titlecase import titlecase
+
 
 _FILTER_KEY = TypeVar("_FILTER_KEY")
 _FILTER_VAL = TypeVar("_FILTER_VAL")
@@ -24,3 +27,10 @@ def filter_none_keys(
         The original dict without its `None` values.
     """
     return {k: v for k, v in container.items() if v is not None}
+
+
+def get_title(fake: Faker, nb_words=3) -> str:
+    return titlecase(
+        # ensure the title does not end with a .
+        fake.sentence(nb_words=nb_words).replace(".", "")
+    )

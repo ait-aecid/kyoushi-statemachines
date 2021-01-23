@@ -435,3 +435,10 @@ def type_linebreak(driver: webdriver.Remote, count=1):
         ActionChains(driver).key_down(Keys.SHIFT).key_down(Keys.ENTER).key_up(
             Keys.SHIFT
         ).key_up(Keys.ENTER).perform()
+
+
+def js_set_text(driver: webdriver.Remote, element: WebElement, text: str):
+    driver.execute_script(
+        f"arguments[0].value = '{text}'",
+        element,
+    )

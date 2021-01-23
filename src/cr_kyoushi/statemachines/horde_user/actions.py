@@ -1,10 +1,13 @@
 import random
 import re
 
+from datetime import datetime
 from typing import (
     Any,
     Dict,
+    List,
     Union,
+    cast,
 )
 from urllib.parse import (
     parse_qs,
@@ -17,15 +20,16 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.ui import Select
 from structlog.stdlib import BoundLogger
-from titlecase import titlecase
 
 from cr_kyoushi.simulation.model import ApproximateFloat
 from cr_kyoushi.simulation.util import sleep
 
 from ..core.selenium import (
+    js_set_text,
     slow_type,
     type_linebreak,
 )
+from ..core.util import get_title
 from .config import (
     Context,
     HordeContext,
@@ -35,6 +39,8 @@ from .wait import (
     CheckNewContactTab,
     check_address_book_page,
     check_admin_groups_page,
+    check_calendar_page,
+    check_calendar_write_view,
     check_contact_delete_confirm_page,
     check_contact_page,
     check_edit_note_page,
@@ -104,6 +110,117 @@ def start_add_contact(log: BoundLogger, context: Context):
         log.error(
             "Invalid action for current page",
             horde_action="start_add_contact",
+            current_page=driver.current_url,
+        )
+
+
+def new_calendar_event(log: BoundLogger, context: Context):
+    driver: webdriver.Remote = context.driver
+    if check_calendar_page(driver):
+        log.info("Adding calendar event")
+        context.horde.event.clear()
+        driver.find_element_by_id("kronolithNewEvent").click()
+        # wait for new calender form view to load
+        horde_wait(driver, check_calendar_write_view)
+    else:
+        log.error(
+            "Invalid action for current page",
+            horde_action="new_event",
+            current_page=driver.current_url,
+        )
+
+
+def write_calendar_event(log: BoundLogger, context: Context):
+    driver: webdriver.Remote = context.driver
+    horde: HordeContext = context.horde
+    if check_calendar_write_view(driver):
+        date_format = "%m/%d/%y"
+        time_format = "%I:%M %p"
+
+        # get elements
+        title_input = driver.find_element_by_id("kronolithEventTitle")
+        start_input = driver.find_element_by_id("kronolithEventStartDate")
+        start_time_input = driver.find_element_by_id("kronolithEventStartTime")
+        end_input = driver.find_element_by_id("kronolithEventEndDate")
+        end_time_input = driver.find_element_by_id("kronolithEventEndTime")
+        location_input = driver.find_element_by_id("kronolithEventLocation")
+        description_input = driver.find_element_by_id("kronolithEventDescription")
+        save_button = driver.find_element_by_id("kronolithEventSave")
+
+        write_title = False
+        # generate content
+        if horde.event.title is None:
+            # we generate a title for new events
+            horde.event.title = get_title(context.fake)
+            write_title = True
+
+        horde.event.start = cast(
+            datetime,  # casting due to Faker missing annotations
+            context.fake.date_time_this_month(before_now=True, after_now=True),
+        )
+        # end time is randomly selected between the start time and the end of that day
+        horde.event.end = cast(
+            datetime,  # casting due to Faker missing annotations
+            context.fake.date_time_between_dates(
+                datetime_start=horde.event.start,
+                datetime_end=datetime(
+                    horde.event.start.year,
+                    horde.event.start.month,
+                    horde.event.start.day + 1,
+                    0,
+                    0,
+                    0,
+                    0,
+                ),
+            ),
+        )
+        horde.event.location = cast(
+            str,  # casting due to Faker missing annotations
+            context.fake.address(),
+        )
+        horde.event.description = cast(
+            List[str],  # casting due to Faker missing annotations
+            context.fake.paragraphs(random.randint(0, 3)),
+        )
+
+        # bind event to log context
+        log = log.bind(calendar_event=horde.event)
+
+        # fill out calendar event
+        if write_title:
+            slow_type(element=title_input, text=horde.event.title)
+
+        # set start and end time
+        # we set the date and time fields directly to avoid triggering
+        # the incorrect format warning (causes a image request)
+        # for a normal user this request would not be made
+        js_set_text(driver, start_input, horde.event.start.strftime(date_format))
+        js_set_text(driver, start_time_input, horde.event.start.strftime(time_format))
+        js_set_text(driver, end_input, horde.event.start.strftime(date_format))
+        js_set_text(driver, end_time_input, horde.event.end.strftime(time_format))
+
+        # set location
+        location_input.clear()
+        slow_type(element=location_input, text=horde.event.location)
+
+        # set description
+        description_input.clear()
+        for paragraph in horde.event.description:
+            slow_type(element=description_input, text=paragraph)
+            type_linebreak(driver)
+
+        log.info("Saving calendar event")
+
+        save_button.click()
+
+        # ensure calendar page is loaded
+        horde_wait(driver, check_calendar_page)
+
+        log.info("Saved calendar event")
+    else:
+        log.error(
+            "Invalid action for current page",
+            horde_action="write_calendar_event",
             current_page=driver.current_url,
         )
 
@@ -430,7 +547,7 @@ def write_note(log: BoundLogger, context: Context):
         ).get_attribute("value")
 
         # generate content
-        title = titlecase(context.fake.sentence(nb_words=3)[:-1])
+        title = get_title(context.fake)
         content = context.fake.paragraphs(random.randint(1, 4))
         tags = context.fake.words(random.randint(0, 3))
 
