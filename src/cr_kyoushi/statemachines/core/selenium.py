@@ -24,6 +24,8 @@ from pydantic import (
 )
 from pydantic.errors import EnumMemberError
 from selenium import webdriver
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.proxy import (
     Proxy,
     ProxyType,
@@ -416,11 +418,18 @@ def slow_type(
         text: The text to send
         delay: The delay to use in between key strokes.
     """
-    # get random delay value if we got a approximate float
-    if isinstance(delay, ApproximateFloat):
-        delay = delay.value
+    # convert to approximate float if we got a float
+    if not isinstance(delay, ApproximateFloat):
+        delay = ApproximateFloat.convert(delay)
 
     # type the text
     for character in text:
         element.send_keys(character)
-        time.sleep(delay)
+        time.sleep(delay.value)
+
+
+def type_linebreak(driver: webdriver.Remote, count=1):
+    for i in range(0, count):
+        ActionChains(driver).key_down(Keys.SHIFT).key_down(Keys.ENTER).key_up(
+            Keys.SHIFT
+        ).key_up(Keys.ENTER).perform()

@@ -313,6 +313,40 @@ def check_notes_page(driver: webdriver.Remote) -> Optional[Any]:
         return False
 
 
+def check_new_note_page(driver: webdriver.Remote) -> Optional[Any]:
+    try:
+        return (
+            # check title is correct
+            CheckTitleContains("New Note")(driver)
+            # and notice form is present
+            and ec.visibility_of_element_located((By.ID, "mnemo-body"))(driver)
+        )
+    except NoSuchElementException:
+        return False
+
+
+def check_note_write_page(driver: webdriver.Remote) -> Optional[Any]:
+    try:
+        return (
+            # check form is present
+            ec.visibility_of_all_elements_located(
+                (
+                    By.XPATH,
+                    "//form[@name='memo']",
+                )
+            )(driver)
+            # and save button is present
+            and ec.visibility_of_all_elements_located(
+                (
+                    By.XPATH,
+                    "//form[@name='memo']//input[@type='submit' and @value='Save']",
+                )
+            )(driver)
+        )
+    except NoSuchElementException:
+        return False
+
+
 def check_file_manager_page(driver: webdriver.Remote) -> Optional[Any]:
     try:
         return ec.visibility_of_element_located((By.ID, "manager"))

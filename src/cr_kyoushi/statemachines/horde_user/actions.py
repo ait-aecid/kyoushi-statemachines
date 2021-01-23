@@ -17,11 +17,15 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.ui import Select
 from structlog.stdlib import BoundLogger
+from titlecase import titlecase
 
 from cr_kyoushi.simulation.model import ApproximateFloat
 from cr_kyoushi.simulation.util import sleep
 
-from ..core.selenium import slow_type
+from ..core.selenium import (
+    slow_type,
+    type_linebreak,
+)
 from .config import (
     Context,
     HordeContext,
@@ -39,7 +43,10 @@ from .wait import (
     check_horde_group_delete_confirm,
     check_logged_out,
     check_new_contact_page,
+    check_new_note_page,
     check_new_task_general_tab,
+    check_note_write_page,
+    check_notes_page,
     check_tasks_page,
     horde_wait,
 )
@@ -372,6 +379,98 @@ def delete_task(log: BoundLogger, context: Context):
         log.error(
             "Invalid action for current page",
             horde_action="delete_task",
+            current_page=driver.current_url,
+        )
+
+
+def new_note(log: BoundLogger, context: Context):
+    driver: webdriver.Remote = context.driver
+    if check_notes_page(driver):
+        log.info("Adding note")
+        driver.find_element_by_xpath(
+            "//div[@class='horde-new']//a[contains(@title,'New Note')]"
+        ).click()
+        # wait for new note form to load
+        horde_wait(driver, check_new_note_page)
+    else:
+        log.error(
+            "Invalid action for current page",
+            horde_action="new_note",
+            current_page=driver.current_url,
+        )
+
+
+def write_note(log: BoundLogger, context: Context):
+    driver: webdriver.Remote = context.driver
+    if check_note_write_page(driver):
+        # get elements
+        textarea = driver.find_element(By.ID, "mnemo-body")
+        tags_input = driver.find_element(By.ID, "memo_tags")
+        save_button = driver.find_element(
+            By.XPATH,
+            "//form[@name='memo']//input[@type='submit' and @value='Save']",
+        )
+        # get memo ids
+        # the memo field does not exist for new notes
+        memo = driver.find_element(
+            By.XPATH,
+            "//form[@name='memo']//input[@type='hidden' and @name='memo']",
+        ).get_attribute("value")
+        memolist_original = driver.find_element(
+            By.XPATH,
+            "//form[@name='memo']//input[@type='hidden' and @name='memolist_original']",
+        ).get_attribute("value")
+        notepad_target = driver.find_element(
+            By.XPATH,
+            "//form[@name='memo']//input[@type='hidden' and @name='notepad_target']",
+        ).get_attribute("value")
+        # bind memo ids to log context
+        log = log.bind(
+            memo=memo,
+            memolist_original=memolist_original,
+            notepad_target=notepad_target,
+        )
+
+        # generate content
+        title = titlecase(context.fake.sentence(nb_words=3)[:-1])
+        content = context.fake.paragraphs(random.randint(1, 4))
+        tags = context.fake.words(random.randint(0, 3))
+        # bind content to log context
+        log = log.bind(title=title, content=content, tags=tags)
+
+        log.info("Writing note")
+        # clear textarea
+        textarea.clear()
+
+        # type note title
+        slow_type(element=textarea, text=title)
+        type_linebreak(context.driver, count=2)
+
+        # type content
+        for paragraph in content:
+            slow_type(element=textarea, text=paragraph)
+            type_linebreak(context.driver)
+
+        # clear tags
+        tags_input.clear()
+        # type tags
+        slow_type(element=tags_input, text=", ".join(tags))
+
+        log.info("Saving note")
+        save_button.click()
+
+        horde_wait(driver, check_horde_action)
+        if check_horde_action_success(driver):
+            log.info("Saved note")
+        else:
+            log.info("Failed to save note")
+
+        # ensure notes page is loaded
+        horde_wait(driver, check_notes_page)
+    else:
+        log.error(
+            "Invalid action for current page",
+            horde_action="new_note",
             current_page=driver.current_url,
         )
 
