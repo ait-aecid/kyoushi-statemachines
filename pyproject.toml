@@ -28,6 +28,7 @@ cr-kyoushi-simulation = "^0.2.2"
 selenium = "^3.141.0"
 webdriver-manager = "^3.2.2"
 Faker = "^5.6.5"
+titlecase = "^2.0.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
