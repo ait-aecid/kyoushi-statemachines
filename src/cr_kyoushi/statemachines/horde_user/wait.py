@@ -38,59 +38,78 @@ def horde_wait(
 
 
 def check_login_page(driver: webdriver.Remote) -> Optional[Any]:
-    return driver.find_element(by=By.ID, value="horde_login")
+    try:
+        return driver.find_element(by=By.ID, value="horde_login")
+    except NoSuchElementException:
+        return False
 
 
 def check_logged_out(driver: webdriver.Remote) -> Optional[Any]:
-    return ec.visibility_of_all_elements_located(
-        (By.XPATH, '//div[@class="noticetext" and text()="You have been logged out."]')
-    )(driver)
+    try:
+        return ec.visibility_of_all_elements_located(
+            (
+                By.XPATH,
+                '//div[@class="noticetext" and text()="You have been logged out."]',
+            )
+        )(driver)
+    except NoSuchElementException:
+        return False
 
 
 def check_menu_bar(driver: webdriver.Remote) -> Optional[Any]:
-    element = driver.find_element(by=By.CSS_SELECTOR, value="#horde-logo > .icon")
+    try:
+        element = driver.find_element(by=By.CSS_SELECTOR, value="#horde-logo > .icon")
 
-    if element is None or not element.is_displayed() or not element.is_enabled():
+        if element is None or not element.is_displayed() or not element.is_enabled():
+            return False
+
+        return True
+    except NoSuchElementException:
         return False
-
-    return True
 
 
 def check_mail_page(driver: webdriver.Remote) -> Optional[Any]:
-    return (
-        # ensure the inbox view is present
-        ec.element_to_be_clickable(
-            (By.CSS_SELECTOR, 'div[class="horde-subnavi-icon inboxImg"]')
-        )(driver)
-        # ensure sidebar is loaded
-        and driver.find_element(By.CLASS_NAME, "imp-sidebar-mbox")
-        # ensure inbox view exists
-        and driver.find_element(By.CSS_SELECTOR, 'span[id="mailboxName"]') is not None
-        # ensure the inbox is loaded fully
-        and "imp-loading"
-        not in driver.find_element(
-            By.ID,
-            "checkmaillink",
-        ).get_attribute("class")
-    )
+    try:
+        return (
+            # ensure the inbox view is present
+            ec.element_to_be_clickable(
+                (By.CSS_SELECTOR, 'div[class="horde-subnavi-icon inboxImg"]')
+            )(driver)
+            # ensure sidebar is loaded
+            and driver.find_element(By.CLASS_NAME, "imp-sidebar-mbox")
+            # ensure inbox view exists
+            and driver.find_element(By.CSS_SELECTOR, 'span[id="mailboxName"]')
+            is not None
+            # ensure the inbox is loaded fully
+            and "imp-loading"
+            not in driver.find_element(
+                By.ID,
+                "checkmaillink",
+            ).get_attribute("class")
+        )
+    except NoSuchElementException:
+        return False
 
 
 def check_calendar_page(driver: webdriver.Remote) -> Optional[Any]:
-    return (
-        # ensure mini calendar is loaded
-        driver.find_element(
-            By.CSS_SELECTOR,
-            '#kronolith-minical * td[class*="kronolith-today"]',
+    try:
+        return (
+            # ensure mini calendar is loaded
+            driver.find_element(
+                By.CSS_SELECTOR,
+                '#kronolith-minical * td[class*="kronolith-today"]',
+            )
+            # ensure big calendar is loaded
+            and driver.find_element(
+                By.CSS_SELECTOR,
+                '#kronolith-month-body * td[class*="kronolith-today"]',
+            )
+            # ensure calendar list is loaded
+            and driver.find_element(By.ID, "kronolithMyCalendars")
+            and driver.find_element(By.ID, "kronolithAddtasklists")
         )
-        # ensure big calendar is loaded
-        and driver.find_element(
-            By.CSS_SELECTOR,
-            '#kronolith-month-body * td[class*="kronolith-today"]',
-        )
-        # ensure calendar list is loaded
-        and driver.find_element(By.ID, "kronolithMyCalendars")
-        and driver.find_element(By.ID, "kronolithAddtasklists")
-    )
+    except NoSuchElementException:
+        return False
 
 
 def check_address_book_page(driver: webdriver.Remote) -> Optional[Any]:
@@ -288,23 +307,38 @@ def check_edit_task_general_tab(driver: webdriver.Remote) -> Optional[Any]:
 
 
 def check_notes_page(driver: webdriver.Remote) -> Optional[Any]:
-    return ec.presence_of_element_located((By.ID, "mnemo-toggle-my"))(driver)
+    try:
+        return ec.presence_of_element_located((By.ID, "mnemo-toggle-my"))(driver)
+    except NoSuchElementException:
+        return False
 
 
 def check_file_manager_page(driver: webdriver.Remote) -> Optional[Any]:
-    return ec.presence_of_element_located((By.ID, "manager"))
+    try:
+        return ec.visibility_of_element_located((By.ID, "manager"))
+    except NoSuchElementException:
+        return False
 
 
 def check_bookmarks_page(driver: webdriver.Remote) -> Optional[Any]:
-    return ec.presence_of_element_located((By.CLASS_NAME, "trean-browse"))(driver)
+    try:
+        return ec.visibility_of_element_located((By.CLASS_NAME, "trean-browse"))(driver)
+    except NoSuchElementException:
+        return False
 
 
 def check_filters_page(driver: webdriver.Remote) -> Optional[Any]:
-    return ec.presence_of_element_located((By.ID, "filterslist"))(driver)
+    try:
+        return ec.visibility_of_element_located((By.ID, "filterslist"))(driver)
+    except NoSuchElementException:
+        return False
 
 
 def check_horde_page(driver: webdriver.Remote) -> Optional[Any]:
-    return ec.presence_of_element_located((By.ID, "portal"))(driver)
+    try:
+        return ec.visibility_of_element_located((By.ID, "portal"))(driver)
+    except NoSuchElementException:
+        return False
 
 
 def check_home_page(driver: webdriver.Remote) -> Optional[Any]:
@@ -378,37 +412,46 @@ def check_horde_action(driver: webdriver.Remote) -> Optional[Any]:
 
 
 def check_horde_action_success(driver: webdriver.Remote) -> Optional[Any]:
-    return ec.visibility_of_any_elements_located(
-        (
-            By.XPATH,
-            "//div[@class='GrowlerNotice horde-success']/div[@class='GrowlerNoticeBody']",
-        )
-    )(driver)
+    try:
+        return ec.visibility_of_all_elements_located(
+            (
+                By.XPATH,
+                "//div[@class='GrowlerNotice horde-success']/div[@class='GrowlerNoticeBody']",
+            )
+        )(driver)
+    except NoSuchElementException:
+        return False
 
 
 def check_horde_action_error(driver: webdriver.Remote) -> Optional[Any]:
-    return ec.visibility_of_any_elements_located(
-        (
-            By.XPATH,
-            "//div[@class='GrowlerNotice horde-error']/div[@class='GrowlerNoticeBody']",
-        )
-    )(driver)
+    try:
+        return ec.visibility_of_all_elements_located(
+            (
+                By.XPATH,
+                "//div[@class='GrowlerNotice horde-error']/div[@class='GrowlerNoticeBody']",
+            )
+        )(driver)
+    except NoSuchElementException:
+        return False
 
 
 def check_horde_group_delete_confirm(driver: webdriver.Remote) -> Optional[Any]:
-    return (
-        # check that the delete form is loaded
-        ec.visibility_of_all_elements_located(
-            (
-                By.XPATH,
-                "//form[@name='delete' and @action='groups.php']/h1[@class='header']",
-            )
-        )(driver)
-        # and check that delete button is loaded
-        and ec.visibility_of_all_elements_located(
-            (
-                By.XPATH,
-                "//input[@class='horde-delete' and @type='submit' and @name='confirm' and @value='Delete']",
-            )
-        )(driver)
-    )
+    try:
+        return (
+            # check that the delete form is loaded
+            ec.visibility_of_all_elements_located(
+                (
+                    By.XPATH,
+                    "//form[@name='delete' and @action='groups.php']/h1[@class='header']",
+                )
+            )(driver)
+            # and check that delete button is loaded
+            and ec.visibility_of_all_elements_located(
+                (
+                    By.XPATH,
+                    "//input[@class='horde-delete' and @type='submit' and @name='confirm' and @value='Delete']",
+                )
+            )(driver)
+        )
+    except NoSuchElementException:
+        return False
