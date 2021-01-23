@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import (
+    List,
     Optional,
     Union,
 )
@@ -123,6 +124,38 @@ class TaskInfo(BaseModel):
     )
 
 
+class MemoInfo(BaseModel):
+    list_id: Optional[str] = Field(
+        None,
+        description="The memolist id",
+    )
+
+    target_list_id: Optional[str] = Field(
+        None,
+        description="The target memolist when editing a memo",
+    )
+
+    id: Optional[str] = Field(
+        None,
+        description="The memo id",
+    )
+
+    title: Optional[str] = Field(
+        None,
+        description="The memo name",
+    )
+
+    content: Optional[List[str]] = Field(
+        None,
+        description="The memo content",
+    )
+
+    tags: Optional[List[str]] = Field(
+        None,
+        description="The memos tags",
+    )
+
+
 class HordeContext(BaseModel):
 
     group: GroupInfo = Field(
@@ -138,6 +171,11 @@ class HordeContext(BaseModel):
     task: TaskInfo = Field(
         TaskInfo(),
         description="The task that is currently beeing modified",
+    )
+
+    memo: MemoInfo = Field(
+        MemoInfo(),
+        description="The memo that is currently beeing modified",
     )
 
     form_field_delay: Union[float, ApproximateFloat] = Field(

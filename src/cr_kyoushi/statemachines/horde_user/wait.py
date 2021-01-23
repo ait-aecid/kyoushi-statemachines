@@ -347,6 +347,23 @@ def check_note_write_page(driver: webdriver.Remote) -> Optional[Any]:
         return False
 
 
+def check_edit_note_page(driver: webdriver.Remote) -> Optional[Any]:
+    try:
+        return (
+            # check if writable page
+            check_note_write_page(driver)
+            # and delete button present
+            and ec.visibility_of_all_elements_located(
+                (
+                    By.XPATH,
+                    "//form[@name='memo']//a[text()='Delete']",
+                )
+            )(driver)
+        )
+    except NoSuchElementException:
+        return False
+
+
 def check_file_manager_page(driver: webdriver.Remote) -> Optional[Any]:
     try:
         return ec.visibility_of_element_located((By.ID, "manager"))

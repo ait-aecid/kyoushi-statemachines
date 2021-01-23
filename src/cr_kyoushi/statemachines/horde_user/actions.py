@@ -29,6 +29,7 @@ from ..core.selenium import (
 from .config import (
     Context,
     HordeContext,
+    MemoInfo,
 )
 from .wait import (
     CheckNewContactTab,
@@ -36,6 +37,7 @@ from .wait import (
     check_admin_groups_page,
     check_contact_delete_confirm_page,
     check_contact_page,
+    check_edit_note_page,
     check_edit_task_general_tab,
     check_home_page,
     check_horde_action,
@@ -424,19 +426,24 @@ def write_note(log: BoundLogger, context: Context):
             By.XPATH,
             "//form[@name='memo']//input[@type='hidden' and @name='notepad_target']",
         ).get_attribute("value")
-        # bind memo ids to log context
-        log = log.bind(
-            memo=memo,
-            memolist_original=memolist_original,
-            notepad_target=notepad_target,
-        )
 
         # generate content
         title = titlecase(context.fake.sentence(nb_words=3)[:-1])
         content = context.fake.paragraphs(random.randint(1, 4))
         tags = context.fake.words(random.randint(0, 3))
+
         # bind content to log context
-        log = log.bind(title=title, content=content, tags=tags)
+        # bind memo ids to log context
+        log = log.bind(
+            memo=MemoInfo(
+                id=memo,
+                list_id=memolist_original,
+                target_list_id=notepad_target,
+                title=title,
+                content=content,
+                tags=tags,
+            ),
+        )
 
         log.info("Writing note")
         # clear textarea
@@ -471,6 +478,72 @@ def write_note(log: BoundLogger, context: Context):
         log.error(
             "Invalid action for current page",
             horde_action="new_note",
+            current_page=driver.current_url,
+        )
+
+
+def edit_note(log: BoundLogger, context: Context):
+    driver: webdriver.Remote = context.driver
+    horde: HordeContext = context.horde
+    if check_notes_page(driver):
+        memos = driver.find_elements_by_xpath(
+            "//tbody[@id='notes_body']//a[contains(@title,'Edit')]"
+        )
+        if len(memos) > 0:
+            # select radom memo
+            memo_link = random.choice(memos)
+
+            # get title of selected memo
+            link_title_pattern = r'^Edit "(.*)"$'
+            title_match = re.match(
+                pattern=link_title_pattern,
+                string=memo_link.get_attribute("title"),
+            )
+            if title_match is not None:
+                horde.memo.title = title_match.group(1)
+
+            # get tasklist and task id
+            parsed_link = parse_qs(urlparse(memo_link.get_attribute("href")).query)
+            horde.memo.list_id = parsed_link.get("memolist", [""])[0]
+            horde.memo.id = parsed_link.get("memo", [""])[0]
+
+            # bind info to log context
+            log = log.bind(memo=horde.memo)
+
+            log.info("Editing note")
+            memo_link.click()
+            # wait for memo edit view to load
+            horde_wait(driver, check_edit_note_page)
+        else:
+            log.warn("No note to edit")
+    else:
+        log.error(
+            "Invalid action for current page",
+            horde_action="edit_note",
+            current_page=driver.current_url,
+        )
+
+
+def delete_note(log: BoundLogger, context: Context):
+    driver: webdriver.Remote = context.driver
+    horde: HordeContext = context.horde
+    if check_edit_note_page(driver):
+        log = log.bind(memo=horde.memo)
+
+        log.info("Deleting note")
+        driver.find_element_by_xpath("//form[@name='memo']//a[text()='Delete']").click()
+
+        # horde wait for success/fail message
+        horde_wait(driver, check_horde_action)
+
+        if check_horde_action_success(driver):
+            log.info("Deleted note")
+        else:
+            log.info("Failed to remove note")
+    else:
+        log.error(
+            "Invalid action for current page",
+            horde_action="delete_note",
             current_page=driver.current_url,
         )
 
