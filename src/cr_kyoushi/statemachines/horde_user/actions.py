@@ -1,4 +1,5 @@
 import random
+import re
 
 from typing import (
     Any,
@@ -31,6 +32,7 @@ from .wait import (
     check_admin_groups_page,
     check_contact_delete_confirm_page,
     check_contact_page,
+    check_edit_task_general_tab,
     check_home_page,
     check_horde_action,
     check_horde_action_success,
@@ -193,7 +195,7 @@ def confirm_delete_contact(log: BoundLogger, context: Context):
     else:
         log.error(
             "Invalid action for current page",
-            horde_action="delete_contact",
+            horde_action="confirm_delete_contact",
             current_page=driver.current_url,
         )
 
@@ -302,6 +304,74 @@ def save_new_task(log: BoundLogger, context: Context):
         log.error(
             "Invalid action for current page",
             horde_action="save_task",
+            current_page=driver.current_url,
+        )
+
+
+def edit_task(log: BoundLogger, context: Context):
+    driver: webdriver.Remote = context.driver
+    horde: HordeContext = context.horde
+    if check_tasks_page(driver):
+        tasks = driver.find_elements_by_xpath(
+            "//tbody[@id='tasks-body']//a[contains(@title,'Edit')]"
+        )
+        if len(tasks) > 0:
+            # select radom task
+            task_link = random.choice(tasks)
+
+            # get name of selected task
+            link_title_pattern = r'^Edit "(.*)"$'
+            name_match = re.match(
+                pattern=link_title_pattern,
+                string=task_link.get_attribute("title"),
+            )
+            if name_match is not None:
+                horde.task.name = name_match.group(1)
+
+            # get tasklist and task id
+            parsed_link = parse_qs(urlparse(task_link.get_attribute("href")).query)
+            horde.task.list_id = parsed_link.get("tasklist", [""])[0]
+            horde.task.id = parsed_link.get("task", [""])[0]
+
+            # bind info to log context
+            log = log.bind(task=horde.task)
+
+            log.info("Editing task")
+            task_link.click()
+            # wait for task info view to load
+            horde_wait(driver, check_edit_task_general_tab)
+        else:
+            log.warn("No task to edit")
+    else:
+        log.error(
+            "Invalid action for current page",
+            horde_action="edit_task",
+            current_page=driver.current_url,
+        )
+
+
+def delete_task(log: BoundLogger, context: Context):
+    driver: webdriver.Remote = context.driver
+    horde: HordeContext = context.horde
+    if check_edit_task_general_tab(driver):
+        log = log.bind(task=horde.task)
+
+        log.info("Deleting task")
+        driver.find_element_by_xpath(
+            "//div[@class='horde-form-buttons']/input[@type='submit' and @value='Delete']"
+        ).click()
+
+        # horde wait for success/fail message
+        horde_wait(driver, check_horde_action)
+
+        if check_horde_action_success(driver):
+            log.info("Deleted task")
+        else:
+            log.info("Failed to remove task")
+    else:
+        log.error(
+            "Invalid action for current page",
+            horde_action="delete_task",
             current_page=driver.current_url,
         )
 

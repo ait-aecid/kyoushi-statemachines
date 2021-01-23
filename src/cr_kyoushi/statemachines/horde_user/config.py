@@ -106,6 +106,23 @@ class ContactInfo(BaseModel):
     )
 
 
+class TaskInfo(BaseModel):
+    list_id: Optional[str] = Field(
+        None,
+        description="The tasklist id",
+    )
+
+    id: Optional[str] = Field(
+        None,
+        description="The task id",
+    )
+
+    name: Optional[str] = Field(
+        None,
+        description="The task name",
+    )
+
+
 class HordeContext(BaseModel):
 
     group: GroupInfo = Field(
@@ -116,6 +133,11 @@ class HordeContext(BaseModel):
     contact: ContactInfo = Field(
         ContactInfo(),
         description="The contact that is currently beeing modified",
+    )
+
+    task: TaskInfo = Field(
+        TaskInfo(),
+        description="The task that is currently beeing modified",
     )
 
     form_field_delay: Union[float, ApproximateFloat] = Field(

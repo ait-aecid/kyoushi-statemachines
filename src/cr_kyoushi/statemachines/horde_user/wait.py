@@ -258,6 +258,35 @@ def check_new_task_general_tab(driver: webdriver.Remote) -> Optional[Any]:
         return False
 
 
+def check_edit_task_general_tab(driver: webdriver.Remote) -> Optional[Any]:
+    try:
+        return (
+            # verify that we are on the general tab
+            ec.visibility_of_all_elements_located(
+                (
+                    By.XPATH,
+                    "//li[@id='nag_form_task_tab_1' and @class='horde-active']",
+                )
+            )(driver)
+            # verify input form is ready (due date has current date prefilled)
+            and ec.visibility_of_all_elements_located(
+                (
+                    By.XPATH,
+                    "//input[@id='due_date' and @value!='']",
+                )
+            )(driver)
+            # and delete button is loaded
+            and ec.visibility_of_all_elements_located(
+                (
+                    By.XPATH,
+                    "//div[@class='horde-form-buttons']/input[@type='submit' and @value='Delete']",
+                )
+            )(driver)
+        )
+    except NoSuchElementException:
+        return False
+
+
 def check_notes_page(driver: webdriver.Remote) -> Optional[Any]:
     return ec.presence_of_element_located((By.ID, "mnemo-toggle-my"))(driver)
 
