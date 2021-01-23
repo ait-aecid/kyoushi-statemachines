@@ -408,7 +408,7 @@ def slow_type(
     text: str,
     delay: Union[float, ApproximateFloat] = ApproximateFloat(
         min=0.05,
-        max=0.5,
+        max=0.35,
     ),
 ):
     """Send a text to an element one character at a time with a delay.
@@ -417,6 +417,8 @@ def slow_type(
         element: The element to send the text to
         text: The text to send
         delay: The delay to use in between key strokes.
+               Average typing speed is 180-200 characters per minute or
+               3~ per second. The default was set with this in mind.
     """
     # convert to approximate float if we got a float
     if not isinstance(delay, ApproximateFloat):
