@@ -78,7 +78,17 @@ class StatemachineConfig(BaseModel):
     )
 
 
-class GroupInfo(BaseModel):
+class BaseInfo(BaseModel):
+    def clear(self):
+        """Resets the info object to its initial state.
+
+        i.e., all fields are `None`
+        """
+        for field in self.__fields__:
+            self.__setattr__(field, None)
+
+
+class GroupInfo(BaseInfo):
     gid: Optional[int] = Field(
         None,
         description="The horde group id",
@@ -90,7 +100,7 @@ class GroupInfo(BaseModel):
     )
 
 
-class ContactInfo(BaseModel):
+class ContactInfo(BaseInfo):
     source: Optional[str] = Field(
         None,
         description="The contact source id",
@@ -107,7 +117,7 @@ class ContactInfo(BaseModel):
     )
 
 
-class TaskInfo(BaseModel):
+class TaskInfo(BaseInfo):
     list_id: Optional[str] = Field(
         None,
         description="The tasklist id",
@@ -124,7 +134,7 @@ class TaskInfo(BaseModel):
     )
 
 
-class MemoInfo(BaseModel):
+class MemoInfo(BaseInfo):
     list_id: Optional[str] = Field(
         None,
         description="The memolist id",

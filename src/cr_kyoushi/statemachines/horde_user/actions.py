@@ -207,6 +207,7 @@ def confirm_delete_contact(log: BoundLogger, context: Context):
             horde_action="confirm_delete_contact",
             current_page=driver.current_url,
         )
+    horde.contact.clear()
 
 
 def new_task(log: BoundLogger, context: Context):
@@ -383,6 +384,7 @@ def delete_task(log: BoundLogger, context: Context):
             horde_action="delete_task",
             current_page=driver.current_url,
         )
+    horde.task.clear()
 
 
 def new_note(log: BoundLogger, context: Context):
@@ -546,6 +548,7 @@ def delete_note(log: BoundLogger, context: Context):
             horde_action="delete_note",
             current_page=driver.current_url,
         )
+    horde.memo.clear()
 
 
 def add_user_group(log: BoundLogger, context: Context):
@@ -629,10 +632,7 @@ def confirm_delete_user_group(log: BoundLogger, context: Context):
 
     if check_horde_group_delete_confirm(driver):
         # add gid and group name to log context
-        log = log.bind(
-            horde_gid=horde.group.gid,
-            horde_group=horde.group.name,
-        )
+        log = log.bind(group=horde.group)
 
         log.info("Confirming delete group")
         # get delete confirm button and click on it
@@ -653,3 +653,4 @@ def confirm_delete_user_group(log: BoundLogger, context: Context):
             horde_action="confirm_delete_group",
             current_page=driver.current_url,
         )
+    horde.group.clear()
