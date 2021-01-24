@@ -27,6 +27,7 @@ from .wait import (
     CheckTitleContains,
     check_address_book_browse,
     check_address_book_page,
+    check_admin_cli_page,
     check_admin_configuration_page,
     check_admin_groups_page,
     check_admin_php_page,
@@ -383,7 +384,7 @@ class NavigateAdminCLI(NavigateSettingsMenu):
         super().__init__(
             sub_menu=1,
             link_text="CLI",
-            on_page_check=CheckTitleContains("Command Shell"),
+            on_page_check=check_admin_cli_page,
             name="Admin CLI",
         )
 

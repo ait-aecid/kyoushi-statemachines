@@ -588,7 +588,7 @@ def check_admin_sql_page(driver: webdriver.Remote) -> Optional[Any]:
         return (
             # check title is correct
             ec.title_contains("SQL Shell")(driver)
-            # and check php code text area is present
+            # and check sql code text area is present
             and ec.visibility_of_element_located(
                 (
                     By.ID,
@@ -618,6 +618,49 @@ def check_admin_sql_execute_view(driver: webdriver.Remote) -> Optional[Any]:
                 (
                     By.XPATH,
                     "//table[@class='item striped']",
+                )
+            )(driver)
+        )
+    except NoSuchElementException:
+        pass
+    return False
+
+
+def check_admin_cli_page(driver: webdriver.Remote) -> Optional[Any]:
+    try:
+        return (
+            # check title is correct
+            ec.title_contains("Command Shell")(driver)
+            # and check cmd command text area is present
+            and ec.visibility_of_element_located(
+                (
+                    By.ID,
+                    "cmd",
+                )
+            )(driver)
+        )
+    except NoSuchElementException:
+        pass
+    return False
+
+
+def check_admin_cli_execute_view(driver: webdriver.Remote) -> Optional[Any]:
+    try:
+        return (
+            # check is cli page
+            check_admin_cli_page(driver)
+            # and cli command text is present
+            and ec.visibility_of_all_elements_located(
+                (
+                    By.XPATH,
+                    "//h1[@class='header' and text()='Command:']",
+                )
+            )(driver)
+            # and cli command results are present
+            and ec.visibility_of_all_elements_located(
+                (
+                    By.XPATH,
+                    "//h1[@class='header' and text()='Results:']",
                 )
             )(driver)
         )

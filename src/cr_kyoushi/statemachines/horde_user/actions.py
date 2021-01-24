@@ -42,6 +42,8 @@ from .config import (
 from .wait import (
     CheckNewContactTab,
     check_address_book_page,
+    check_admin_cli_execute_view,
+    check_admin_cli_page,
     check_admin_configuration_page,
     check_admin_groups_page,
     check_admin_php_execute_view,
@@ -971,5 +973,50 @@ def admin_exec_sql(log: BoundLogger, context: Context):
         log.error(
             "Invalid action for current page",
             horde_action="exec_sql",
+            current_page=driver.current_url,
+        )
+
+
+def admin_exec_cli(log: BoundLogger, context: Context):
+    driver: webdriver.Remote = context.driver
+    if check_admin_cli_page(driver):
+        # in future versions we can make this a configurable
+        # list of command templates and add error handling
+        # to support incorrect cli code
+        commands = ["pwd", "id", "ls", "whoami", "cat groups.php"]
+        cli_commands = []
+        for i in range(
+            0,
+            random.randint(
+                1,
+                min(3, len(commands)),
+            ),
+        ):
+            cli_commands.append(random.choice(commands))
+
+        # bind info to context
+        log = log.bind(cli_commands=cli_commands)
+
+        log.info("Write CLI command")
+
+        # write php code
+        code_area = driver.find_element_by_id("cmd")
+        for line in cli_commands:
+            slow_type(element=code_area, text=line)
+            type_linebreak(driver)
+
+        log.info("Executing CLI command")
+        driver.find_element_by_xpath(
+            "//input[@value='Execute' and @type='submit']"
+        ).click()
+
+        # wait for version table to load
+        horde_wait(driver, check_admin_cli_execute_view)
+        log.info("Executed CLI command")
+
+    else:
+        log.error(
+            "Invalid action for current page",
+            horde_action="exec_cli",
             current_page=driver.current_url,
         )
