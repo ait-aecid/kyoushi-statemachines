@@ -566,7 +566,6 @@ def check_admin_php_page(driver: webdriver.Remote) -> Optional[Any]:
 
 
 def check_admin_php_execute_view(driver: webdriver.Remote) -> Optional[Any]:
-    # syntaxhighlighter  php
     try:
         return (
             # check is php page
@@ -576,6 +575,49 @@ def check_admin_php_execute_view(driver: webdriver.Remote) -> Optional[Any]:
                 (
                     By.XPATH,
                     "//div[contains(@class,'syntaxhighlighter') and contains(@class, 'php')]",
+                )
+            )(driver)
+        )
+    except NoSuchElementException:
+        pass
+    return False
+
+
+def check_admin_sql_page(driver: webdriver.Remote) -> Optional[Any]:
+    try:
+        return (
+            # check title is correct
+            ec.title_contains("SQL Shell")(driver)
+            # and check php code text area is present
+            and ec.visibility_of_element_located(
+                (
+                    By.ID,
+                    "sql",
+                )
+            )(driver)
+        )
+    except NoSuchElementException:
+        pass
+    return False
+
+
+def check_admin_sql_execute_view(driver: webdriver.Remote) -> Optional[Any]:
+    try:
+        return (
+            # check is sql page
+            check_admin_sql_page(driver)
+            # and sql query text is present
+            and ec.visibility_of_all_elements_located(
+                (
+                    By.XPATH,
+                    "//h1[@class='header' and text()='Query']",
+                )
+            )(driver)
+            # and check sql result table is present
+            and ec.visibility_of_all_elements_located(
+                (
+                    By.XPATH,
+                    "//table[@class='item striped']",
                 )
             )(driver)
         )

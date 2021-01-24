@@ -46,6 +46,8 @@ from .wait import (
     check_admin_groups_page,
     check_admin_php_execute_view,
     check_admin_php_page,
+    check_admin_sql_execute_view,
+    check_admin_sql_page,
     check_admin_version_check_view,
     check_calendar_delete_confirm_view,
     check_calendar_edit_view,
@@ -924,5 +926,50 @@ def admin_exec_php(log: BoundLogger, context: Context):
         log.error(
             "Invalid action for current page",
             horde_action="exec_php",
+            current_page=driver.current_url,
+        )
+
+
+def admin_exec_sql(log: BoundLogger, context: Context):
+    driver: webdriver.Remote = context.driver
+    if check_admin_sql_page(driver):
+        # in future versions we can make this a configurable
+        # list of code templates and tables and add error handling
+        # to support incorrect sql code
+        tables = [
+            "kronolith_events",
+            "turba_objects",
+            "content_schema_info",
+            "horde_groups",
+            "rampage_objects",
+            "nag_tasks",
+        ]
+        table = random.choice(tables)
+        sql_code = f"select * from {table}"
+
+        # bind info to context
+        log = log.bind(sql_code=sql_code, table=table)
+
+        log.info("Write SQL code")
+
+        # write php code
+        code_area = driver.find_element_by_id("sql")
+        for line in sql_code.split("\n"):
+            slow_type(element=code_area, text=line)
+            type_linebreak(driver)
+
+        log.info("Executing SQL code")
+        driver.find_element_by_xpath(
+            "//input[@value='Execute' and @type='submit']"
+        ).click()
+
+        # wait for version table to load
+        horde_wait(driver, check_admin_sql_execute_view)
+        log.info("Executed SQL code")
+
+    else:
+        log.error(
+            "Invalid action for current page",
+            horde_action="exec_sql",
             current_page=driver.current_url,
         )

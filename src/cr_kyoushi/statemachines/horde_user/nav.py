@@ -30,6 +30,7 @@ from .wait import (
     check_admin_configuration_page,
     check_admin_groups_page,
     check_admin_php_page,
+    check_admin_sql_page,
     check_calendar_page,
     check_home_page,
     check_mail_page,
@@ -369,7 +370,7 @@ class NavigateAdminSQLShell(NavigateSettingsMenu):
         super().__init__(
             sub_menu=1,
             link_text="SQL Shell",
-            on_page_check=CheckTitleContains("SQL Shell"),
+            on_page_check=check_admin_sql_page,
             name="Admin SQLShell",
         )
 
