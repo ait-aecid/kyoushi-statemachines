@@ -242,6 +242,11 @@ class Context(BaseModel):
     driver: webdriver.Remote
     """The selenium web driver"""
 
+    main_window: str = Field(
+        ...,
+        description="The main window of the webdriver",
+    )
+
     fake: Faker
     """Faker instance to use for generating various random content"""
 

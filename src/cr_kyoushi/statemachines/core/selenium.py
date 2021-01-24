@@ -33,6 +33,10 @@ from selenium.webdriver.common.proxy import (
 from selenium.webdriver.edge.options import Options as EdgeOptions
 from selenium.webdriver.opera.options import Options as OperaOptions
 from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.support.wait import (
+    POLL_FREQUENCY,
+    WebDriverWait,
+)
 from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.firefox import GeckoDriverManager
 from webdriver_manager.manager import DriverManager
@@ -431,6 +435,14 @@ def slow_type(
 
 
 def type_linebreak(driver: webdriver.Remote, count=1):
+    """Sends a linebreak to the currently focused input element (e.g., textarea).
+
+    This is done using ++shift+enter++ so no submit is triggered.
+
+    Args:
+        driver: The webdriver
+        count: The amount of line breaks to write
+    """
     for i in range(0, count):
         ActionChains(driver).key_down(Keys.SHIFT).key_down(Keys.ENTER).key_up(
             Keys.SHIFT
@@ -438,7 +450,44 @@ def type_linebreak(driver: webdriver.Remote, count=1):
 
 
 def js_set_text(driver: webdriver.Remote, element: WebElement, text: str):
+    """Set the text value of an input element directly with Javascript.
+
+    This can be useful for avoiding onChange event listeners
+    evaluating partial texts.
+
+    Args:
+        driver: The webdriver
+        element: The input element to set the text for
+        text: The text to set
+    """
     driver.execute_script(
         f"arguments[0].value = '{text}'",
         element,
     )
+
+
+def wait_for_new_window(
+    driver: webdriver.Remote,
+    timeout: Union[float, int] = 10,
+    poll_frequency: float = POLL_FREQUENCY,
+) -> Optional[str]:
+    """Waits for a new window to open and returns its window handle.
+
+    Args:
+        driver: The webdriver
+        timeout: The maximum time to wait for
+    """
+    handles_before = driver.window_handles
+
+    # wait for the window to appear
+    WebDriverWait(
+        driver=driver,
+        timeout=timeout,
+        poll_frequency=poll_frequency,
+    ).until(lambda driver: len(handles_before) != len(driver.window_handles))
+
+    # get new window and return
+    handle_after = driver.window_handles
+    if len(handle_after) > len(handles_before):
+        return set(handle_after).difference(set(handles_before)).pop()
+    return None
