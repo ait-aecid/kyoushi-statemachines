@@ -69,6 +69,7 @@ from .wait import (
     check_new_task_general_tab,
     check_note_write_page,
     check_notes_page,
+    check_personal_information,
     check_tasks_page,
     horde_wait,
 )
@@ -1020,3 +1021,43 @@ def admin_exec_cli(log: BoundLogger, context: Context):
             horde_action="exec_cli",
             current_page=driver.current_url,
         )
+
+
+class SetPersonalPreferences:
+    def __init__(self, full_name: str):
+        self.full_name: str = full_name
+
+    def __call__(self, log: BoundLogger, context: Context):
+        driver: webdriver.Remote = context.driver
+        if check_personal_information(driver):
+            log = log.bind(full_name=self.full_name)
+            full_name_input = driver.find_element(By.ID, "fullname")
+
+            log.info("Writing personal information")
+
+            full_name_input.clear()
+            slow_type(
+                element=full_name_input,
+                text=self.full_name,
+            )
+
+            log.info("Saving personal information")
+            driver.find_element_by_xpath(
+                "//input[@value='Save' and @type='submit']"
+            ).click()
+
+            horde_wait(driver, check_horde_action)
+            if check_horde_action_success(driver):
+                log.info("Saved personal information")
+            else:
+                log.info("Failed to save personal information")
+
+            # wait for page to be ready again
+            horde_wait(driver, check_personal_information)
+
+        else:
+            log.error(
+                "Invalid action for current page",
+                horde_action="save_personal_information",
+                current_page=driver.current_url,
+            )

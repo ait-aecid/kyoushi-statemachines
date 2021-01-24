@@ -493,9 +493,16 @@ def check_home_page(driver: webdriver.Remote) -> Optional[Any]:
 
 
 def check_personal_information(driver: webdriver.Remote) -> Optional[Any]:
-    return ec.visibility_of_element_located(
-        (By.CSS_SELECTOR, "default_identity > option[selected='selected']")
-    )(driver)
+    try:
+        return (
+            # is a user pref page
+            ec.title_contains("User Preferences")(driver)
+            # and identity selection is present
+            and ec.visibility_of_element_located((By.ID, "default_identity"))(driver)
+        )
+    except NoSuchElementException:
+        pass
+    return False
 
 
 def check_admin_groups_page(driver: webdriver.Remote) -> Optional[Any]:
