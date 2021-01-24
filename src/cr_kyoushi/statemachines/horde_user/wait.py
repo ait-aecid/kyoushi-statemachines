@@ -121,6 +121,8 @@ def check_calendar_page(driver: webdriver.Remote) -> Optional[Any]:
                     "kronolithAddtasklists",
                 )
             )(driver)
+            # and loading indicator is not visible
+            and ec.invisibility_of_element_located((By.ID, "kronolithLoading"))(driver)
         )
     except NoSuchElementException:
         return False
@@ -133,6 +135,10 @@ def check_calendar_write_view(driver: webdriver.Remote) -> Optional[Any]:
             ec.visibility_of_element_located((By.ID, "kronolithEventForm"))(driver)
             # and save button is visible
             and ec.visibility_of_element_located((By.ID, "kronolithEventSave"))(driver)
+            # and the title is focused
+            # (if we don't wait for this we might loose the first char of the title)
+            and driver.find_element_by_id("kronolithEventTitle")
+            == driver.switch_to.active_element
         )
     except NoSuchElementException:
         return False
@@ -148,6 +154,18 @@ def check_calendar_edit_view(driver: webdriver.Remote) -> Optional[Any]:
             # and save as new button
             and ec.visibility_of_element_located((By.ID, "kronolithEventSaveAsNew"))
         )
+    except NoSuchElementException:
+        return False
+
+
+def check_calendar_delete_confirm_view(driver: webdriver.Remote) -> Optional[Any]:
+    try:
+        return ec.element_to_be_clickable(
+            (
+                By.ID,
+                "kronolithEventDeleteConfirm",
+            )
+        )(driver)
     except NoSuchElementException:
         return False
 

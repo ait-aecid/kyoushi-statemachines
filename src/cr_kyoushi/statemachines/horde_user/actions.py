@@ -1,7 +1,10 @@
 import random
 import re
 
-from datetime import datetime
+from datetime import (
+    datetime,
+    timedelta,
+)
 from typing import (
     Any,
     Dict,
@@ -17,6 +20,7 @@ from urllib.parse import (
 from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.ui import Select
 from structlog.stdlib import BoundLogger
@@ -39,6 +43,8 @@ from .wait import (
     CheckNewContactTab,
     check_address_book_page,
     check_admin_groups_page,
+    check_calendar_delete_confirm_view,
+    check_calendar_edit_view,
     check_calendar_page,
     check_calendar_write_view,
     check_contact_delete_confirm_page,
@@ -159,19 +165,14 @@ def write_calendar_event(log: BoundLogger, context: Context):
             context.fake.date_time_this_month(before_now=True, after_now=True),
         )
         # end time is randomly selected between the start time and the end of that day
+        end_max = (horde.event.start + timedelta(days=1)).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
         horde.event.end = cast(
             datetime,  # casting due to Faker missing annotations
             context.fake.date_time_between_dates(
                 datetime_start=horde.event.start,
-                datetime_end=datetime(
-                    horde.event.start.year,
-                    horde.event.start.month,
-                    horde.event.start.day + 1,
-                    0,
-                    0,
-                    0,
-                    0,
-                ),
+                datetime_end=end_max,
             ),
         )
         horde.event.location = cast(
@@ -186,9 +187,16 @@ def write_calendar_event(log: BoundLogger, context: Context):
         # bind event to log context
         log = log.bind(calendar_event=horde.event)
 
+        log.info("Writing calendar event")
+
         # fill out calendar event
         if write_title:
             slow_type(element=title_input, text=horde.event.title)
+        else:
+            # if we do not change the title we jump to the end of it
+            # we do this to prevent the first title char from being deleted
+            # by our next send keys
+            title_input.send_keys(Keys.CONTROL + Keys.END)
 
         # set start and end time
         # we set the date and time fields directly to avoid triggering
@@ -221,6 +229,77 @@ def write_calendar_event(log: BoundLogger, context: Context):
         log.error(
             "Invalid action for current page",
             horde_action="write_calendar_event",
+            current_page=driver.current_url,
+        )
+
+
+def edit_calendar_event(log: BoundLogger, context: Context):
+    driver: webdriver.Remote = context.driver
+    horde: HordeContext = context.horde
+    if check_calendar_page(driver):
+        # clear event info
+        horde.event.clear()
+
+        events = driver.find_elements(By.CSS_SELECTOR, "div[id^=kronolithEventmonth]")
+        if len(events) > 0:
+            # select radom event
+            event_div = random.choice(events)
+
+            # get infos about selected event
+            date_str = (
+                event_div.find_element_by_xpath("..")
+                .get_attribute("id")
+                .replace("kronolithMonthDay", "")
+            )
+            id_pattern = r"^kronolithEventmonth(internal)(.*)" + date_str + r"(.*)$"
+            id_match = re.match(
+                pattern=id_pattern,
+                string=event_div.get_attribute("id"),
+            )
+            if id_match is not None:
+                horde.event.calendar = f"{id_match.group(1)}|{id_match.group(2)}"
+                horde.event.id = id_match.group(3)
+            horde.event.title = event_div.get_attribute("title")
+
+            # bind info to log context
+            log = log.bind(calendar_event=horde.event)
+
+            log.info("Editing calendar event")
+            event_div.click()
+            # wait for calendar edit view to load
+            horde_wait(driver, check_calendar_edit_view)
+        else:
+            log.warn("No calendar event to edit")
+    else:
+        log.error(
+            "Invalid action for current page",
+            horde_action="edit_calendar_event",
+            current_page=driver.current_url,
+        )
+
+
+def delete_calendar_event(log: BoundLogger, context: Context):
+    driver: webdriver.Remote = context.driver
+    horde: HordeContext = context.horde
+    if check_calendar_edit_view(driver):
+        log = log.bind(calendar_event=horde.event)
+
+        log.info("Deleting calendar event")
+        driver.find_element_by_id("kronolithEventDelete").click()
+
+        # wait for delete confirm view to load
+        horde_wait(driver, check_calendar_delete_confirm_view)
+
+        driver.find_element(By.ID, "kronolithEventDeleteConfirm").click()
+
+        # wait for the calendar view to be visible again
+        horde_wait(driver, check_calendar_page)
+
+        log.info("Deleted calendar event")
+    else:
+        log.error(
+            "Invalid action for current page",
+            horde_action="delete_calendar_event",
             current_page=driver.current_url,
         )
 
