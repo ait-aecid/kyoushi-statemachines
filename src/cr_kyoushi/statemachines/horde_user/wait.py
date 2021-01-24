@@ -530,7 +530,6 @@ def check_admin_configuration_page(driver: webdriver.Remote) -> Optional[Any]:
 
 
 def check_admin_version_check_view(driver: webdriver.Remote) -> Optional[Any]:
-    #
     try:
         return (
             # check is config page
@@ -540,6 +539,43 @@ def check_admin_version_check_view(driver: webdriver.Remote) -> Optional[Any]:
                 (
                     By.XPATH,
                     "//table[@class='horde-table']/thead/tr/th[contains(text(), 'Version Check')]",
+                )
+            )(driver)
+        )
+    except NoSuchElementException:
+        pass
+    return False
+
+
+def check_admin_php_page(driver: webdriver.Remote) -> Optional[Any]:
+    try:
+        return (
+            # check title is correct
+            ec.title_contains("PHP Shell")(driver)
+            # and check php code text area is present
+            and ec.visibility_of_element_located(
+                (
+                    By.ID,
+                    "php",
+                )
+            )(driver)
+        )
+    except NoSuchElementException:
+        pass
+    return False
+
+
+def check_admin_php_execute_view(driver: webdriver.Remote) -> Optional[Any]:
+    # syntaxhighlighter  php
+    try:
+        return (
+            # check is php page
+            check_admin_php_page(driver)
+            # and check php code highlight is visible
+            and ec.visibility_of_all_elements_located(
+                (
+                    By.XPATH,
+                    "//div[contains(@class,'syntaxhighlighter') and contains(@class, 'php')]",
                 )
             )(driver)
         )

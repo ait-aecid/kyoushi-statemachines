@@ -44,6 +44,8 @@ from .wait import (
     check_address_book_page,
     check_admin_configuration_page,
     check_admin_groups_page,
+    check_admin_php_execute_view,
+    check_admin_php_page,
     check_admin_version_check_view,
     check_calendar_delete_confirm_view,
     check_calendar_edit_view,
@@ -869,6 +871,58 @@ def admin_check_versions(log: BoundLogger, context: Context):
     else:
         log.error(
             "Invalid action for current page",
-            horde_action="confirm_delete_group",
+            horde_action="check_versions",
+            current_page=driver.current_url,
+        )
+
+
+def admin_exec_php(log: BoundLogger, context: Context):
+    driver: webdriver.Remote = context.driver
+    if check_admin_php_page(driver):
+        # in future versions we can make this a configurable
+        # list of code templates and add error handling
+        # to support incorrect php code
+        fn_name = context.fake.word()
+        php_code = (
+            f"function {fn_name}() {{\n"
+            f'    echo "{context.fake.sentence()}";\n'
+            "}\n"
+            f"{fn_name}();\n"
+        )
+        # choose horde app context
+        app_select = Select(driver.find_element(By.ID, "app"))
+        app_index = random.randint(
+            0,
+            len(app_select.options) - 1,
+        )
+        # get selected assignee value ("" means no assignee)
+        horde_app = app_select.options[app_index].get_attribute("value")
+
+        log = log.bind(php_code=php_code, horde_app=horde_app)
+
+        log.info("Write PHP code")
+
+        # set horde app selection
+        app_select.select_by_index(app_index)
+
+        # write php code
+        code_area = driver.find_element_by_id("php")
+        for line in php_code.split("\n"):
+            slow_type(element=code_area, text=line)
+            type_linebreak(driver)
+
+        log.info("Executing PHP code")
+        driver.find_element_by_xpath(
+            "//input[@value='Execute' and @type='submit']"
+        ).click()
+
+        # wait for version table to load
+        horde_wait(driver, check_admin_php_execute_view)
+        log.info("Executed PHP code")
+
+    else:
+        log.error(
+            "Invalid action for current page",
+            horde_action="exec_php",
             current_page=driver.current_url,
         )

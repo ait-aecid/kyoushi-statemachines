@@ -29,6 +29,7 @@ from .wait import (
     check_address_book_page,
     check_admin_configuration_page,
     check_admin_groups_page,
+    check_admin_php_page,
     check_calendar_page,
     check_home_page,
     check_mail_page,
@@ -355,7 +356,7 @@ class NavigateAdminPHPShell(NavigateSettingsMenu):
         super().__init__(
             sub_menu=1,
             link_text="PHP Shell",
-            on_page_check=CheckTitleContains("PHP Shell"),
+            on_page_check=check_admin_php_page,
             name="Admin PHPShell",
         )
 
