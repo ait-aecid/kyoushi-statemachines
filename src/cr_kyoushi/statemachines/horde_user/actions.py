@@ -42,7 +42,9 @@ from .config import (
 from .wait import (
     CheckNewContactTab,
     check_address_book_page,
+    check_admin_configuration_page,
     check_admin_groups_page,
+    check_admin_version_check_view,
     check_calendar_delete_confirm_view,
     check_calendar_edit_view,
     check_calendar_page,
@@ -850,3 +852,23 @@ def confirm_delete_user_group(log: BoundLogger, context: Context):
             current_page=driver.current_url,
         )
     horde.group.clear()
+
+
+def admin_check_versions(log: BoundLogger, context: Context):
+    driver: webdriver.Remote = context.driver
+    if check_admin_configuration_page(driver):
+        log.info("Checking software versions")
+        driver.find_element_by_xpath(
+            "//input[@value='Check for newer versions' and @type='submit']"
+        ).click()
+
+        # wait for version table to load
+        horde_wait(driver, check_admin_version_check_view)
+        log.info("Checked software versions")
+
+    else:
+        log.error(
+            "Invalid action for current page",
+            horde_action="confirm_delete_group",
+            current_page=driver.current_url,
+        )

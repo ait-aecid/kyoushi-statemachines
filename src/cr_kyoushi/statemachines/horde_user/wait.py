@@ -511,6 +511,43 @@ def check_admin_groups_page(driver: webdriver.Remote) -> Optional[Any]:
     return False
 
 
+def check_admin_configuration_page(driver: webdriver.Remote) -> Optional[Any]:
+    try:
+        return (
+            # check title is correct
+            ec.title_contains("Horde Configuration")(driver)
+            # and check version button is present
+            and ec.visibility_of_all_elements_located(
+                (
+                    By.XPATH,
+                    "//input[@value='Check for newer versions' and @type='submit']",
+                )
+            )(driver)
+        )
+    except NoSuchElementException:
+        pass
+    return False
+
+
+def check_admin_version_check_view(driver: webdriver.Remote) -> Optional[Any]:
+    #
+    try:
+        return (
+            # check is config page
+            check_admin_configuration_page(driver)
+            # and version check table is loaded
+            and ec.visibility_of_all_elements_located(
+                (
+                    By.XPATH,
+                    "//table[@class='horde-table']/thead/tr/th[contains(text(), 'Version Check')]",
+                )
+            )(driver)
+        )
+    except NoSuchElementException:
+        pass
+    return False
+
+
 def check_horde_action(driver: webdriver.Remote) -> Optional[Any]:
     return ec.visibility_of_any_elements_located(
         (

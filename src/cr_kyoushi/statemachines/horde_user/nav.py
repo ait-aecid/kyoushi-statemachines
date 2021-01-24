@@ -27,6 +27,7 @@ from .wait import (
     CheckTitleContains,
     check_address_book_browse,
     check_address_book_page,
+    check_admin_configuration_page,
     check_admin_groups_page,
     check_calendar_page,
     check_home_page,
@@ -263,7 +264,7 @@ class NavigateAdminConfiguration(NavigateSettingsMenu):
         super().__init__(
             sub_menu=1,
             link_text="Configuration",
-            on_page_check=CheckTitleContains("Horde Configuration"),
+            on_page_check=check_admin_configuration_page,
             name="Admin Configuration",
         )
 
