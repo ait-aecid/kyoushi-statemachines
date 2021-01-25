@@ -377,7 +377,7 @@ class SendMail:
                     List[str],  # casting since we know that we always get a list
                     np.random.choice(
                         a=list(self.contacts.keys()),
-                        size=recipient_count,
+                        size=(recipient_count),
                         replace=False,
                         p=list(self.contacts.values()),
                     ),
@@ -421,7 +421,7 @@ class SendMail:
                     a=list(self.attachments.keys()),
                     p=list(self.attachments.values()),
                     size=1,
-                )[0]
+                )
 
             log = log.bind(mail=mail)
             log.info("Composing mail")
