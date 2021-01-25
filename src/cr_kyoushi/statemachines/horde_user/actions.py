@@ -409,16 +409,17 @@ class SendMail:
                 ):
                     recipient_count += 1
 
-                mail.recipients = cast(
-                    List[str],  # casting since we know that we always get a list
-                    np.random.choice(
-                        a=list(self.contacts.keys()),
-                        size=(recipient_count),
-                        replace=False,
-                        p=list(self.contacts.values()),
-                    ),
+                mail.recipients = np.random.choice(
+                    a=list(self.contacts.keys()),
+                    size=(recipient_count),
+                    replace=False,
+                    p=list(self.contacts.values()),
+                ).tolist()
+
+                recipients_write = ",".join(
+                    # casting for mypy since type is Optional
+                    cast(List[str], mail.recipients)
                 )
-                recipients_write = ",".join(mail.recipients)
 
             if (
                 mail.send_type == MailSendType.NEW
