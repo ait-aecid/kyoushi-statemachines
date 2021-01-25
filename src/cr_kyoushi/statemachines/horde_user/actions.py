@@ -539,22 +539,6 @@ class SendMail:
             )
 
 
-def start_add_contact(log: BoundLogger, context: Context):
-    driver: webdriver.Remote = context.driver
-    if check_address_book_page(driver):
-        log.info("Start adding new contact")
-        driver.find_element(By.LINK_TEXT, "New Contact").click()
-
-        # wait for new contacts page to load
-        horde_wait(driver, check_new_contact_page)
-    else:
-        log.error(
-            "Invalid action for current page",
-            horde_action="start_add_contact",
-            current_page=driver.current_url,
-        )
-
-
 def new_calendar_event(log: BoundLogger, context: Context):
     driver: webdriver.Remote = context.driver
     if check_calendar_page(driver):
@@ -745,6 +729,22 @@ def __goto_new_contact_tab(
     driver.find_element_by_xpath(f"//a[@href='#' and text()='{name}']").click()
 
     horde_wait(driver, CheckNewContactTab(section_id))
+
+
+def start_add_contact(log: BoundLogger, context: Context):
+    driver: webdriver.Remote = context.driver
+    if check_address_book_page(driver):
+        log.info("Start adding new contact")
+        driver.find_element(By.LINK_TEXT, "New Contact").click()
+
+        # wait for new contacts page to load
+        horde_wait(driver, check_new_contact_page)
+    else:
+        log.error(
+            "Invalid action for current page",
+            horde_action="start_add_contact",
+            current_page=driver.current_url,
+        )
 
 
 def submit_new_contact(log: BoundLogger, context: Context):
