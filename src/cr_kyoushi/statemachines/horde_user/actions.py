@@ -70,7 +70,9 @@ from .wait import (
     check_horde_action,
     check_horde_action_success,
     check_horde_group_delete_confirm,
+    check_horde_page,
     check_logged_out,
+    check_login_page,
     check_mail_compose_window,
     check_mail_info_window,
     check_mail_page,
@@ -87,41 +89,75 @@ from .wait import (
 
 
 class LoginToHorde:
-    def __init__(self, username: str, password: str):
+    def __init__(self, username: str, password: str, fail: bool = False):
         self.username: str = username
         self.password: str = password
+        self.fail: bool = fail
 
     def __call__(self, log: BoundLogger, context: Context):
         driver: webdriver.Remote = context.driver
+        if check_login_page(driver):
 
-        # find input fields
-        user_field = driver.find_element(By.ID, "horde_user")
-        password_field = driver.find_element(By.ID, "horde_pass")
-        submit_button = driver.find_element(By.ID, "login-button")
+            # find input fields
+            user_field = driver.find_element(By.ID, "horde_user")
+            password_field = driver.find_element(By.ID, "horde_pass")
+            submit_button = driver.find_element(By.ID, "login-button")
 
-        # clear fields
-        user_field.clear()
-        password_field.clear()
+            # clear fields
+            user_field.clear()
+            password_field.clear()
 
-        user_field.send_keys(self.username)
-        password_field.send_keys(self.password)
+            password = self.password
+            if self.fail:
+                # random generation could be replaced with logic
+                # that mutates the actual password as typos
+                # are more likely for normal human behavior
+                password = context.fake.password()
 
-        # trigger login
-        submit_button.click()
+            # bind log context
+            log = log.bind(username=self.username, password=password)
 
-        # ensure the page loaded after login
-        horde_wait(context.driver, check_home_page)
+            user_field.send_keys(self.username)
+            password_field.send_keys(password)
+
+            if self.fail:
+                log.info("Trying invalid login")
+            else:
+                log.info("Trying valid login")
+
+            # trigger login
+            submit_button.click()
+            if self.fail:
+                log.info("Failed login try")
+                horde_wait(context.driver, check_login_page)
+            else:
+                # ensure the page loaded after login
+                horde_wait(context.driver, check_home_page)
+                log.info("Logged in")
+        else:
+            log.error(
+                "Invalid action for current page",
+                horde_action="login",
+                current_page=driver.current_url,
+            )
 
 
 def logout_of_horde(log: BoundLogger, context: Context):
     driver: webdriver.Remote = context.driver
+    if check_horde_page(driver):
 
-    logout_icon = driver.find_element_by_css_selector(
-        "#horde-head div#horde-logout a.icon"
-    )
-    ActionChains(driver).move_to_element(logout_icon).click().perform()
+        logout_icon = driver.find_element_by_css_selector(
+            "#horde-head div#horde-logout a.icon"
+        )
+        ActionChains(driver).move_to_element(logout_icon).click().perform()
 
-    horde_wait(driver, check_logged_out)
+        horde_wait(driver, check_logged_out)
+    else:
+        log.error(
+            "Invalid action for current page",
+            horde_action="logout",
+            current_page=driver.current_url,
+        )
 
 
 def new_mail(log: BoundLogger, context: Context):
