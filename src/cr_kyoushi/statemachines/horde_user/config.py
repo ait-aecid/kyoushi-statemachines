@@ -1,4 +1,5 @@
 from datetime import datetime
+from enum import Enum
 from typing import (
     List,
     Optional,
@@ -86,6 +87,49 @@ class BaseInfo(BaseModel):
         """
         for field in self.__fields__:
             self.__setattr__(field, None)
+
+
+class MailSendType(str, Enum):
+    NEW = "new"
+    REPLY = "reply"
+    FORWARD = "forward"
+
+
+class MailInfo(BaseInfo):
+    send_type: Optional[MailSendType] = Field(
+        None,
+        description="The mail send type that is being composed for",
+    )
+
+    buid: Optional[int] = Field(
+        None,
+        description="The mail id that is being viewed/replied to",
+    )
+
+    mailbox: Optional[str] = Field(
+        None,
+        description="The mailbox id of the message that is being viewed/replied to",
+    )
+
+    recipients: Optional[List[str]] = Field(
+        None,
+        description="The mail recipients",
+    )
+
+    subject: Optional[str] = Field(
+        None,
+        description="The mail subject line",
+    )
+
+    content: Optional[str] = Field(
+        None,
+        description="The mail content",
+    )
+
+    attachment: Optional[str] = Field(
+        None,
+        description="The source path of the mail attachment",
+    )
 
 
 class CalendarEventInfo(BaseInfo):
@@ -204,6 +248,11 @@ class MemoInfo(BaseInfo):
 
 
 class HordeContext(BaseModel):
+    mail: MailInfo = Field(
+        MailInfo(),
+        description="The mail that is currently beeing viewed/modified",
+    )
+
     event: CalendarEventInfo = Field(
         CalendarEventInfo(),
         description="The calendar event that is currently being modified",

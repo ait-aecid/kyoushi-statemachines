@@ -91,6 +91,84 @@ def check_mail_page(driver: webdriver.Remote) -> Optional[Any]:
         return False
 
 
+def check_mail_info_loading(driver: webdriver.Remote):
+    try:
+        loading_indicators = driver.find_elements_by_class_name("loadingImg")
+        # ensure all loading indicators are invisible
+        return all(
+            ec.invisibility_of_element(element)(driver)
+            for element in loading_indicators
+        )
+    except NoSuchElementException:
+        return False
+
+
+def check_mail_info_window(driver: webdriver.Remote):
+    try:
+        return (
+            # ensure all loading indicators are invisible
+            check_mail_info_loading(driver)
+            # and reply button is clickable
+            and ec.element_to_be_clickable((By.ID, "reply_link"))(driver)
+            # and msg data is visible
+            and ec.visibility_of_element_located((By.ID, "msgData"))(driver)
+        )
+    except NoSuchElementException:
+        return False
+
+
+def check_mail_compose_window(driver: webdriver.Remote) -> Optional[Any]:
+    try:
+        return (
+            # ensure all loading indicators are invisible
+            check_mail_info_loading(driver)
+            # check if from field is loaded
+            and ec.visibility_of_element_located((By.ID, "identity"))(driver)
+            # and send button usable
+            and ec.element_to_be_clickable((By.ID, "send_button"))(driver)
+            # and mail body textarea here
+            and ec.visibility_of_element_located((By.ID, "composeMessage"))(driver)
+        )
+    except NoSuchElementException:
+        return False
+
+
+def check_mail_write_window(driver: webdriver.Remote):
+    # special type of compose window that closes on send
+    try:
+        return (
+            # check is compose windo
+            check_mail_compose_window(driver)
+            # and writemsg div is present
+            and ec.visibility_of_element_located((By.ID, "writemsg"))(driver)
+        )
+    except NoSuchElementException:
+        return False
+
+
+class CheckMailExtendedView:
+    def __init__(self, subject: Optional[str]):
+        self.subject: Optional[str] = subject
+
+    def __call__(self, driver: webdriver.Remote) -> Optional[Any]:
+        try:
+            return (
+                # ensure loading indicator is invisible
+                ec.invisibility_of_element_located((By.ID, "msgLoading"))(driver)
+                # and subject text of details view matches
+                and driver.find_element_by_xpath(
+                    "//div[@id='msgHeadersColl']//span[contains(@class, 'subject')]"
+                ).text
+                == self.subject
+                # and mail body is visible
+                and ec.visibility_of_element_located((By.ID, "messageBody"))
+            )
+            # messageBody
+        except NoSuchElementException as e:
+            print(e)
+            return False
+
+
 def check_calendar_page(driver: webdriver.Remote) -> Optional[Any]:
     try:
         return (

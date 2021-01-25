@@ -17,6 +17,8 @@ from urllib.parse import (
     urlparse,
 )
 
+import numpy as np
+
 from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
@@ -32,14 +34,19 @@ from ..core.selenium import (
     js_set_text,
     slow_type,
     type_linebreak,
+    wait_and_get_new_window,
+    wait_for_window_change,
 )
 from ..core.util import get_title
 from .config import (
     Context,
     HordeContext,
+    MailInfo,
+    MailSendType,
     MemoInfo,
 )
 from .wait import (
+    CheckMailExtendedView,
     CheckNewContactTab,
     check_address_book_page,
     check_admin_cli_execute_view,
@@ -64,6 +71,10 @@ from .wait import (
     check_horde_action_success,
     check_horde_group_delete_confirm,
     check_logged_out,
+    check_mail_compose_window,
+    check_mail_info_window,
+    check_mail_page,
+    check_mail_write_window,
     check_new_contact_page,
     check_new_note_page,
     check_new_task_general_tab,
@@ -111,6 +122,384 @@ def logout_of_horde(log: BoundLogger, context: Context):
     ActionChains(driver).move_to_element(logout_icon).click().perform()
 
     horde_wait(driver, check_logged_out)
+
+
+def new_mail(log: BoundLogger, context: Context):
+    driver: webdriver.Remote = context.driver
+    if check_mail_page(driver):
+        log.info("Writing new mail")
+
+        # clear mail context
+        context.horde.mail.clear()
+
+        # mark compose as new mail
+        context.horde.mail.send_type = MailSendType.NEW
+
+        # click new mail button and
+        # wait for mail compose window to open
+        mail_window = wait_and_get_new_window(
+            driver=driver,
+            action=driver.find_element_by_id("composelink").click,
+            timeout=30,
+        )
+
+        driver.switch_to_window(mail_window)
+
+        # ensure compose window is fully loaded
+        horde_wait(driver, check_mail_compose_window)
+    else:
+        log.error(
+            "Invalid action for current page",
+            horde_action="new_mail",
+            current_page=driver.current_url,
+        )
+
+
+def view_mail(log: BoundLogger, context: Context):
+    driver: webdriver.Remote = context.driver
+    mail: MailInfo = context.horde.mail
+    # we can delete from overview page
+    if check_mail_page(driver):
+        # clear mail context
+        mail.clear()
+
+        mail_divs = driver.find_elements(By.CSS_SELECTOR, "div[id^=VProw]")
+        if len(mail_divs) > 0:
+            mail_div = random.choice(mail_divs)
+
+            # get mail subject
+            mail.subject = mail_div.find_element_by_xpath(
+                ".//div[contains(@class,'msgSubject')]"
+            ).text
+
+            # bind info to context
+            log = log.bind(mail=mail)
+
+            log.info("Viewing mail")
+            mail_div.click()
+
+            # ensure mail details are loaded
+            horde_wait(driver, CheckMailExtendedView(mail.subject))
+
+            # get additional mail info
+            (mail.mailbox, mail.buid) = (
+                urlparse(driver.current_url).fragment.replace("msg:", "").split(";")
+            )
+            log.info("Viewed mail")
+
+        else:
+            log.warn("No mail to view")
+    else:
+        log.error(
+            "Invalid action for current page",
+            horde_action="view_mail",
+            current_page=driver.current_url,
+        )
+
+
+def open_mail(log: BoundLogger, context: Context):
+    driver: webdriver.Remote = context.driver
+    mail: MailInfo = context.horde.mail
+    if check_mail_page(driver) and CheckMailExtendedView(mail.subject):
+        mail_div = driver.find_element_by_xpath(
+            "//div[contains(@id,'VProw') and contains(@class,'vpRowSelected')]"
+        )
+
+        # bind info to context
+        log = log.bind(mail=mail)
+
+        log.info("Opening mail")
+
+        # double click selected mail button and
+        # wait for mail info window to open
+        mail_window = wait_and_get_new_window(
+            driver=driver,
+            action=ActionChains(driver).double_click(mail_div).perform,
+            timeout=30,
+        )
+
+        driver.switch_to_window(mail_window)
+
+        # ensure info window is fully loaded
+        horde_wait(driver, check_mail_info_window)
+
+        log.info("Opened mail")
+    else:
+        log.error(
+            "Invalid action for current page",
+            horde_action="open_mail",
+            current_page=driver.current_url,
+        )
+
+
+def reply_mail(log: BoundLogger, context: Context):
+    driver: webdriver.Remote = context.driver
+    mail: MailInfo = context.horde.mail
+    if (
+        # we can reply from overview page
+        (check_mail_page(driver) and CheckMailExtendedView(mail.subject))
+        # or from mail info window
+        or check_mail_info_window(driver)
+    ):
+        # set send type to reply
+        mail.send_type = MailSendType.REPLY
+
+        # if we start from the overview then
+        # we will open a new window
+        switch_window = not check_mail_info_window(driver)
+
+        # bind info
+        log = log.bind(mail=mail)
+
+        log.info("Replying to mail")
+        # open reply view
+        if switch_window:
+            # from the overview view we get a new window and switch to it
+            mail_window = wait_and_get_new_window(
+                driver=driver,
+                action=driver.find_element_by_id("button_reply").click,
+                timeout=30,
+            )
+            driver.switch_to_window(mail_window)
+        else:
+            # in the mail info view we just switch tabs
+            driver.find_element_by_id("reply_link").click()
+
+        # wait for compose view to be active
+        horde_wait(driver, check_mail_compose_window)
+
+        log.info("Opened reply mail view")
+    else:
+        log.error(
+            "Invalid action for current page",
+            horde_action="reply_mail",
+            current_page=driver.current_url,
+        )
+
+
+def delete_mail(log: BoundLogger, context: Context):
+    driver: webdriver.Remote = context.driver
+    mail: MailInfo = context.horde.mail
+    if (
+        # we can delete from overview page
+        (check_mail_page(driver) and CheckMailExtendedView(mail.subject))
+        # or from mail info window
+        or check_mail_info_window(driver)
+    ):
+        # bind log context
+        log = log.bind(mail=mail)
+
+        # if we start from the mail info window we will have
+        # to switch the driver back to the main window after delete
+        switch_window = check_mail_info_window(driver)
+
+        log.info("Deleting mail")
+
+        # save window handles for checking if the window closed
+        handles_before = driver.window_handles
+
+        driver.find_element_by_id("button_delete").click()
+
+        # new mail windows automatically close
+        if switch_window:
+            # wait for the compose window to close
+            wait_for_window_change(
+                driver=driver,
+                handles_before=handles_before,
+                timeout=30,
+            )
+
+            # switch back to main window
+            driver.switch_to_window(context.main_window)
+
+        # ensure mail page has loaded again
+        horde_wait(driver, check_mail_page)
+        log.info("Deleted mail")
+    else:
+        log.error(
+            "Invalid action for current page",
+            horde_action="delete_mail",
+            current_page=driver.current_url,
+        )
+
+
+class SendMail:
+    def __init__(
+        self,
+        contacts: Dict[str, float],
+        attachments: Dict[str, float],
+        extra_recipient_prob: float = 0.1,
+        max_recipients: int = 3,
+        attachment_prob: float = 0.2,
+        attachment_reply_prob: float = 0.1,
+    ):
+        self.contacts: Dict[str, float] = contacts
+        self.attachments: Dict[str, float] = attachments
+        self.extra_recipient_prob: float = extra_recipient_prob
+        self.max_recipients: int = max_recipients
+        self.attachment_prob: float = attachment_prob
+        self.attachment_reply_prob: float = attachment_reply_prob
+
+    def __call__(self, log: BoundLogger, context: Context):
+        driver: webdriver.Remote = context.driver
+        mail: MailInfo = context.horde.mail
+
+        if check_mail_compose_window(driver):
+
+            # create mail info
+
+            recipients_write = None
+            subject_write = None
+            reply_content = None
+            content_write = context.fake.paragraphs(random.randint(1, 4))
+            attachment_prob: float = 0
+
+            # read recipients from input field
+            mail.recipients = [
+                recipient.get_attribute("title")
+                for recipient in driver.find_elements_by_xpath(
+                    "//tr[@id='sendto']//li[@class='hordeACListItem']"
+                )
+            ]
+
+            # reply might be prefilled we only set "new" recipients if its empty
+            if len(mail.recipients) <= 0:
+                recipient_count = 1
+                while (
+                    # increase recipient count until we draw a False
+                    random.random() < self.extra_recipient_prob
+                    # and we have not reached the max recipients or total contacts count
+                    and recipient_count < min(self.max_recipients, len(self.contacts))
+                ):
+                    recipient_count += 1
+
+                mail.recipients = cast(
+                    List[str],  # casting since we know that we always get a list
+                    np.random.choice(
+                        a=list(self.contacts.keys()),
+                        size=recipient_count,
+                        replace=False,
+                        p=list(self.contacts.values()),
+                    ),
+                )
+                recipients_write = ",".join(mail.recipients)
+
+            if (
+                mail.send_type == MailSendType.NEW
+                or mail.send_type == MailSendType.FORWARD
+            ):
+                # forward has a fixed subject
+                if mail.send_type == MailSendType.NEW:
+                    mail.subject = subject_write = get_title(
+                        fake=context.fake,
+                        nb_words=random.randint(1, 3),
+                    )
+                    attachment_prob = self.attachment_prob
+
+                mail.content = "\n".join(content_write)
+
+            if (
+                mail.send_type == MailSendType.REPLY
+                or mail.send_type == MailSendType.FORWARD
+            ):
+                if mail.send_type == MailSendType.REPLY:
+                    # mail content = new content + reply quote
+                    reply_content = driver.find_element_by_id(
+                        "composeMessage"
+                    ).get_attribute("value")
+                    mail.content = "\n".join(content_write) + "\n" + reply_content
+
+                    attachment_prob = self.attachment_reply_prob
+
+                # read subject from input field
+                mail.subject = driver.find_element_by_id("subject").get_attribute(
+                    "value"
+                )
+
+            if len(self.attachments) > 0 and random.random() < attachment_prob:
+                mail.attachment = np.random.choice(
+                    a=list(self.attachments.keys()),
+                    p=list(self.attachments.values()),
+                    size=1,
+                )[0]
+
+            log = log.bind(mail=mail)
+            log.info("Composing mail")
+
+            if recipients_write:
+                slow_type(
+                    element=driver.find_element_by_xpath(
+                        "//tr[@id='sendto']//input[contains(@class, 'hordeACTrigger') and contains(@class, 'impACTrigger')]"
+                    ),
+                    text=recipients_write,
+                )
+
+            if subject_write:
+                slow_type(
+                    element=driver.find_element_by_id("subject"), text=subject_write
+                )
+
+            if mail.attachment:
+                driver.find_element(By.ID, "upload").send_keys(mail.attachment)
+
+            content_input: WebElement = driver.find_element_by_id("composeMessage")
+
+            # clear the content textarea since we want to write from the start
+            # we restore reply quotes after writing
+            content_input.clear()
+            for line in content_write:
+                slow_type(element=content_input, text=line)
+                type_linebreak(driver)
+
+            if reply_content:
+                # restore the reply quote line
+                content_input.send_keys(reply_content)
+
+            log.info("Sending mail")
+
+            # if we directly opened the compose window
+            # (e.g., new mail or reply from overview)
+            # then the window will automatically close
+            # otherwise we have to do it manually
+            switch_window = check_mail_write_window(driver)
+
+            handles_before = driver.window_handles
+
+            driver.find_element(By.ID, "send_button").click()
+
+            # window automatically closes
+            if switch_window:
+                # wait for the compose window to close
+                wait_for_window_change(
+                    driver=driver,
+                    handles_before=handles_before,
+                    timeout=30,
+                )
+                # switch back to main window
+                driver.switch_to_window(context.main_window)
+
+            # wait for sent success/fail message
+            horde_wait(driver, check_horde_action)
+            if check_horde_action_success(driver):
+                log.info("Sent mail")
+            else:
+                log.info("Failed to send mail")
+
+            # if the window does not automatically close
+            # we close it after observing the success/fail message
+            if not switch_window:
+                driver.close()
+                # switch back to main window
+                driver.switch_to_window(context.main_window)
+
+            # wait for mail page to be ready again
+            horde_wait(driver, check_mail_page)
+        else:
+            log.error(
+                "Invalid action for current page",
+                horde_action="send_mail",
+                current_page=driver.current_url,
+            )
 
 
 def start_add_contact(log: BoundLogger, context: Context):

@@ -8,6 +8,7 @@ from enum import Enum
 from pathlib import Path
 from typing import (
     Any,
+    Callable,
     Dict,
     List,
     Optional,
@@ -466,19 +467,20 @@ def js_set_text(driver: webdriver.Remote, element: WebElement, text: str):
     )
 
 
-def wait_for_new_window(
+def wait_for_window_change(
     driver: webdriver.Remote,
+    handles_before: List[str],
     timeout: Union[float, int] = 10,
     poll_frequency: float = POLL_FREQUENCY,
-) -> Optional[str]:
-    """Waits for a new window to open and returns its window handle.
+):
+    """Wait for a new window to open and returns its window handle.
 
     Args:
         driver: The webdriver
+        handles_before: The handles list before the new window opens
         timeout: The maximum time to wait for
+        poll_frequency: The frequency the condition should be checked
     """
-    handles_before = driver.window_handles
-
     # wait for the window to appear
     WebDriverWait(
         driver=driver,
@@ -486,8 +488,47 @@ def wait_for_new_window(
         poll_frequency=poll_frequency,
     ).until(lambda driver: len(handles_before) != len(driver.window_handles))
 
+
+def get_new_window(
+    driver: webdriver.Remote,
+    handles_before: List[str],
+) -> Optional[str]:
+    """Get the new window based on the current and previous window list.
+
+    Args:
+        driver: The webdriver
+        handles_before: The window list before the new window opened
+
+    Returns:
+        The window handle for the new window
+    """
     # get new window and return
     handle_after = driver.window_handles
     if len(handle_after) > len(handles_before):
         return set(handle_after).difference(set(handles_before)).pop()
     return None
+
+
+def wait_and_get_new_window(
+    driver: webdriver.Remote,
+    action: Callable[[], None],
+    timeout: Union[float, int] = 10,
+    poll_frequency: float = POLL_FREQUENCY,
+) -> Optional[str]:
+    """Executes the given function and waits for a new window to open and returns it handle.
+
+    Args:
+        driver: The webdriver
+        action: The function to execute before waiting for the window
+        timeout: The maximum time to wait
+        poll_frequency: The frequency to check for the presence of the new window
+
+    Returns:
+        Optional[str]: [description]
+    """
+    handles_before = driver.window_handles
+
+    action()
+
+    wait_for_window_change(driver, handles_before, timeout, poll_frequency)
+    return get_new_window(driver, handles_before)

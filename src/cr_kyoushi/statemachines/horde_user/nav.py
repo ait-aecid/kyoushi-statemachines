@@ -93,6 +93,18 @@ class NavigateMailMenu(NavigateMainMenu):
     def wait_page(self, log: BoundLogger, context: Context):
         horde_wait(context.driver, check_mail_page)
 
+    def prepare_page(self, log, context):
+        try:
+            date_sorter = context.driver.find_element_by_xpath(
+                "//div[@id='msglistHeaderHoriz']//div[contains(@class, 'msgDate') and contains(@class, 'sep') and contains(@class, 'sortdown')]"
+            )
+            if date_sorter is not None:
+                log.info("Sorting mail by date ascending")
+                date_sorter.click()
+        except NoSuchElementException:
+            # already sorted correctly
+            pass
+
 
 navigate_mail_menu = NavigateMailMenu()
 
