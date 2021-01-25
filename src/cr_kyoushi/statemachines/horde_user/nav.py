@@ -52,8 +52,13 @@ class GoToHordeWebsite:
         self.horde_url: AnyUrl = horde_url
 
     def __call__(self, log: BoundLogger, context: Context):
-        context.driver.get(self.horde_url)
-        horde_wait(context.driver, check_home_page)
+        if not check_home_page(context.driver):
+            log.info("Opening horde")
+            context.driver.get(self.horde_url)
+            horde_wait(context.driver, check_home_page)
+            log.info("Opened horde")
+        else:
+            log.info("Already on horde")
 
 
 class NavigateMainMenu:
