@@ -35,13 +35,13 @@ setup: setup-python
 
 # test your application (tests in the tests/ directory)
 test:
-	@poetry run pytest --cov=src/cr_kyoushi --cov-config .coveragerc --cov-report xml --cov-report term tests/ -sq
+	@poetry run pytest --cov=src/cr_kyoushi/statemachines/core --cov-config .coveragerc --cov-report xml --cov-report term tests/ -sq
 
 test-html:
-	@poetry run pytest --cov=src/cr_kyoushi --cov-config .coveragerc --cov-report html --cov-report term tests/ -sq
+	@poetry run pytest --cov=src/cr_kyoushi/statemachines/core --cov-config .coveragerc --cov-report html --cov-report term tests/ -sq
 
 test-junit:
-	@poetry run pytest --junitxml=report.xml --cov=src/cr_kyoushi --cov-config .coveragerc --cov-report xml --cov-report term tests/ -sq
+	@poetry run pytest --junitxml=report.xml --cov=src/cr_kyoushi/statemachines/core --cov-config .coveragerc --cov-report xml --cov-report term tests/ -sq
 
 release: build
 
