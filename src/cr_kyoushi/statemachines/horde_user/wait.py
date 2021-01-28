@@ -39,7 +39,19 @@ def horde_wait(
 
 def check_login_page(driver: webdriver.Remote) -> Optional[Any]:
     try:
-        return driver.find_element(by=By.ID, value="horde_login")
+        return ec.visibility_of_element_located((By.ID, "horde_login"))(driver)
+    except NoSuchElementException:
+        return False
+
+
+def check_login_failed_page(driver: webdriver.Remote) -> Optional[Any]:
+    try:
+        return (
+            # is login page
+            check_login_page(driver)
+            # and failed message is visible
+            and ec.visibility_of_element_located((By.CLASS_NAME, "noticetext"))(driver)
+        )
     except NoSuchElementException:
         return False
 

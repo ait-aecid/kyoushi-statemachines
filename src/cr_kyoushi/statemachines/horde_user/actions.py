@@ -9,6 +9,7 @@ from typing import (
     Any,
     Dict,
     List,
+    Optional,
     Union,
     cast,
 )
@@ -35,6 +36,7 @@ from ..core.selenium import (
     slow_type,
     type_linebreak,
     wait_and_get_new_window,
+    wait_for_page_load,
     wait_for_window_change,
 )
 from ..core.util import get_title
@@ -72,6 +74,7 @@ from .wait import (
     check_horde_group_delete_confirm,
     check_horde_page,
     check_logged_out,
+    check_login_failed_page,
     check_login_page,
     check_mail_compose_window,
     check_mail_info_window,
@@ -94,18 +97,23 @@ class LoginToHorde:
         self.password: str = password
         self.fail: bool = fail
 
-    def __call__(self, log: BoundLogger, context: Context):
+    def __call__(
+        self,
+        log: BoundLogger,
+        current_state: str,
+        context: Context,
+        target: Optional[str],
+    ):
         driver: webdriver.Remote = context.driver
         if check_login_page(driver):
 
-            # find input fields
-            user_field = driver.find_element(By.ID, "horde_user")
-            password_field = driver.find_element(By.ID, "horde_pass")
-            submit_button = driver.find_element(By.ID, "login-button")
+            # input field ids
+            user_field = "horde_user"
+            password_field = "horde_pass"
 
             # clear fields
-            user_field.clear()
-            password_field.clear()
+            driver.find_element(By.ID, user_field).clear()
+            driver.find_element(By.ID, password_field).clear()
 
             password = self.password
             if self.fail:
@@ -117,8 +125,8 @@ class LoginToHorde:
             # bind log context
             log = log.bind(username=self.username, password=password)
 
-            user_field.send_keys(self.username)
-            password_field.send_keys(password)
+            slow_type(driver.find_element(By.ID, user_field), self.username)
+            slow_type(driver.find_element(By.ID, password_field), password)
 
             if self.fail:
                 log.info("Trying invalid login")
@@ -126,10 +134,12 @@ class LoginToHorde:
                 log.info("Trying valid login")
 
             # trigger login
-            submit_button.click()
+            # use hight timeout since failed logins take long
+            with wait_for_page_load(driver, timeout=90):
+                driver.find_element(By.ID, "login-button").click()
             if self.fail:
                 log.info("Failed login try")
-                horde_wait(context.driver, check_login_page)
+                horde_wait(context.driver, check_login_failed_page)
             else:
                 # ensure the page loaded after login
                 horde_wait(context.driver, check_home_page)
@@ -142,14 +152,17 @@ class LoginToHorde:
             )
 
 
-def logout_of_horde(log: BoundLogger, context: Context):
+def logout_of_horde(
+    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+):
     driver: webdriver.Remote = context.driver
     if check_horde_page(driver):
 
         logout_icon = driver.find_element_by_css_selector(
             "#horde-head div#horde-logout a.icon"
         )
-        ActionChains(driver).move_to_element(logout_icon).click().perform()
+        with wait_for_page_load(driver):
+            ActionChains(driver).move_to_element(logout_icon).click().perform()
 
         horde_wait(driver, check_logged_out)
     else:
@@ -160,7 +173,9 @@ def logout_of_horde(log: BoundLogger, context: Context):
         )
 
 
-def new_mail(log: BoundLogger, context: Context):
+def new_mail(
+    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+):
     driver: webdriver.Remote = context.driver
     if check_mail_page(driver):
         log.info("Writing new mail")
@@ -191,7 +206,9 @@ def new_mail(log: BoundLogger, context: Context):
         )
 
 
-def view_mail(log: BoundLogger, context: Context):
+def view_mail(
+    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+):
     driver: webdriver.Remote = context.driver
     mail: MailInfo = context.horde.mail
     # we can delete from overview page
@@ -233,7 +250,9 @@ def view_mail(log: BoundLogger, context: Context):
         )
 
 
-def open_mail(log: BoundLogger, context: Context):
+def open_mail(
+    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+):
     driver: webdriver.Remote = context.driver
     mail: MailInfo = context.horde.mail
     if check_mail_page(driver) and CheckMailExtendedView(mail.subject):
@@ -268,7 +287,9 @@ def open_mail(log: BoundLogger, context: Context):
         )
 
 
-def reply_mail(log: BoundLogger, context: Context):
+def reply_mail(
+    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+):
     driver: webdriver.Remote = context.driver
     mail: MailInfo = context.horde.mail
     if (
@@ -313,7 +334,9 @@ def reply_mail(log: BoundLogger, context: Context):
         )
 
 
-def delete_mail(log: BoundLogger, context: Context):
+def delete_mail(
+    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+):
     driver: webdriver.Remote = context.driver
     mail: MailInfo = context.horde.mail
     if (
@@ -376,7 +399,13 @@ class SendMail:
         self.attachment_prob: float = attachment_prob
         self.attachment_reply_prob: float = attachment_reply_prob
 
-    def __call__(self, log: BoundLogger, context: Context):
+    def __call__(
+        self,
+        log: BoundLogger,
+        current_state: str,
+        context: Context,
+        target: Optional[str],
+    ):
         driver: webdriver.Remote = context.driver
         mail: MailInfo = context.horde.mail
 
@@ -539,7 +568,9 @@ class SendMail:
             )
 
 
-def new_calendar_event(log: BoundLogger, context: Context):
+def new_calendar_event(
+    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+):
     driver: webdriver.Remote = context.driver
     if check_calendar_page(driver):
         log.info("Adding calendar event")
@@ -555,7 +586,9 @@ def new_calendar_event(log: BoundLogger, context: Context):
         )
 
 
-def write_calendar_event(log: BoundLogger, context: Context):
+def write_calendar_event(
+    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+):
     driver: webdriver.Remote = context.driver
     horde: HordeContext = context.horde
     if check_calendar_write_view(driver):
@@ -652,7 +685,9 @@ def write_calendar_event(log: BoundLogger, context: Context):
         )
 
 
-def edit_calendar_event(log: BoundLogger, context: Context):
+def edit_calendar_event(
+    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+):
     driver: webdriver.Remote = context.driver
     horde: HordeContext = context.horde
     if check_calendar_page(driver):
@@ -697,7 +732,9 @@ def edit_calendar_event(log: BoundLogger, context: Context):
         )
 
 
-def delete_calendar_event(log: BoundLogger, context: Context):
+def delete_calendar_event(
+    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+):
     driver: webdriver.Remote = context.driver
     horde: HordeContext = context.horde
     if check_calendar_edit_view(driver):
@@ -731,11 +768,14 @@ def __goto_new_contact_tab(
     horde_wait(driver, CheckNewContactTab(section_id))
 
 
-def start_add_contact(log: BoundLogger, context: Context):
+def start_add_contact(
+    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+):
     driver: webdriver.Remote = context.driver
     if check_address_book_page(driver):
         log.info("Start adding new contact")
-        driver.find_element(By.LINK_TEXT, "New Contact").click()
+        with wait_for_page_load(driver):
+            driver.find_element(By.LINK_TEXT, "New Contact").click()
 
         # wait for new contacts page to load
         horde_wait(driver, check_new_contact_page)
@@ -747,7 +787,9 @@ def start_add_contact(log: BoundLogger, context: Context):
         )
 
 
-def submit_new_contact(log: BoundLogger, context: Context):
+def submit_new_contact(
+    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+):
     driver: webdriver.Remote = context.driver
     if check_new_contact_page(driver):
 
@@ -775,9 +817,10 @@ def submit_new_contact(log: BoundLogger, context: Context):
 
         # submit contact
         log.info("Submitting new contact")
-        driver.find_element_by_css_selector(
-            "form[id='turba_form_addcontact'] * input[value='Add'][type='submit']"
-        ).click()
+        with wait_for_page_load(driver):
+            driver.find_element_by_css_selector(
+                "form[id='turba_form_addcontact'] * input[value='Add'][type='submit']"
+            ).click()
 
         horde_wait(driver, check_horde_action)
         if check_horde_action_success(driver):
@@ -793,7 +836,9 @@ def submit_new_contact(log: BoundLogger, context: Context):
         )
 
 
-def delete_contact(log: BoundLogger, context: Context):
+def delete_contact(
+    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+):
     driver: webdriver.Remote = context.driver
     horde: HordeContext = context.horde
     if check_contact_page(driver):
@@ -814,16 +859,19 @@ def delete_contact(log: BoundLogger, context: Context):
         )
 
 
-def confirm_delete_contact(log: BoundLogger, context: Context):
+def confirm_delete_contact(
+    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+):
     driver: webdriver.Remote = context.driver
     horde: HordeContext = context.horde
     if check_contact_delete_confirm_page(driver):
         log = log.bind(contact=horde.contact)
 
         log.info("Confirming delete contact")
-        driver.find_element_by_xpath(
-            "//div[@class='headerbox']/input[@name='delete']"
-        ).click()
+        with wait_for_page_load(driver):
+            driver.find_element_by_xpath(
+                "//div[@class='headerbox']/input[@name='delete']"
+            ).click()
 
         # horde wait for success/fail message
         horde_wait(driver, check_horde_action)
@@ -841,13 +889,16 @@ def confirm_delete_contact(log: BoundLogger, context: Context):
     horde.contact.clear()
 
 
-def new_task(log: BoundLogger, context: Context):
+def new_task(
+    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+):
     driver: webdriver.Remote = context.driver
     if check_tasks_page(driver):
         log.info("Adding task")
-        driver.find_element_by_xpath(
-            "//div[@class='horde-new']//span[@class='horde-new-link']/a"
-        ).click()
+        with wait_for_page_load(driver):
+            driver.find_element_by_xpath(
+                "//div[@class='horde-new']//span[@class='horde-new-link']/a"
+            ).click()
         # wait for new task form to load
         horde_wait(driver, check_new_task_general_tab)
     else:
@@ -858,7 +909,9 @@ def new_task(log: BoundLogger, context: Context):
         )
 
 
-def save_new_task(log: BoundLogger, context: Context):
+def save_new_task(
+    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+):
     driver: webdriver.Remote = context.driver
     form_delay: Union[ApproximateFloat, float] = context.horde.form_field_delay
     if check_new_task_general_tab(driver):
@@ -929,9 +982,11 @@ def save_new_task(log: BoundLogger, context: Context):
             priority=priority,
             estimate=estimate,
         )
-        driver.find_element_by_xpath(
-            "//form[@id='nag_form_task']//input[@type='submit' and @value='Save']"
-        ).click()
+
+        with wait_for_page_load(driver):
+            driver.find_element_by_xpath(
+                "//form[@id='nag_form_task']//input[@type='submit' and @value='Save']"
+            ).click()
 
         horde_wait(driver, check_horde_action)
         if check_horde_action_success(driver):
@@ -949,7 +1004,9 @@ def save_new_task(log: BoundLogger, context: Context):
         )
 
 
-def edit_task(log: BoundLogger, context: Context):
+def edit_task(
+    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+):
     driver: webdriver.Remote = context.driver
     horde: HordeContext = context.horde
     if check_tasks_page(driver):
@@ -978,7 +1035,8 @@ def edit_task(log: BoundLogger, context: Context):
             log = log.bind(task=horde.task)
 
             log.info("Editing task")
-            task_link.click()
+            with wait_for_page_load(driver):
+                task_link.click()
             # wait for task info view to load
             horde_wait(driver, check_edit_task_general_tab)
         else:
@@ -991,16 +1049,19 @@ def edit_task(log: BoundLogger, context: Context):
         )
 
 
-def delete_task(log: BoundLogger, context: Context):
+def delete_task(
+    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+):
     driver: webdriver.Remote = context.driver
     horde: HordeContext = context.horde
     if check_edit_task_general_tab(driver):
         log = log.bind(task=horde.task)
 
         log.info("Deleting task")
-        driver.find_element_by_xpath(
-            "//div[@class='horde-form-buttons']/input[@type='submit' and @value='Delete']"
-        ).click()
+        with wait_for_page_load(driver):
+            driver.find_element_by_xpath(
+                "//div[@class='horde-form-buttons']/input[@type='submit' and @value='Delete']"
+            ).click()
 
         # horde wait for success/fail message
         horde_wait(driver, check_horde_action)
@@ -1018,13 +1079,16 @@ def delete_task(log: BoundLogger, context: Context):
     horde.task.clear()
 
 
-def new_note(log: BoundLogger, context: Context):
+def new_note(
+    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+):
     driver: webdriver.Remote = context.driver
     if check_notes_page(driver):
         log.info("Adding note")
-        driver.find_element_by_xpath(
-            "//div[@class='horde-new']//a[contains(@title,'New Note')]"
-        ).click()
+        with wait_for_page_load(driver):
+            driver.find_element_by_xpath(
+                "//div[@class='horde-new']//a[contains(@title,'New Note')]"
+            ).click()
         # wait for new note form to load
         horde_wait(driver, check_new_note_page)
     else:
@@ -1035,7 +1099,9 @@ def new_note(log: BoundLogger, context: Context):
         )
 
 
-def write_note(log: BoundLogger, context: Context):
+def write_note(
+    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+):
     driver: webdriver.Remote = context.driver
     if check_note_write_page(driver):
         # get elements
@@ -1097,7 +1163,8 @@ def write_note(log: BoundLogger, context: Context):
         slow_type(element=tags_input, text=", ".join(tags))
 
         log.info("Saving note")
-        save_button.click()
+        with wait_for_page_load(driver):
+            save_button.click()
 
         horde_wait(driver, check_horde_action)
         if check_horde_action_success(driver):
@@ -1115,7 +1182,9 @@ def write_note(log: BoundLogger, context: Context):
         )
 
 
-def edit_note(log: BoundLogger, context: Context):
+def edit_note(
+    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+):
     driver: webdriver.Remote = context.driver
     horde: HordeContext = context.horde
     if check_notes_page(driver):
@@ -1144,7 +1213,8 @@ def edit_note(log: BoundLogger, context: Context):
             log = log.bind(memo=horde.memo)
 
             log.info("Editing note")
-            memo_link.click()
+            with wait_for_page_load(driver):
+                memo_link.click()
             # wait for memo edit view to load
             horde_wait(driver, check_edit_note_page)
         else:
@@ -1157,14 +1227,19 @@ def edit_note(log: BoundLogger, context: Context):
         )
 
 
-def delete_note(log: BoundLogger, context: Context):
+def delete_note(
+    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+):
     driver: webdriver.Remote = context.driver
     horde: HordeContext = context.horde
     if check_edit_note_page(driver):
         log = log.bind(memo=horde.memo)
 
         log.info("Deleting note")
-        driver.find_element_by_xpath("//form[@name='memo']//a[text()='Delete']").click()
+        with wait_for_page_load(driver):
+            driver.find_element_by_xpath(
+                "//form[@name='memo']//a[text()='Delete']"
+            ).click()
 
         # horde wait for success/fail message
         horde_wait(driver, check_horde_action)
@@ -1182,7 +1257,9 @@ def delete_note(log: BoundLogger, context: Context):
     horde.memo.clear()
 
 
-def add_user_group(log: BoundLogger, context: Context):
+def add_user_group(
+    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+):
     driver: webdriver.Remote = context.driver
     if check_admin_groups_page(driver):
         group_name = context.fake.word()
@@ -1197,7 +1274,8 @@ def add_user_group(log: BoundLogger, context: Context):
         )
 
         log.info("Adding group")
-        submit_button.click()
+        with wait_for_page_load(driver):
+            submit_button.click()
 
         horde_wait(driver, check_horde_action)
         if check_horde_action_success(driver):
@@ -1212,7 +1290,9 @@ def add_user_group(log: BoundLogger, context: Context):
         )
 
 
-def delete_user_group(log: BoundLogger, context: Context):
+def delete_user_group(
+    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+):
     driver: webdriver.Remote = context.driver
     horde: HordeContext = context.horde
 
@@ -1240,9 +1320,10 @@ def delete_user_group(log: BoundLogger, context: Context):
 
             log.info("Deleting group")
             # get delete icon and click on it
-            group_row.find_element_by_xpath(
-                ".//span/a/img[@alt='Delete Group']"
-            ).click()
+            with wait_for_page_load(driver):
+                group_row.find_element_by_xpath(
+                    ".//span/a/img[@alt='Delete Group']"
+                ).click()
 
             # wait for confirm page to load
             horde_wait(driver, check_horde_group_delete_confirm)
@@ -1257,7 +1338,9 @@ def delete_user_group(log: BoundLogger, context: Context):
         )
 
 
-def confirm_delete_user_group(log: BoundLogger, context: Context):
+def confirm_delete_user_group(
+    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+):
     driver: webdriver.Remote = context.driver
     horde: HordeContext = context.horde
 
@@ -1267,9 +1350,10 @@ def confirm_delete_user_group(log: BoundLogger, context: Context):
 
         log.info("Confirming delete group")
         # get delete confirm button and click on it
-        driver.find_element_by_xpath(
-            "//input[@class='horde-delete' and @type='submit' and @name='confirm' and @value='Delete']"
-        ).click()
+        with wait_for_page_load(driver):
+            driver.find_element_by_xpath(
+                "//input[@class='horde-delete' and @type='submit' and @name='confirm' and @value='Delete']"
+            ).click()
 
         # horde wait for success/fail message
         horde_wait(driver, check_horde_action)
@@ -1287,13 +1371,16 @@ def confirm_delete_user_group(log: BoundLogger, context: Context):
     horde.group.clear()
 
 
-def admin_check_versions(log: BoundLogger, context: Context):
+def admin_check_versions(
+    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+):
     driver: webdriver.Remote = context.driver
     if check_admin_configuration_page(driver):
         log.info("Checking software versions")
-        driver.find_element_by_xpath(
-            "//input[@value='Check for newer versions' and @type='submit']"
-        ).click()
+        with wait_for_page_load(driver):
+            driver.find_element_by_xpath(
+                "//input[@value='Check for newer versions' and @type='submit']"
+            ).click()
 
         # wait for version table to load
         horde_wait(driver, check_admin_version_check_view)
@@ -1307,7 +1394,9 @@ def admin_check_versions(log: BoundLogger, context: Context):
         )
 
 
-def admin_exec_php(log: BoundLogger, context: Context):
+def admin_exec_php(
+    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+):
     driver: webdriver.Remote = context.driver
     if check_admin_php_page(driver):
         # in future versions we can make this a configurable
@@ -1343,9 +1432,10 @@ def admin_exec_php(log: BoundLogger, context: Context):
             type_linebreak(driver)
 
         log.info("Executing PHP code")
-        driver.find_element_by_xpath(
-            "//input[@value='Execute' and @type='submit']"
-        ).click()
+        with wait_for_page_load(driver):
+            driver.find_element_by_xpath(
+                "//input[@value='Execute' and @type='submit']"
+            ).click()
 
         # wait for version table to load
         horde_wait(driver, check_admin_php_execute_view)
@@ -1359,7 +1449,9 @@ def admin_exec_php(log: BoundLogger, context: Context):
         )
 
 
-def admin_exec_sql(log: BoundLogger, context: Context):
+def admin_exec_sql(
+    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+):
     driver: webdriver.Remote = context.driver
     if check_admin_sql_page(driver):
         # in future versions we can make this a configurable
@@ -1388,9 +1480,10 @@ def admin_exec_sql(log: BoundLogger, context: Context):
             type_linebreak(driver)
 
         log.info("Executing SQL code")
-        driver.find_element_by_xpath(
-            "//input[@value='Execute' and @type='submit']"
-        ).click()
+        with wait_for_page_load(driver):
+            driver.find_element_by_xpath(
+                "//input[@value='Execute' and @type='submit']"
+            ).click()
 
         # wait for version table to load
         horde_wait(driver, check_admin_sql_execute_view)
@@ -1404,7 +1497,9 @@ def admin_exec_sql(log: BoundLogger, context: Context):
         )
 
 
-def admin_exec_cli(log: BoundLogger, context: Context):
+def admin_exec_cli(
+    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+):
     driver: webdriver.Remote = context.driver
     if check_admin_cli_page(driver):
         # in future versions we can make this a configurable
@@ -1433,9 +1528,10 @@ def admin_exec_cli(log: BoundLogger, context: Context):
             type_linebreak(driver)
 
         log.info("Executing CLI command")
-        driver.find_element_by_xpath(
-            "//input[@value='Execute' and @type='submit']"
-        ).click()
+        with wait_for_page_load(driver):
+            driver.find_element_by_xpath(
+                "//input[@value='Execute' and @type='submit']"
+            ).click()
 
         # wait for version table to load
         horde_wait(driver, check_admin_cli_execute_view)
@@ -1453,7 +1549,13 @@ class SetPersonalPreferences:
     def __init__(self, full_name: str):
         self.full_name: str = full_name
 
-    def __call__(self, log: BoundLogger, context: Context):
+    def __call__(
+        self,
+        log: BoundLogger,
+        current_state: str,
+        context: Context,
+        target: Optional[str],
+    ):
         driver: webdriver.Remote = context.driver
         if check_personal_information(driver):
             log = log.bind(full_name=self.full_name)
@@ -1468,9 +1570,10 @@ class SetPersonalPreferences:
             )
 
             log.info("Saving personal information")
-            driver.find_element_by_xpath(
-                "//input[@value='Save' and @type='submit']"
-            ).click()
+            with wait_for_page_load(driver):
+                driver.find_element_by_xpath(
+                    "//input[@value='Save' and @type='submit']"
+                ).click()
 
             horde_wait(driver, check_horde_action)
             if check_horde_action_success(driver):

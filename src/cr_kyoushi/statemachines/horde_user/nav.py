@@ -19,6 +19,7 @@ from selenium.common.exceptions import (
 from selenium.webdriver.common.by import By
 from structlog.stdlib import BoundLogger
 
+from ..core.selenium import wait_for_page_load
 from .config import (
     Context,
     HordeContext,
@@ -51,7 +52,13 @@ class GoToHordeWebsite:
     def __init__(self, horde_url: AnyUrl):
         self.horde_url: AnyUrl = horde_url
 
-    def __call__(self, log: BoundLogger, context: Context):
+    def __call__(
+        self,
+        log: BoundLogger,
+        current_state: str,
+        context: Context,
+        target: Optional[str],
+    ):
         if not check_home_page(context.driver):
             log.info("Opening horde")
             context.driver.get(self.horde_url)
@@ -66,7 +73,13 @@ class NavigateMainMenu:
         self.menu_item: int = menu_item
         self.name: str = name
 
-    def click_menu(self, log: BoundLogger, context: Context):
+    def click_menu(
+        self,
+        log: BoundLogger,
+        current_state: str,
+        context: Context,
+        target: Optional[str],
+    ):
 
         try:
             menu_element = context.driver.find_element(
@@ -75,27 +88,52 @@ class NavigateMainMenu:
             )
             log.info(f"Navigating to {self.name}")
             if menu_element is not None:
-                menu_element.click()
+                with wait_for_page_load(context.driver):
+                    menu_element.click()
         except NoSuchElementException:
             log.info(f"{self.name} already active")
 
-    def wait_page(self, log: BoundLogger, context: Context):
+    def wait_page(
+        self,
+        log: BoundLogger,
+        current_state: str,
+        context: Context,
+        target: Optional[str],
+    ):
         pass
 
-    def prepare_page(self, log: BoundLogger, context: Context):
+    def prepare_page(
+        self,
+        log: BoundLogger,
+        current_state: str,
+        context: Context,
+        target: Optional[str],
+    ):
         pass
 
-    def __call__(self, log: BoundLogger, context: Context):
-        self.click_menu(log, context)
-        self.wait_page(log, context)
-        self.prepare_page(log, context)
+    def __call__(
+        self,
+        log: BoundLogger,
+        current_state: str,
+        context: Context,
+        target: Optional[str],
+    ):
+        self.click_menu(log, current_state, context, target)
+        self.wait_page(log, current_state, context, target)
+        self.prepare_page(log, current_state, context, target)
 
 
 class NavigateMailMenu(NavigateMainMenu):
     def __init__(self):
         super().__init__(menu_item=1, name="Mail")
 
-    def wait_page(self, log: BoundLogger, context: Context):
+    def wait_page(
+        self,
+        log: BoundLogger,
+        current_state: str,
+        context: Context,
+        target: Optional[str],
+    ):
         horde_wait(context.driver, check_mail_page)
 
     def prepare_page(self, log, context):
@@ -118,7 +156,13 @@ class NavigateCalendarMenu(NavigateMainMenu):
     def __init__(self):
         super().__init__(menu_item=2, name="Calendar")
 
-    def wait_page(self, log: BoundLogger, context: Context):
+    def wait_page(
+        self,
+        log: BoundLogger,
+        current_state: str,
+        context: Context,
+        target: Optional[str],
+    ):
         horde_wait(context.driver, check_calendar_page)
 
     def prepare_page(self, log, context):
@@ -142,18 +186,27 @@ class NavigateAddressBookMenu(NavigateMainMenu):
     def __init__(self):
         super().__init__(menu_item=3, name="AddressBook")
 
-    def wait_page(self, log: BoundLogger, context: Context):
+    def wait_page(
+        self,
+        log: BoundLogger,
+        current_state: str,
+        context: Context,
+        target: Optional[str],
+    ):
         horde_wait(context.driver, check_address_book_page)
 
 
 navigate_address_book_menu = NavigateAddressBookMenu()
 
 
-def navigate_address_book_browse(log: BoundLogger, context: Context):
+def navigate_address_book_browse(
+    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+):
     driver: webdriver.Remote = context.driver
     if check_address_book_page(driver):
         log.info("Navigate to address book browse")
-        driver.find_element(By.LINK_TEXT, "Browse").click()
+        with wait_for_page_load(driver):
+            driver.find_element(By.LINK_TEXT, "Browse").click()
 
         # wait for browse page to load
         horde_wait(driver, check_address_book_browse)
@@ -165,7 +218,9 @@ def navigate_address_book_browse(log: BoundLogger, context: Context):
         )
 
 
-def navigate_address_book_contact(log: BoundLogger, context: Context):
+def navigate_address_book_contact(
+    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+):
     driver: webdriver.Remote = context.driver
     horde: HordeContext = context.horde
     if (
@@ -189,7 +244,8 @@ def navigate_address_book_contact(log: BoundLogger, context: Context):
         horde.contact.name = contact_link.text
 
         log.info("Navigate to contact page", contact=horde.contact)
-        contact_link.click()
+        with wait_for_page_load(driver):
+            contact_link.click()
 
         # wait for contact view page to load
         horde_wait(driver, check_view_contact_page)
@@ -206,7 +262,13 @@ class NavigateTasksMenu(NavigateMainMenu):
     def __init__(self):
         super().__init__(menu_item=4, name="Tasks")
 
-    def wait_page(self, log: BoundLogger, context: Context):
+    def wait_page(
+        self,
+        log: BoundLogger,
+        current_state: str,
+        context: Context,
+        target: Optional[str],
+    ):
         horde_wait(context.driver, check_tasks_page)
 
     def prepare_page(self, log, context):
@@ -230,7 +292,13 @@ class NavigateNotesMenu(NavigateMainMenu):
     def __init__(self):
         super().__init__(menu_item=5, name="Notes")
 
-    def wait_page(self, log: BoundLogger, context: Context):
+    def wait_page(
+        self,
+        log: BoundLogger,
+        current_state: str,
+        context: Context,
+        target: Optional[str],
+    ):
         horde_wait(context.driver, check_notes_page)
 
     def prepare_page(self, log, context):
@@ -263,7 +331,13 @@ class NavigateSettingsMenu(NavigateMainMenu):
         self.on_page_check: Callable[[webdriver.Remote], Optional[Any]] = on_page_check
         super().__init__(7, name)
 
-    def click_menu(self, log: BoundLogger, context: Context):
+    def click_menu(
+        self,
+        log: BoundLogger,
+        current_state: str,
+        context: Context,
+        target: Optional[str],
+    ):
         if not self.on_page_check(context.driver):
             menu_nav = context.driver.find_element_by_css_selector(
                 f"div.horde-navipoint:nth-child({self.menu_item}) > ul:nth-child(2) > li:nth-child(1) > ul:nth-child(2) > li:nth-child({self.sub_menu})"
@@ -422,10 +496,12 @@ class NavigatePreferencesGlobal(NavigateSettingsMenu):
 navigate_preferences_global = NavigatePreferencesGlobal()
 
 
-def navigate_preferences_personal(log: BoundLogger, context: Context):
+def navigate_preferences_personal(
+    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+):
     # if we are not on the preference page navigate to it first
     if "User Preferences" not in context.driver.title:
-        navigate_preferences_global(log, context)
+        navigate_preferences_global(log, current_state, context, target)
 
     try:
         # checks for the selected identity label
