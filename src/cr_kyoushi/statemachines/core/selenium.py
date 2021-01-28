@@ -540,6 +540,8 @@ def wait_and_get_new_window(
 def wait_for_page_load(driver: webdriver.Remote, timeout=30):
     """Context manager for waiting on page reloads or requests caused by interaction.
 
+    From https://www.cloudbees.com/blog/get-selenium-to-wait-for-page-load/
+
     Args:
         timeout: The maximum time to wait for the page to load
     """
