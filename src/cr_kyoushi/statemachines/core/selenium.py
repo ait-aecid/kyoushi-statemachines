@@ -13,6 +13,7 @@ from typing import (
     Dict,
     List,
     Optional,
+    Tuple,
     Union,
 )
 
@@ -27,6 +28,7 @@ from pydantic import (
 from pydantic.errors import EnumMemberError
 from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.proxy import (
     Proxy,
@@ -537,7 +539,11 @@ def wait_and_get_new_window(
 
 
 @contextmanager
-def wait_for_page_load(driver: webdriver.Remote, timeout=30):
+def wait_for_page_load(
+    driver: webdriver.Remote,
+    locator: Tuple[By, str] = (By.TAG_NAME, "html"),
+    timeout=30,
+):
     """Context manager for waiting on page reloads or requests caused by interaction.
 
     From https://www.cloudbees.com/blog/get-selenium-to-wait-for-page-load/
@@ -545,6 +551,7 @@ def wait_for_page_load(driver: webdriver.Remote, timeout=30):
     Args:
         timeout: The maximum time to wait for the page to load
     """
-    old_page = driver.find_element_by_tag_name("html")
+    (by, value) = locator
+    old_page = driver.find_element(by, value)
     yield
     WebDriverWait(driver, timeout).until(staleness_of(old_page))

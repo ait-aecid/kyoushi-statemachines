@@ -1,7 +1,4 @@
-from typing import (
-    Optional,
-    Union,
-)
+from typing import Optional
 
 from structlog import BoundLogger
 
@@ -23,9 +20,9 @@ class ActivitySelectionState(states.ProbabilisticState):
         name: str,
         max_websites_day: int,
         website_transition: transitions.Transition,
-        website_weight: Union[int, float],
+        website_weight: float,
         idle_transition: transitions.Transition,
-        idle_weight: Union[int, float],
+        idle_weight: float,
     ):
         super().__init__(
             name,
@@ -56,9 +53,9 @@ class WebsiteState(states.ProbabilisticState):
         self,
         name: str,
         website_transition: transitions.Transition,
-        website_weight: Union[int, float],
+        website_weight: float,
         leave_transition: transitions.Transition,
-        leave_weight: Union[int, float],
+        leave_weight: float,
         max_depth: int,
     ):
         super().__init__(

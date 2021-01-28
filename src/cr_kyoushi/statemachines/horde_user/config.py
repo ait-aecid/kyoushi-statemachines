@@ -1,6 +1,7 @@
 from datetime import datetime
 from enum import Enum
 from typing import (
+    Dict,
     List,
     Optional,
     Union,
@@ -9,7 +10,10 @@ from typing import (
 from faker import Faker
 from pydantic import (
     BaseModel,
+    EmailStr,
     Field,
+    FilePath,
+    HttpUrl,
 )
 from selenium import webdriver
 
@@ -25,6 +29,43 @@ __all__ = [
     "StatemachineConfig",
     "Context",
 ]
+
+
+class HordeConfig(BaseModel):
+    url: HttpUrl = Field(
+        "http://localhost",
+        description="The horde servers base URL",
+    )
+
+    first_name: str = Field(
+        "Max",
+        description="The firstname of the horde user",
+    )
+
+    last_name: str = Field(
+        "Mustermann",
+        description="The lastname of the horde user",
+    )
+
+    username: str = Field(
+        "user",
+        description="The horde user",
+    )
+
+    password: str = Field(
+        "password",
+        description="The horde users password",
+    )
+
+    contacts: Dict[EmailStr, float] = Field(
+        {},
+        description="The email contacts for the horde user",
+    )
+
+    attachments: Dict[FilePath, float] = Field(
+        {},
+        description="A dict of attachment files the user might send",
+    )
 
 
 class StatemachineConfig(BaseModel):
@@ -78,6 +119,11 @@ class StatemachineConfig(BaseModel):
         description="Selenium configuration for the web browser user",
     )
 
+    horde: HordeConfig = Field(
+        HordeConfig(),
+        description="The horde user specific configuration",
+    )
+
 
 class BaseInfo(BaseModel):
     def clear(self):
@@ -126,7 +172,7 @@ class MailInfo(BaseInfo):
         description="The mail content",
     )
 
-    attachment: Optional[str] = Field(
+    attachment: Optional[FilePath] = Field(
         None,
         description="The source path of the mail attachment",
     )

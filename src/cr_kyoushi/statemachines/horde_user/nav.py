@@ -73,13 +73,7 @@ class NavigateMainMenu:
         self.menu_item: int = menu_item
         self.name: str = name
 
-    def click_menu(
-        self,
-        log: BoundLogger,
-        current_state: str,
-        context: Context,
-        target: Optional[str],
-    ):
+    def click_menu(self, log: BoundLogger, context: Context):
 
         try:
             menu_element = context.driver.find_element(
@@ -93,22 +87,10 @@ class NavigateMainMenu:
         except NoSuchElementException:
             log.info(f"{self.name} already active")
 
-    def wait_page(
-        self,
-        log: BoundLogger,
-        current_state: str,
-        context: Context,
-        target: Optional[str],
-    ):
+    def wait_page(self, log: BoundLogger, context: Context):
         pass
 
-    def prepare_page(
-        self,
-        log: BoundLogger,
-        current_state: str,
-        context: Context,
-        target: Optional[str],
-    ):
+    def prepare_page(self, log: BoundLogger, context: Context):
         pass
 
     def __call__(
@@ -118,25 +100,19 @@ class NavigateMainMenu:
         context: Context,
         target: Optional[str],
     ):
-        self.click_menu(log, current_state, context, target)
-        self.wait_page(log, current_state, context, target)
-        self.prepare_page(log, current_state, context, target)
+        self.click_menu(log, context)
+        self.wait_page(log, context)
+        self.prepare_page(log, context)
 
 
 class NavigateMailMenu(NavigateMainMenu):
     def __init__(self):
         super().__init__(menu_item=1, name="Mail")
 
-    def wait_page(
-        self,
-        log: BoundLogger,
-        current_state: str,
-        context: Context,
-        target: Optional[str],
-    ):
+    def wait_page(self, log: BoundLogger, context: Context):
         horde_wait(context.driver, check_mail_page)
 
-    def prepare_page(self, log, context):
+    def prepare_page(self, log: BoundLogger, context: Context):
         try:
             date_sorter = context.driver.find_element_by_xpath(
                 "//div[@id='msglistHeaderHoriz']//div[contains(@class, 'msgDate') and contains(@class, 'sep') and contains(@class, 'sortdown')]"
@@ -156,16 +132,10 @@ class NavigateCalendarMenu(NavigateMainMenu):
     def __init__(self):
         super().__init__(menu_item=2, name="Calendar")
 
-    def wait_page(
-        self,
-        log: BoundLogger,
-        current_state: str,
-        context: Context,
-        target: Optional[str],
-    ):
+    def wait_page(self, log: BoundLogger, context: Context):
         horde_wait(context.driver, check_calendar_page)
 
-    def prepare_page(self, log, context):
+    def prepare_page(self, log: BoundLogger, context: Context):
         try:
             calendarActiveCheckbox = context.driver.find_element(
                 By.CSS_SELECTOR,
@@ -186,13 +156,7 @@ class NavigateAddressBookMenu(NavigateMainMenu):
     def __init__(self):
         super().__init__(menu_item=3, name="AddressBook")
 
-    def wait_page(
-        self,
-        log: BoundLogger,
-        current_state: str,
-        context: Context,
-        target: Optional[str],
-    ):
+    def wait_page(self, log: BoundLogger, context: Context):
         horde_wait(context.driver, check_address_book_page)
 
 
@@ -200,7 +164,10 @@ navigate_address_book_menu = NavigateAddressBookMenu()
 
 
 def navigate_address_book_browse(
-    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+    log: BoundLogger,
+    current_state: str,
+    context: Context,
+    target: Optional[str],
 ):
     driver: webdriver.Remote = context.driver
     if check_address_book_page(driver):
@@ -219,7 +186,10 @@ def navigate_address_book_browse(
 
 
 def navigate_address_book_contact(
-    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+    log: BoundLogger,
+    current_state: str,
+    context: Context,
+    target: Optional[str],
 ):
     driver: webdriver.Remote = context.driver
     horde: HordeContext = context.horde
@@ -262,16 +232,10 @@ class NavigateTasksMenu(NavigateMainMenu):
     def __init__(self):
         super().__init__(menu_item=4, name="Tasks")
 
-    def wait_page(
-        self,
-        log: BoundLogger,
-        current_state: str,
-        context: Context,
-        target: Optional[str],
-    ):
+    def wait_page(self, log: BoundLogger, context: Context):
         horde_wait(context.driver, check_tasks_page)
 
-    def prepare_page(self, log, context):
+    def prepare_page(self, log: BoundLogger, context: Context):
         try:
             tasksActiveCheckbox = context.driver.find_element(
                 By.CSS_SELECTOR,
@@ -292,16 +256,10 @@ class NavigateNotesMenu(NavigateMainMenu):
     def __init__(self):
         super().__init__(menu_item=5, name="Notes")
 
-    def wait_page(
-        self,
-        log: BoundLogger,
-        current_state: str,
-        context: Context,
-        target: Optional[str],
-    ):
+    def wait_page(self, log: BoundLogger, context: Context):
         horde_wait(context.driver, check_notes_page)
 
-    def prepare_page(self, log, context):
+    def prepare_page(self, log: BoundLogger, context: Context):
         try:
             notepadActiveCheckbox = context.driver.find_element(
                 By.CSS_SELECTOR,
@@ -331,13 +289,7 @@ class NavigateSettingsMenu(NavigateMainMenu):
         self.on_page_check: Callable[[webdriver.Remote], Optional[Any]] = on_page_check
         super().__init__(7, name)
 
-    def click_menu(
-        self,
-        log: BoundLogger,
-        current_state: str,
-        context: Context,
-        target: Optional[str],
-    ):
+    def click_menu(self, log: BoundLogger, context: Context):
         if not self.on_page_check(context.driver):
             menu_nav = context.driver.find_element_by_css_selector(
                 f"div.horde-navipoint:nth-child({self.menu_item}) > ul:nth-child(2) > li:nth-child(1) > ul:nth-child(2) > li:nth-child({self.sub_menu})"
@@ -497,7 +449,10 @@ navigate_preferences_global = NavigatePreferencesGlobal()
 
 
 def navigate_preferences_personal(
-    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+    log: BoundLogger,
+    current_state: str,
+    context: Context,
+    target: Optional[str],
 ):
     # if we are not on the preference page navigate to it first
     if "User Preferences" not in context.driver.title:

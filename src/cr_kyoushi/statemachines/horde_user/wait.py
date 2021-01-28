@@ -145,14 +145,14 @@ def check_mail_compose_window(driver: webdriver.Remote) -> Optional[Any]:
         return False
 
 
-def check_mail_write_window(driver: webdriver.Remote):
+def check_mail_info_write_window(driver: webdriver.Remote):
     # special type of compose window that closes on send
     try:
         return (
             # check is compose windo
             check_mail_compose_window(driver)
             # and writemsg div is present
-            and ec.visibility_of_element_located((By.ID, "writemsg"))(driver)
+            and ec.presence_of_element_located((By.ID, "msgData"))(driver)
         )
     except NoSuchElementException:
         return False

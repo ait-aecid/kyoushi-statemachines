@@ -78,8 +78,8 @@ from .wait import (
     check_login_page,
     check_mail_compose_window,
     check_mail_info_window,
+    check_mail_info_write_window,
     check_mail_page,
-    check_mail_write_window,
     check_new_contact_page,
     check_new_note_page,
     check_new_task_general_tab,
@@ -134,9 +134,19 @@ class LoginToHorde:
                 log.info("Trying valid login")
 
             # trigger login
-            # use hight timeout since failed logins take long
-            with wait_for_page_load(driver, timeout=90):
+
+            with wait_for_page_load(
+                driver,
+                # use login button as canary since the CAPSLOCK warning
+                # might invalidate the HTML element in between starting the
+                # wait context and clicking the button
+                locator=(By.ID, "login-button"),
+                # use high timeout since failed logins take long
+                timeout=90,
+            ):
                 driver.find_element(By.ID, "login-button").click()
+                print("clicked")
+
             if self.fail:
                 log.info("Failed login try")
                 horde_wait(context.driver, check_login_failed_page)
@@ -153,7 +163,10 @@ class LoginToHorde:
 
 
 def logout_of_horde(
-    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+    log: BoundLogger,
+    current_state: str,
+    context: Context,
+    target: Optional[str],
 ):
     driver: webdriver.Remote = context.driver
     if check_horde_page(driver):
@@ -173,8 +186,34 @@ def logout_of_horde(
         )
 
 
+def refresh_mail(
+    log: BoundLogger,
+    current_state: str,
+    context: Context,
+    target: Optional[str],
+):
+    driver: webdriver.Remote = context.driver
+    if check_mail_page(driver):
+        log.info("Checking for new mail")
+
+        driver.find_element_by_id("checkmaillink").click()
+
+        # ensure compose window is fully loaded
+        horde_wait(driver, check_mail_page)
+        log.info("Checked for new mail")
+    else:
+        log.error(
+            "Invalid action for current page",
+            horde_action="refresh_mail",
+            current_page=driver.current_url,
+        )
+
+
 def new_mail(
-    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+    log: BoundLogger,
+    current_state: str,
+    context: Context,
+    target: Optional[str],
 ):
     driver: webdriver.Remote = context.driver
     if check_mail_page(driver):
@@ -207,7 +246,10 @@ def new_mail(
 
 
 def view_mail(
-    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+    log: BoundLogger,
+    current_state: str,
+    context: Context,
+    target: Optional[str],
 ):
     driver: webdriver.Remote = context.driver
     mail: MailInfo = context.horde.mail
@@ -251,7 +293,10 @@ def view_mail(
 
 
 def open_mail(
-    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+    log: BoundLogger,
+    current_state: str,
+    context: Context,
+    target: Optional[str],
 ):
     driver: webdriver.Remote = context.driver
     mail: MailInfo = context.horde.mail
@@ -288,7 +333,10 @@ def open_mail(
 
 
 def reply_mail(
-    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+    log: BoundLogger,
+    current_state: str,
+    context: Context,
+    target: Optional[str],
 ):
     driver: webdriver.Remote = context.driver
     mail: MailInfo = context.horde.mail
@@ -335,7 +383,10 @@ def reply_mail(
 
 
 def delete_mail(
-    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+    log: BoundLogger,
+    current_state: str,
+    context: Context,
+    target: Optional[str],
 ):
     driver: webdriver.Remote = context.driver
     mail: MailInfo = context.horde.mail
@@ -527,7 +578,7 @@ class SendMail:
             # (e.g., new mail or reply from overview)
             # then the window will automatically close
             # otherwise we have to do it manually
-            switch_window = check_mail_write_window(driver)
+            switch_window = not check_mail_info_write_window(driver)
 
             handles_before = driver.window_handles
 
@@ -569,7 +620,10 @@ class SendMail:
 
 
 def new_calendar_event(
-    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+    log: BoundLogger,
+    current_state: str,
+    context: Context,
+    target: Optional[str],
 ):
     driver: webdriver.Remote = context.driver
     if check_calendar_page(driver):
@@ -587,7 +641,10 @@ def new_calendar_event(
 
 
 def write_calendar_event(
-    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+    log: BoundLogger,
+    current_state: str,
+    context: Context,
+    target: Optional[str],
 ):
     driver: webdriver.Remote = context.driver
     horde: HordeContext = context.horde
@@ -686,7 +743,10 @@ def write_calendar_event(
 
 
 def edit_calendar_event(
-    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+    log: BoundLogger,
+    current_state: str,
+    context: Context,
+    target: Optional[str],
 ):
     driver: webdriver.Remote = context.driver
     horde: HordeContext = context.horde
@@ -733,7 +793,10 @@ def edit_calendar_event(
 
 
 def delete_calendar_event(
-    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+    log: BoundLogger,
+    current_state: str,
+    context: Context,
+    target: Optional[str],
 ):
     driver: webdriver.Remote = context.driver
     horde: HordeContext = context.horde
@@ -769,7 +832,10 @@ def __goto_new_contact_tab(
 
 
 def start_add_contact(
-    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+    log: BoundLogger,
+    current_state: str,
+    context: Context,
+    target: Optional[str],
 ):
     driver: webdriver.Remote = context.driver
     if check_address_book_page(driver):
@@ -788,7 +854,10 @@ def start_add_contact(
 
 
 def submit_new_contact(
-    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+    log: BoundLogger,
+    current_state: str,
+    context: Context,
+    target: Optional[str],
 ):
     driver: webdriver.Remote = context.driver
     if check_new_contact_page(driver):
@@ -837,7 +906,10 @@ def submit_new_contact(
 
 
 def delete_contact(
-    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+    log: BoundLogger,
+    current_state: str,
+    context: Context,
+    target: Optional[str],
 ):
     driver: webdriver.Remote = context.driver
     horde: HordeContext = context.horde
@@ -860,7 +932,10 @@ def delete_contact(
 
 
 def confirm_delete_contact(
-    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+    log: BoundLogger,
+    current_state: str,
+    context: Context,
+    target: Optional[str],
 ):
     driver: webdriver.Remote = context.driver
     horde: HordeContext = context.horde
@@ -890,7 +965,10 @@ def confirm_delete_contact(
 
 
 def new_task(
-    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+    log: BoundLogger,
+    current_state: str,
+    context: Context,
+    target: Optional[str],
 ):
     driver: webdriver.Remote = context.driver
     if check_tasks_page(driver):
@@ -910,7 +988,10 @@ def new_task(
 
 
 def save_new_task(
-    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+    log: BoundLogger,
+    current_state: str,
+    context: Context,
+    target: Optional[str],
 ):
     driver: webdriver.Remote = context.driver
     form_delay: Union[ApproximateFloat, float] = context.horde.form_field_delay
@@ -1005,7 +1086,10 @@ def save_new_task(
 
 
 def edit_task(
-    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+    log: BoundLogger,
+    current_state: str,
+    context: Context,
+    target: Optional[str],
 ):
     driver: webdriver.Remote = context.driver
     horde: HordeContext = context.horde
@@ -1050,7 +1134,10 @@ def edit_task(
 
 
 def delete_task(
-    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+    log: BoundLogger,
+    current_state: str,
+    context: Context,
+    target: Optional[str],
 ):
     driver: webdriver.Remote = context.driver
     horde: HordeContext = context.horde
@@ -1080,7 +1167,10 @@ def delete_task(
 
 
 def new_note(
-    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+    log: BoundLogger,
+    current_state: str,
+    context: Context,
+    target: Optional[str],
 ):
     driver: webdriver.Remote = context.driver
     if check_notes_page(driver):
@@ -1100,7 +1190,10 @@ def new_note(
 
 
 def write_note(
-    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+    log: BoundLogger,
+    current_state: str,
+    context: Context,
+    target: Optional[str],
 ):
     driver: webdriver.Remote = context.driver
     if check_note_write_page(driver):
@@ -1183,7 +1276,10 @@ def write_note(
 
 
 def edit_note(
-    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+    log: BoundLogger,
+    current_state: str,
+    context: Context,
+    target: Optional[str],
 ):
     driver: webdriver.Remote = context.driver
     horde: HordeContext = context.horde
@@ -1228,7 +1324,10 @@ def edit_note(
 
 
 def delete_note(
-    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+    log: BoundLogger,
+    current_state: str,
+    context: Context,
+    target: Optional[str],
 ):
     driver: webdriver.Remote = context.driver
     horde: HordeContext = context.horde
@@ -1258,7 +1357,10 @@ def delete_note(
 
 
 def add_user_group(
-    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+    log: BoundLogger,
+    current_state: str,
+    context: Context,
+    target: Optional[str],
 ):
     driver: webdriver.Remote = context.driver
     if check_admin_groups_page(driver):
@@ -1291,7 +1393,10 @@ def add_user_group(
 
 
 def delete_user_group(
-    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+    log: BoundLogger,
+    current_state: str,
+    context: Context,
+    target: Optional[str],
 ):
     driver: webdriver.Remote = context.driver
     horde: HordeContext = context.horde
@@ -1339,7 +1444,10 @@ def delete_user_group(
 
 
 def confirm_delete_user_group(
-    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+    log: BoundLogger,
+    current_state: str,
+    context: Context,
+    target: Optional[str],
 ):
     driver: webdriver.Remote = context.driver
     horde: HordeContext = context.horde
@@ -1372,7 +1480,10 @@ def confirm_delete_user_group(
 
 
 def admin_check_versions(
-    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+    log: BoundLogger,
+    current_state: str,
+    context: Context,
+    target: Optional[str],
 ):
     driver: webdriver.Remote = context.driver
     if check_admin_configuration_page(driver):
@@ -1395,7 +1506,10 @@ def admin_check_versions(
 
 
 def admin_exec_php(
-    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+    log: BoundLogger,
+    current_state: str,
+    context: Context,
+    target: Optional[str],
 ):
     driver: webdriver.Remote = context.driver
     if check_admin_php_page(driver):
@@ -1450,7 +1564,10 @@ def admin_exec_php(
 
 
 def admin_exec_sql(
-    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+    log: BoundLogger,
+    current_state: str,
+    context: Context,
+    target: Optional[str],
 ):
     driver: webdriver.Remote = context.driver
     if check_admin_sql_page(driver):
@@ -1498,7 +1615,10 @@ def admin_exec_sql(
 
 
 def admin_exec_cli(
-    log: BoundLogger, current_state: str, context: Context, target: Optional[str]
+    log: BoundLogger,
+    current_state: str,
+    context: Context,
+    target: Optional[str],
 ):
     driver: webdriver.Remote = context.driver
     if check_admin_cli_page(driver):
