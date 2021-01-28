@@ -535,7 +535,12 @@ def check_filters_page(driver: webdriver.Remote) -> Optional[Any]:
 
 def check_horde_page(driver: webdriver.Remote) -> Optional[Any]:
     try:
-        return ec.visibility_of_element_located((By.ID, "portal"))(driver)
+        return (
+            # check horde logo visible
+            ec.visibility_of_element_located((By.ID, "horde-logo"))(driver)
+            # and logout button visible
+            and ec.visibility_of_element_located((By.ID, "horde-logout"))(driver)
+        )
     except NoSuchElementException:
         return False
 
