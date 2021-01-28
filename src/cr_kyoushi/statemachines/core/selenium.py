@@ -4,6 +4,7 @@ as part of simulations.
 """
 import time
 
+from contextlib import contextmanager
 from enum import Enum
 from pathlib import Path
 from typing import (
@@ -34,6 +35,7 @@ from selenium.webdriver.common.proxy import (
 from selenium.webdriver.edge.options import Options as EdgeOptions
 from selenium.webdriver.opera.options import Options as OperaOptions
 from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.support.expected_conditions import staleness_of
 from selenium.webdriver.support.wait import (
     POLL_FREQUENCY,
     WebDriverWait,
@@ -532,3 +534,15 @@ def wait_and_get_new_window(
 
     wait_for_window_change(driver, handles_before, timeout, poll_frequency)
     return get_new_window(driver, handles_before)
+
+
+@contextmanager
+def wait_for_page_load(driver: webdriver.Remote, timeout=30):
+    """Context manager for waiting on page reloads or requests caused by interaction.
+
+    Args:
+        timeout: The maximum time to wait for the page to load
+    """
+    old_page = driver.find_element_by_tag_name("html")
+    yield
+    WebDriverWait(driver, timeout).until(staleness_of(old_page))

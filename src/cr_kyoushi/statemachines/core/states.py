@@ -30,7 +30,6 @@ class ActivityState(AdaptiveProbabilisticState):
             weights,
             modifiers,
         )
-        self.__ret_index: int = self.transitions.index(ret_transition)
         self.__ret: Transition = ret_transition
         self.__ret_increase: float = ret_increase
 
@@ -45,4 +44,4 @@ class ActivityState(AdaptiveProbabilisticState):
             self.reset()
         # if we do not leave the activity increase the ret modifier
         else:
-            self._modifiers[self.__ret_index] *= self.__ret_increase
+            self._modifiers[self.__ret] *= self.__ret_increase
