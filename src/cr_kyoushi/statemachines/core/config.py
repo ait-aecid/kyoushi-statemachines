@@ -116,7 +116,7 @@ class IdleConfig(BaseModel):
 
     medium: Union[ApproximateFloat, float] = Field(
         ApproximateFloat(
-            min=80,  # 80 = 1m20s
+            min=60,  # 1m
             max=300,  # 5*60 = 5m
         ),
         description="The time in seconds to use for big idles",
@@ -124,7 +124,7 @@ class IdleConfig(BaseModel):
     small: Union[ApproximateFloat, float] = Field(
         ApproximateFloat(
             min=5,  # 5s
-            max=60,  # 60s
+            max=30,  # 30s
         ),
         description="The time in seconds to use for big idles",
     )
