@@ -1175,7 +1175,7 @@ def new_note(
     driver: webdriver.Remote = context.driver
     if check_notes_page(driver):
         log.info("Adding note")
-        with wait_for_page_load(driver):
+        with wait_for_page_load(driver, locator=(By.ID, "horde-content")):
             driver.find_element_by_xpath(
                 "//div[@class='horde-new']//a[contains(@title,'New Note')]"
             ).click()

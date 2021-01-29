@@ -239,6 +239,171 @@ class StatemachineFactory(sm.StatemachineFactory):
             delay_after=5,
         )
 
+        # admin transitions
+
+        nav_admin = DelayedTransition(
+            transition_function=nav.navigate_admin_configuration,
+            name="nav_admin",
+            target="admin_page",
+            delay_after=5,
+        )
+
+        nav_config = DelayedTransition(
+            transition_function=nav.navigate_admin_configuration,
+            name="nav_config",
+            target="admin_config_page",
+            delay_after=5,
+        )
+
+        check_versions = DelayedTransition(
+            transition_function=actions.admin_check_versions,
+            name="check_versions",
+            target="admin_page",
+            delay_after=5,
+        )
+
+        nav_groups = DelayedTransition(
+            transition_function=nav.navigate_admin_groups,
+            name="nav_groups",
+            target="admin_groups_page",
+            delay_after=5,
+        )
+
+        group_add = DelayedTransition(
+            transition_function=actions.add_user_group,
+            name="group_add",
+            target="admin_group_added",
+            delay_after=5,
+        )
+
+        group_delete = DelayedTransition(
+            transition_function=actions.delete_user_group,
+            name="group_delete",
+            target="admin_group_deleting",
+            delay_after=5,
+        )
+
+        group_delete_confirm = DelayedTransition(
+            transition_function=actions.confirm_delete_user_group,
+            name="group_delete_confirm",
+            target="admin_groups_page",
+            delay_after=5,
+        )
+
+        nav_users = DelayedTransition(
+            transition_function=nav.navigate_admin_users,
+            name="nav_users",
+            target="admin_page",
+            delay_after=5,
+        )
+
+        nav_sessions = DelayedTransition(
+            transition_function=nav.navigate_admin_sessions,
+            name="nav_sessions",
+            target="admin_page",
+            delay_after=5,
+        )
+
+        nav_alarms = DelayedTransition(
+            transition_function=nav.navigate_admin_alarms,
+            name="nav_alarms",
+            target="admin_page",
+            delay_after=5,
+        )
+
+        nav_locks = DelayedTransition(
+            transition_function=nav.navigate_admin_locks,
+            name="nav_locks",
+            target="admin_page",
+            delay_after=5,
+        )
+
+        nav_permissions = DelayedTransition(
+            transition_function=nav.navigate_admin_permissions,
+            name="nav_permissions",
+            target="admin_page",
+            delay_after=5,
+        )
+
+        nav_php_shell = DelayedTransition(
+            transition_function=nav.navigate_admin_php_shell,
+            name="nav_php_shell",
+            target="admin_php_shell_page",
+            delay_after=5,
+        )
+
+        exec_php = DelayedTransition(
+            transition_function=actions.admin_exec_php,
+            name="exec_php",
+            target="admin_page",
+            delay_after=5,
+        )
+
+        nav_sql_shell = DelayedTransition(
+            transition_function=nav.navigate_admin_sql_shell,
+            name="nav_sql_shell",
+            target="admin_sql_shell_page",
+            delay_after=5,
+        )
+
+        exec_sql = DelayedTransition(
+            transition_function=actions.admin_exec_sql,
+            name="exec_sql",
+            target="admin_page",
+            delay_after=5,
+        )
+
+        nav_cli_shell = DelayedTransition(
+            transition_function=nav.navigate_admin_cli,
+            name="nav_cli_shell",
+            target="admin_cli_shell_page",
+            delay_after=5,
+        )
+
+        exec_cli = DelayedTransition(
+            transition_function=actions.admin_exec_cli,
+            name="exec_cli",
+            target="admin_page",
+            delay_after=5,
+        )
+
+        # notes transitions
+
+        nav_notes = DelayedTransition(
+            transition_function=nav.navigate_notes_menu,
+            name="nav_notes",
+            target="notes_page",
+            delay_after=5,
+        )
+
+        new_note = DelayedTransition(
+            transition_function=actions.new_note,
+            name="new_note",
+            target="note_creator",
+            delay_after=5,
+        )
+
+        write_note = DelayedTransition(
+            transition_function=actions.write_note,
+            name="write_note",
+            target="notes_page",
+            delay_after=5,
+        )
+
+        edit_note = DelayedTransition(
+            transition_function=actions.edit_note,
+            name="edit_note",
+            target="note_editor",
+            delay_after=5,
+        )
+
+        delete_note = DelayedTransition(
+            transition_function=actions.delete_note,
+            name="delete_note",
+            target="notes_page",
+            delay_after=5,
+        )
+
         # states
 
         initial = states.ActivitySelectionState(
@@ -263,9 +428,13 @@ class StatemachineFactory(sm.StatemachineFactory):
             name="selecting_menu",
             nav_mail=nav_mail_menu,
             nav_preferences=nav_preferences,
+            nav_admin=nav_admin,
+            nav_notes=nav_notes,
             ret_transition=pause_horde,
-            nav_mail_weight=0.7,
-            nav_preferences_weight=0.1,
+            nav_mail_weight=0.0,
+            nav_preferences_weight=0.0,
+            nav_admin_weight=0.0,
+            nav_notes_weight=0.8,
             ret_weight=0.2,  # ToDo replace for now only this
         )
 
@@ -273,6 +442,8 @@ class StatemachineFactory(sm.StatemachineFactory):
             name="logout?",
             logout=horde_logout,
         )
+
+        # mail states
 
         mails_page = states.MailsPage(
             name="mails_page",
@@ -300,6 +471,8 @@ class StatemachineFactory(sm.StatemachineFactory):
             transition=send_mail,
         )
 
+        # preferences states
+
         preferences_page = states.PreferencesPage(
             name="preferences_page",
             transition=nav_preferences_personal,
@@ -308,6 +481,80 @@ class StatemachineFactory(sm.StatemachineFactory):
         preferences_personal_page = states.PreferencesPersonalPage(
             name="preferences_personal_page",
             transition=set_preferences_personal,
+        )
+
+        # admin states
+
+        admin_page = states.AdminPage(
+            name="admin_page",
+            nav_config=nav_config,
+            nav_groups=nav_groups,
+            nav_users=nav_users,
+            nav_sessions=nav_sessions,
+            nav_alarms=nav_alarms,
+            nav_locks=nav_locks,
+            nav_permissions=nav_permissions,
+            nav_php_shell=nav_php_shell,
+            nav_sql_shell=nav_sql_shell,
+            nav_cli_shell=nav_cli_shell,
+            ret_transition=return_select,
+        )
+
+        admin_config_page = states.AdminConfigPage(
+            name="admin_config_page",
+            transition=check_versions,
+        )
+
+        admin_groups_page = states.AdminGroupsPage(
+            name="admin_groups_page",
+            group_add=group_add,
+            group_delete=group_delete,
+            ret_transition=return_select,
+        )
+
+        admin_group_added = states.AdminGroupAdded(
+            name="admin_group_added",
+            transition=nav_groups,
+        )
+
+        admin_group_deleting = states.AdminGroupDeleting(
+            name="admin_group_deleting",
+            transition=group_delete_confirm,
+        )
+
+        admin_php_shell_page = states.AdminPHPShellPage(
+            name="admin_php_shell_page",
+            transition=exec_php,
+        )
+
+        admin_sql_shell_page = states.AdminSQLShellPage(
+            name="admin_sql_shell_page",
+            transition=exec_sql,
+        )
+
+        admin_cli_shell_page = states.AdminCLIShellPage(
+            name="admin_cli_shell_page",
+            transition=exec_cli,
+        )
+
+        # note states
+
+        notes_page = states.NotesPage(
+            name="notes_page",
+            new_note=new_note,
+            edit_note=edit_note,
+            ret_transition=return_select,
+        )
+
+        note_creator = states.NoteCreator(
+            name="note_creator",
+            transition=write_note,
+        )
+
+        note_editor = states.NoteEditor(
+            name="note_editor",
+            write_note=write_note,
+            delete_note=delete_note,
         )
 
         return Statemachine(
@@ -324,6 +571,17 @@ class StatemachineFactory(sm.StatemachineFactory):
                 mail_compose,
                 preferences_page,
                 preferences_personal_page,
+                admin_page,
+                admin_config_page,
+                admin_groups_page,
+                admin_group_added,
+                admin_group_deleting,
+                admin_php_shell_page,
+                admin_sql_shell_page,
+                admin_cli_shell_page,
+                notes_page,
+                note_creator,
+                note_editor,
             ],
             selenium_config=config.selenium,
             start_time=config.start_time,

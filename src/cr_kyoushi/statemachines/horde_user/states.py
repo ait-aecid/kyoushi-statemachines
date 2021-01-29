@@ -126,9 +126,13 @@ class SelectingMenu(ActivityState):
         name: str,
         nav_mail: Transition,
         nav_preferences: Transition,
+        nav_admin: Transition,
+        nav_notes: Transition,
         ret_transition: Transition,
-        nav_mail_weight: float = 0.7,
+        nav_mail_weight: float = 0.5,
         nav_preferences_weight: float = 0.1,
+        nav_admin_weight: float = 0,
+        nav_notes_weight: float = 0.2,
         ret_weight: float = 0.2,
         ret_increase=1.2,
     ):
@@ -142,9 +146,21 @@ class SelectingMenu(ActivityState):
         """
         super().__init__(
             name,
-            [nav_mail, nav_preferences, ret_transition],
+            [
+                nav_mail,
+                nav_preferences,
+                nav_admin,
+                nav_notes,
+                ret_transition,
+            ],
             ret_transition,
-            [nav_mail_weight, nav_preferences_weight, ret_weight],
+            [
+                nav_mail_weight,
+                nav_preferences_weight,
+                nav_admin_weight,
+                nav_notes_weight,
+                ret_weight,
+            ],
             modifiers=None,
             ret_increase=ret_increase,
         )
@@ -285,3 +301,211 @@ ComposeMail = states.SequentialState
 PreferencesPage = states.SequentialState
 
 PreferencesPersonalPage = states.SequentialState
+
+
+class AdminPage(ActivityState):
+    def __init__(
+        self,
+        name: str,
+        nav_config: Transition,
+        nav_groups: Transition,
+        nav_users: Transition,
+        nav_sessions: Transition,
+        nav_alarms: Transition,
+        nav_locks: Transition,
+        nav_permissions: Transition,
+        nav_php_shell: Transition,
+        nav_sql_shell: Transition,
+        nav_cli_shell: Transition,
+        ret_transition: Transition,
+        nav_config_weight: float = 0.15,
+        nav_groups_weight: float = 0.15,
+        nav_users_weight: float = 0.09,
+        nav_sessions_weight: float = 0.09,
+        nav_alarms_weight: float = 0.09,
+        nav_locks_weight: float = 0.09,
+        nav_permissions_weight: float = 0.09,
+        nav_php_shell_weight: float = 0.05,
+        nav_sql_shell_weight: float = 0.05,
+        nav_cli_shell_weight: float = 0.05,
+        ret_weight: float = 0.1,
+        ret_increase=2,
+    ):
+        super().__init__(
+            name=name,
+            transitions=[
+                nav_config,
+                nav_groups,
+                nav_users,
+                nav_sessions,
+                nav_alarms,
+                nav_locks,
+                nav_permissions,
+                nav_php_shell,
+                nav_sql_shell,
+                nav_cli_shell,
+                ret_transition,
+            ],
+            ret_transition=ret_transition,
+            weights=[
+                nav_config_weight,
+                nav_groups_weight,
+                nav_users_weight,
+                nav_sessions_weight,
+                nav_alarms_weight,
+                nav_locks_weight,
+                nav_permissions_weight,
+                nav_php_shell_weight,
+                nav_sql_shell_weight,
+                nav_cli_shell_weight,
+                ret_weight,
+            ],
+            modifiers=None,
+            ret_increase=ret_increase,
+        )
+
+
+AdminConfigPage = states.SequentialState
+
+
+class AdminGroupsPage(ActivityState):
+    def __init__(
+        self,
+        name: str,
+        group_add: Transition,
+        group_delete: Transition,
+        ret_transition: Transition,
+        group_add_weight: float = 0.45,
+        group_delete_weight: float = 0.35,
+        ret_weight: float = 0.2,
+        ret_increase=2,
+    ):
+        super().__init__(
+            name,
+            transitions=[
+                group_add,
+                group_delete,
+                ret_transition,
+            ],
+            ret_transition=ret_transition,
+            weights=[
+                group_add_weight,
+                group_delete_weight,
+                ret_weight,
+            ],
+            modifiers=None,
+            ret_increase=ret_increase,
+        )
+        self.__group_delete = group_delete
+
+    def adapt_before(self, log, context):
+        super().adapt_before(log, context)
+        groups = context.driver.find_elements_by_xpath(
+            "//div[@id='admin_groups']/div[contains(@class,'horde-tree-row')]"
+        )
+        # if there are no groups we have nothing to delete
+        if len(groups) > 0:
+            self._modifiers[self.__group_delete] = 1
+        else:
+            self._modifiers[self.__group_delete] = 0
+
+
+AdminGroupAdded = states.SequentialState
+
+AdminGroupDeleting = states.SequentialState
+
+AdminPHPShellPage = states.SequentialState
+
+AdminSQLShellPage = states.SequentialState
+
+AdminCLIShellPage = states.SequentialState
+
+
+class NotesPage(ActivityState):
+    def __init__(
+        self,
+        name: str,
+        new_note: Transition,
+        edit_note: Transition,
+        ret_transition: Transition,
+        new_note_weight: float = 0.5,
+        edit_note_weight: float = 0.4,
+        ret_weight: float = 0.1,
+        ret_increase=2,
+    ):
+        super().__init__(
+            name=name,
+            transitions=[new_note, edit_note, ret_transition],
+            ret_transition=ret_transition,
+            weights=[new_note_weight, edit_note_weight, ret_weight],
+            modifiers=None,
+            ret_increase=ret_increase,
+        )
+        self.__edit_note = edit_note
+
+    def adapt_before(self, log, context):
+        super().adapt_before(log, context)
+        memos = context.driver.find_elements_by_xpath(
+            "//tbody[@id='notes_body']//a[contains(@title,'Edit')]"
+        )
+        if len(memos) > 0:
+            self._modifiers[self.__edit_note] = 1
+        else:
+            self._modifiers[self.__edit_note] = 0
+
+
+NoteCreator = states.SequentialState
+
+
+class NoteEditor(states.ProbabilisticState):
+    def __init__(
+        self,
+        name: str,
+        write_note: Transition,
+        delete_note: Transition,
+        write_note_weight: float = 0.6,
+        delete_note_weight: float = 0.4,
+    ):
+        super().__init__(
+            name,
+            [write_note, delete_note],
+            [write_note_weight, delete_note_weight],
+        )
+
+
+class TasksPage(ActivityState):
+    def __init__(
+        self,
+        name: str,
+        new_task: Transition,
+        edit_task: Transition,
+        ret_transition: Transition,
+        new_task_weight: float = 0.5,
+        edit_task_weight: float = 0.4,
+        ret_weight: float = 0.1,
+        ret_increase=1.4,
+    ):
+        super().__init__(
+            name=name,
+            transitions=[new_task, edit_task, ret_transition],
+            ret_transition=ret_transition,
+            weights=[new_task_weight, edit_task_weight, ret_weight],
+            modifiers=None,
+            ret_increase=ret_increase,
+        )
+        self.__edit_task = edit_task
+
+    def adapt_before(self, log, context):
+        super().adapt_before(log, context)
+        tasks = context.driver.find_elements_by_xpath(
+            "//tbody[@id='tasks-body']//a[contains(@title,'Edit')]"
+        )
+        if len(tasks) > 0:
+            self._modifiers[self.__edit_task] = 1
+        else:
+            self._modifiers[self.__edit_task] = 0
+
+
+TaskCreator = states.SequentialState
+
+TaskEditor = states.SequentialState

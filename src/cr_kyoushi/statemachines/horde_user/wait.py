@@ -454,9 +454,42 @@ def check_edit_task_general_tab(driver: webdriver.Remote) -> Optional[Any]:
         return False
 
 
+def check_notes_empty_page(driver: webdriver.Remote) -> Optional[Any]:
+    try:
+        # ensure the memos table is not present
+        return not ec.presence_of_element_located((By.ID, "memos"))(driver)
+    except NoSuchElementException:
+        try:
+            # ensure the no notes message is present
+            return ec.visibility_of_all_elements_located(
+                (
+                    By.XPATH,
+                    "//p/em[text()='No notes match the current criteria.']",
+                )
+            )(driver)
+        except NoSuchElementException:
+            return False
+
+
+def check_notes_present_page(driver: webdriver.Remote) -> Optional[Any]:
+    try:
+        return (
+            # check either notes table is present
+            ec.visibility_of_element_located((By.ID, "memos"))(driver)
+            # notes empty message is not displayed
+            and not ec.visibility_of_element_located((By.ID, "notes_empty"))(driver)
+        )
+    except NoSuchElementException:
+        return False
+
+
 def check_notes_page(driver: webdriver.Remote) -> Optional[Any]:
     try:
-        return ec.presence_of_element_located((By.ID, "mnemo-toggle-my"))(driver)
+        return (
+            # check notes toggle is present
+            ec.visibility_of_element_located((By.ID, "mnemo-toggle-my"))(driver)
+            and (check_notes_present_page(driver) or check_notes_empty_page(driver))
+        )
     except NoSuchElementException:
         return False
 
@@ -719,7 +752,7 @@ def check_admin_sql_execute_view(driver: webdriver.Remote) -> Optional[Any]:
             and ec.visibility_of_all_elements_located(
                 (
                     By.XPATH,
-                    "//table[@class='item striped']",
+                    "//h1[@class='header' and text()='Results']",
                 )
             )(driver)
         )
