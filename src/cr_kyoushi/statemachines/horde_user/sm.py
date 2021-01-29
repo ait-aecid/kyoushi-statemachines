@@ -404,6 +404,138 @@ class StatemachineFactory(sm.StatemachineFactory):
             delay_after=5,
         )
 
+        # tasks transitions
+
+        nav_tasks = DelayedTransition(
+            transition_function=nav.navigate_tasks_menu,
+            name="nav_tasks",
+            target="tasks_page",
+            delay_after=5,
+        )
+
+        new_task = DelayedTransition(
+            transition_function=actions.new_task,
+            name="new_task",
+            target="task_creator",
+            delay_after=5,
+        )
+
+        save_task = DelayedTransition(
+            transition_function=actions.save_new_task,
+            name="save_task",
+            target="tasks_page",
+            delay_after=5,
+        )
+
+        edit_task = DelayedTransition(
+            transition_function=actions.edit_task,
+            name="edit_task",
+            target="task_editor",
+            delay_after=5,
+        )
+
+        delete_task = DelayedTransition(
+            transition_function=actions.delete_task,
+            name="delete_task",
+            target="tasks_page",
+            delay_after=5,
+        )
+
+        # address book transitions
+
+        nav_address_book = DelayedTransition(
+            transition_function=nav.navigate_address_book_menu,
+            name="nav_address_book",
+            target="address_book_page",
+            delay_after=5,
+        )
+
+        new_contact = DelayedTransition(
+            transition_function=actions.start_add_contact,
+            name="new_contact",
+            target="contact_compose",
+            delay_after=5,
+        )
+
+        submit_contact = DelayedTransition(
+            transition_function=actions.submit_new_contact,
+            name="submit_contact",
+            target="address_book_page",
+            delay_after=5,
+        )
+
+        nav_contacts_browse = DelayedTransition(
+            transition_function=nav.navigate_address_book_browse,
+            name="nav_contacts_browse",
+            target="contacts_browser",
+            delay_after=5,
+        )
+
+        contacts_do_nothing = DelayedTransition(
+            transition_function=nav.navigate_address_book_menu,
+            name="do_nothing",
+            target="address_book_page",
+            delay_after=5,
+        )
+
+        view_contact = DelayedTransition(
+            transition_function=nav.navigate_address_book_contact,
+            name="view_contact",
+            target="contact_info",
+            delay_after=5,
+        )
+
+        delete_contact = DelayedTransition(
+            transition_function=actions.delete_contact,
+            name="delete_contact",
+            target="contact_delete_confirming",
+            delay_after=5,
+        )
+
+        delete_contact_confirm = DelayedTransition(
+            transition_function=actions.confirm_delete_contact,
+            name="delete_contact_confirm",
+            target="address_book_page",
+            delay_after=5,
+        )
+
+        # calendar transitions
+
+        nav_calendar = DelayedTransition(
+            transition_function=nav.navigate_calendar_menu,
+            name="nav_calendar",
+            target="calendar_page",
+            delay_after=5,
+        )
+
+        new_event = DelayedTransition(
+            transition_function=actions.new_calendar_event,
+            name="new_event",
+            target="event_compose",
+            delay_after=5,
+        )
+
+        write_event = DelayedTransition(
+            transition_function=actions.write_calendar_event,
+            name="write_event",
+            target="calendar_page",
+            delay_after=5,
+        )
+
+        edit_event = DelayedTransition(
+            transition_function=actions.edit_calendar_event,
+            name="edit_event",
+            target="event_edit",
+            delay_after=5,
+        )
+
+        delete_event = DelayedTransition(
+            transition_function=actions.delete_calendar_event,
+            name="delete_event",
+            target="calendar_page",
+            delay_after=5,
+        )
+
         # states
 
         initial = states.ActivitySelectionState(
@@ -430,12 +562,18 @@ class StatemachineFactory(sm.StatemachineFactory):
             nav_preferences=nav_preferences,
             nav_admin=nav_admin,
             nav_notes=nav_notes,
+            nav_tasks=nav_tasks,
+            nav_address_book=nav_address_book,
+            nav_calendar=nav_calendar,
             ret_transition=pause_horde,
-            nav_mail_weight=0.0,
-            nav_preferences_weight=0.0,
-            nav_admin_weight=0.0,
-            nav_notes_weight=0.8,
-            ret_weight=0.2,  # ToDo replace for now only this
+            # nav_mail_weight=0.0,
+            # nav_preferences_weight=0.0,
+            # nav_admin_weight=0.0,
+            # nav_notes_weight=0.0,
+            # nav_tasks_weight=0.8,
+            # nav_address_book_weight=0.0,
+            # nav_calendar_weight=0.0,
+            # ret_weight=0.2,
         )
 
         logout_choice = states.LogoutChoice(
@@ -557,6 +695,76 @@ class StatemachineFactory(sm.StatemachineFactory):
             delete_note=delete_note,
         )
 
+        # task states
+
+        tasks_page = states.TasksPage(
+            name="tasks_page",
+            new_task=new_task,
+            edit_task=edit_task,
+            ret_transition=return_select,
+        )
+
+        task_creator = states.TaskCreator(
+            name="task_creator",
+            transition=save_task,
+        )
+
+        task_editor = states.TaskEditor(
+            name="task_editor",
+            transition=delete_task,
+        )
+
+        # address book states
+
+        address_book_page = states.AddressBookPage(
+            name="address_book_page",
+            new_contact=new_contact,
+            browse_contacts=nav_contacts_browse,
+            ret_transition=return_select,
+        )
+
+        contact_compose = states.ContactCompose(
+            name="contact_compose",
+            transition=submit_contact,
+        )
+
+        contacts_browser = states.ContactsBrowser(
+            name="contacts_browser",
+            new_contact=new_contact,
+            view_contact=view_contact,
+        )
+
+        contact_info = states.ContactInfo(
+            name="contact_info",
+            delete_contact=delete_contact,
+            do_nothing=contacts_do_nothing,
+        )
+
+        contact_delete_confirming = states.ContactDeleteConfirming(
+            name="contact_delete_confirming",
+            transition=delete_contact_confirm,
+        )
+
+        # calendar states
+
+        calendar_page = states.CalendarPage(
+            name="calendar_page",
+            new_event=new_event,
+            edit_event=edit_event,
+            ret_transition=return_select,
+        )
+
+        event_compose = states.EventCompose(
+            name="event_compose",
+            transition=write_event,
+        )
+
+        event_edit = states.EventEdit(
+            name="event_edit",
+            write_event=write_event,
+            delete_event=delete_event,
+        )
+
         return Statemachine(
             initial_state="selecting_activity",
             states=[
@@ -582,6 +790,17 @@ class StatemachineFactory(sm.StatemachineFactory):
                 notes_page,
                 note_creator,
                 note_editor,
+                tasks_page,
+                task_creator,
+                task_editor,
+                address_book_page,
+                contact_compose,
+                contacts_browser,
+                contact_info,
+                contact_delete_confirming,
+                calendar_page,
+                event_compose,
+                event_edit,
             ],
             selenium_config=config.selenium,
             start_time=config.start_time,

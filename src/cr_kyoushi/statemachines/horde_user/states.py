@@ -27,8 +27,8 @@ class ActivitySelectionState(states.AdaptiveProbabilisticState):
         horde_transition: Transition,
         idle_transition: Transition,
         horde_max_daily: int = 10,
-        horde_weight: float = 0.8,
-        idle_weight: float = 0.2,
+        horde_weight: float = 0.6,
+        idle_weight: float = 0.4,
     ):
         """
         Args:
@@ -128,13 +128,19 @@ class SelectingMenu(ActivityState):
         nav_preferences: Transition,
         nav_admin: Transition,
         nav_notes: Transition,
+        nav_tasks: Transition,
+        nav_address_book: Transition,
+        nav_calendar: Transition,
         ret_transition: Transition,
-        nav_mail_weight: float = 0.5,
+        nav_mail_weight: float = 0.3,
         nav_preferences_weight: float = 0.1,
         nav_admin_weight: float = 0,
-        nav_notes_weight: float = 0.2,
-        ret_weight: float = 0.2,
-        ret_increase=1.2,
+        nav_notes_weight: float = 0.15,
+        nav_tasks_weight: float = 0.1,
+        nav_address_book_weight: float = 0.125,
+        nav_calendar_weight: float = 0.15,
+        ret_weight: float = 0.075,
+        ret_increase=1.25,
     ):
         """
         Args:
@@ -151,6 +157,9 @@ class SelectingMenu(ActivityState):
                 nav_preferences,
                 nav_admin,
                 nav_notes,
+                nav_tasks,
+                nav_address_book,
+                nav_calendar,
                 ret_transition,
             ],
             ret_transition,
@@ -159,6 +168,9 @@ class SelectingMenu(ActivityState):
                 nav_preferences_weight,
                 nav_admin_weight,
                 nav_notes_weight,
+                nav_tasks_weight,
+                nav_address_book_weight,
+                nav_calendar_weight,
                 ret_weight,
             ],
             modifiers=None,
@@ -509,3 +521,134 @@ class TasksPage(ActivityState):
 TaskCreator = states.SequentialState
 
 TaskEditor = states.SequentialState
+
+
+class AddressBookPage(ActivityState):
+    def __init__(
+        self,
+        name: str,
+        new_contact: Transition,
+        browse_contacts: Transition,
+        ret_transition: Transition,
+        new_contact_weight: float = 0.2,
+        browse_contacts_weight: float = 0.675,
+        ret_transition_weight: float = 0.125,
+        ret_increase=1.4,
+    ):
+        super().__init__(
+            name=name,
+            transitions=[
+                new_contact,
+                browse_contacts,
+                ret_transition,
+            ],
+            ret_transition=ret_transition,
+            weights=[
+                new_contact_weight,
+                browse_contacts_weight,
+                ret_transition_weight,
+            ],
+            modifiers=None,
+            ret_increase=ret_increase,
+        )
+
+
+class ContactsBrowser(states.AdaptiveProbabilisticState):
+    def __init__(
+        self,
+        name: str,
+        new_contact: Transition,
+        view_contact: Transition,
+        new_contact_weight: float = 0.35,
+        view_contact_weight: float = 0.65,
+    ):
+        super().__init__(
+            name=name,
+            transitions=[new_contact, view_contact],
+            weights=[new_contact_weight, view_contact_weight],
+        )
+        self.__view_contact = view_contact
+
+    def adapt_before(self, log, context):
+        super().adapt_before(log, context)
+        contacts = context.driver.find_elements_by_css_selector(
+            'a[href^="/turba/contact.php"]'
+        )
+        if len(contacts) > 0:
+            self._modifiers[self.__view_contact] = 1
+        else:
+            self._modifiers[self.__view_contact] = 0
+
+
+ContactCompose = states.SequentialState
+
+
+class ContactInfo(states.ProbabilisticState):
+    def __init__(
+        self,
+        name: str,
+        delete_contact: Transition,
+        do_nothing: Transition,
+        delete_contact_weight: float = 0.4,
+        do_nothing_weight: float = 0.6,
+    ):
+        super().__init__(
+            name=name,
+            transitions=[delete_contact, do_nothing],
+            weights=[delete_contact_weight, do_nothing_weight],
+        )
+
+
+ContactDeleteConfirming = states.SequentialState
+
+
+class CalendarPage(ActivityState):
+    def __init__(
+        self,
+        name: str,
+        new_event: Transition,
+        edit_event: Transition,
+        ret_transition: Transition,
+        new_event_weight: float = 0.4,
+        edit_event_weight: float = 0.35,
+        ret_weight: float = 0.25,
+        ret_increase=2,
+    ):
+        super().__init__(
+            name=name,
+            transitions=[new_event, edit_event, ret_transition],
+            ret_transition=ret_transition,
+            weights=[new_event_weight, edit_event_weight, ret_weight],
+            modifiers=None,
+            ret_increase=ret_increase,
+        )
+        self.__edit_event = edit_event
+
+    def adapt_before(self, log, context):
+        super().adapt_before(log, context)
+        events = context.driver.find_elements_by_css_selector(
+            "div[id^=kronolithEventmonth]"
+        )
+        if len(events) > 0:
+            self._modifiers[self.__edit_event] = 1
+        else:
+            self._modifiers[self.__edit_event] = 0
+
+
+EventCompose = states.SequentialState
+
+
+class EventEdit(states.ProbabilisticState):
+    def __init__(
+        self,
+        name: str,
+        write_event: Transition,
+        delete_event: Transition,
+        write_event_weight: float = 0.6,
+        delete_event_weight: float = 0.4,
+    ):
+        super().__init__(
+            name,
+            [write_event, delete_event],
+            [write_event_weight, delete_event_weight],
+        )

@@ -542,7 +542,7 @@ def wait_and_get_new_window(
 def wait_for_page_load(
     driver: webdriver.Remote,
     locator: Tuple[By, str] = (By.TAG_NAME, "html"),
-    timeout=30,
+    timeout=120,
 ):
     """Context manager for waiting on page reloads or requests caused by interaction.
 

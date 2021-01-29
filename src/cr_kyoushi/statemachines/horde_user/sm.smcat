@@ -12,7 +12,7 @@
   mail_compose,
   calendar_page,
   contact_compose,
-  contacts_browse,
+  contacts_browser,
   contact_info,
   contact_delete_confirming,
   address_book_page,
@@ -95,14 +95,15 @@
 
   // address book transitions
   address_book_page -> contact_compose: new_contact;
-  address_book_page -> contacts_browse: navigate_contact_browse;
+  address_book_page -> contacts_browser: navigate_contact_browse;
 
   contact_compose -> address_book_page: submit_contact;
 
-  contacts_browse -> contact_info: view_contact;
-  contacts_browse -> contact_compose: new_contact;
+  contacts_browser -> contact_info: view_contact;
+  contacts_browser -> contact_compose: new_contact;
 
   contact_info -> contact_delete_confirming: delete_contact;
+  contact_info -> address_book_page: do_nothing;
   contact_delete_confirming -> address_book_page: confirm_delete_contact;
 
   // tasks transitions

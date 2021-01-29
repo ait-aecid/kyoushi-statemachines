@@ -73,6 +73,7 @@ from .wait import (
     check_horde_action_success,
     check_horde_group_delete_confirm,
     check_horde_page,
+    check_input_suggestions_invisible,
     check_logged_out,
     check_login_failed_page,
     check_login_page,
@@ -718,7 +719,11 @@ def write_calendar_event(
 
         # set location
         location_input.clear()
-        slow_type(element=location_input, text=horde.event.location)
+        slow_type(
+            element=location_input,
+            # need to replace linebreaks with spaces as this is a text field
+            text=horde.event.location.replace("\n", " "),
+        )
 
         # set description
         description_input.clear()
@@ -876,13 +881,22 @@ def submit_new_contact(
         # ensure we are on the Personal tab (we should start here anyways)
         __goto_new_contact_tab(driver, "Personal", 0)
 
-        driver.find_element(By.ID, "object_firstname_").send_keys(contact["first_name"])
-        driver.find_element(By.ID, "object_lastname_").send_keys(contact["last_name"])
+        slow_type(
+            element=driver.find_element(By.ID, "object_firstname_"),
+            text=contact["first_name"],
+        )
+        slow_type(
+            element=driver.find_element(By.ID, "object_lastname_"),
+            text=contact["last_name"],
+        )
 
         # goto comm tab
         __goto_new_contact_tab(driver, "Communications", 2)
 
-        driver.find_element(By.ID, "object_email_").send_keys(contact["email"])
+        slow_type(
+            element=driver.find_element(By.ID, "object_email_"),
+            text=contact["email"],
+        )
 
         # submit contact
         log.info("Submitting new contact")
@@ -1015,7 +1029,11 @@ def save_new_task(
                 element=driver.find_element_by_id("tags"),
                 text=", ".join(tags),
             )
-            sleep(form_delay)
+            # send escape key to tags field to remove potential
+            # tas dropdown selection obscureing assignee selection
+            driver.find_element_by_tag_name("body").send_keys(Keys.ESCAPE)
+
+            horde_wait(driver, check_input_suggestions_invisible)
 
         # set assignee
         assignee_select = Select(driver.find_element(By.CSS_SELECTOR, "#assignee"))
@@ -1119,8 +1137,9 @@ def edit_task(
             log = log.bind(task=horde.task)
 
             log.info("Editing task")
-            with wait_for_page_load(driver):
-                task_link.click()
+
+            driver.get(task_link.get_attribute("href"))
+
             # wait for task info view to load
             horde_wait(driver, check_edit_task_general_tab)
         else:

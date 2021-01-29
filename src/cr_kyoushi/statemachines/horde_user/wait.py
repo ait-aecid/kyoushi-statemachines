@@ -211,6 +211,20 @@ def check_calendar_page(driver: webdriver.Remote) -> Optional[Any]:
                     "kronolithAddtasklists",
                 )
             )(driver)
+        )
+    except NoSuchElementException:
+        return False
+
+
+def check_calendar_page_full(driver: webdriver.Remote) -> Optional[Any]:
+    """Also checks that the loading icon is not visible.
+
+    This is not part of the normal check as horde 5.2.17 has a bug
+    so that the icon gets stuck if you add a calendar event after a delete.
+    """
+    try:
+        return (
+            check_calendar_page(driver)
             # and loading indicator is not visible
             and ec.invisibility_of_element_located((By.ID, "kronolithLoading"))(driver)
         )
@@ -394,6 +408,19 @@ def check_contact_delete_confirm_page(driver: webdriver.Remote):
         )
     except NoSuchElementException:
         return False
+
+
+def check_input_suggestions_visible(driver: webdriver.Remote) -> Optional[Any]:
+    try:
+        return ec.visibility_of_any_elements_located(
+            (By.XPATH, "//div[@class='KeyNavList']")
+        )(driver)
+    except NoSuchElementException:
+        return False
+
+
+def check_input_suggestions_invisible(driver: webdriver.Remote) -> Optional[Any]:
+    return not check_input_suggestions_visible(driver)
 
 
 def check_tasks_page(driver: webdriver.Remote) -> Optional[Any]:
