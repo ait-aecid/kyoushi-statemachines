@@ -207,7 +207,7 @@ class StatemachineFactory(sm.StatemachineFactory):
         # sm config
 
         idle_transition = IdleTransition(
-            idle_amount=5,
+            idle_amount=config.idle.big,
             end_time=config.end_time,
             name="idle",
             target="selecting_activity",

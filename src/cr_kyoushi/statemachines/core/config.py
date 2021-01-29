@@ -11,9 +11,12 @@ from typing import (
 
 from pydantic import (
     BaseModel,
+    Field,
     root_validator,
     validator,
 )
+
+from cr_kyoushi.simulation.model import ApproximateFloat
 
 
 ProbVal = Union[
@@ -100,3 +103,36 @@ class ProbabilisticStateConfig(BaseModel):
                 f"but is {prob_sum}"
             )
         )
+
+
+class IdleConfig(BaseModel):
+    big: Union[ApproximateFloat, float] = Field(
+        ApproximateFloat(
+            min=600,  # 10*60 = 10m
+            max=3000,  # 50*60 = 50m
+        ),
+        description="The time in seconds to use for big idles",
+    )
+
+    medium: Union[ApproximateFloat, float] = Field(
+        ApproximateFloat(
+            min=80,  # 80 = 1m20s
+            max=300,  # 5*60 = 5m
+        ),
+        description="The time in seconds to use for big idles",
+    )
+    small: Union[ApproximateFloat, float] = Field(
+        ApproximateFloat(
+            min=5,  # 5s
+            max=60,  # 60s
+        ),
+        description="The time in seconds to use for big idles",
+    )
+
+    tiny: Union[ApproximateFloat, float] = Field(
+        ApproximateFloat(
+            min=0.5,  # 500ms
+            max=1.5,  # 1s500ms
+        ),
+        description="The time in seconds to use for big idles",
+    )

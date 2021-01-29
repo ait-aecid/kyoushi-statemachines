@@ -8,6 +8,7 @@ from cr_kyoushi.simulation.transitions import (
     DelayedTransition,
     NoopTransition,
     Transition,
+    noop,
 )
 
 from . import (
@@ -49,7 +50,7 @@ def get_mail_activity(
         transition_function=nav.navigate_mail_menu,
         name=nav_mail,
         target=mails_page,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     t_refresh_mail = Transition(
@@ -62,35 +63,35 @@ def get_mail_activity(
         transition_function=actions.new_mail,
         name=new_mail,
         target=mail_compose,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     t_view_mail = DelayedTransition(
         transition_function=actions.view_mail,
         name=view_mail,
         target=mail_view,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     t_delete_mail = DelayedTransition(
         transition_function=actions.delete_mail,
         name=delete_mail,
         target=mails_page,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     t_open_mail = DelayedTransition(
         transition_function=actions.open_mail,
         name=open_mail,
         target=mail_info,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     t_reply_mail = DelayedTransition(
         transition_function=actions.reply_mail,
         name=reply_mail,
         target=mail_compose,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     t_send_mail = Transition(
@@ -164,14 +165,14 @@ def get_preferences_activity(
         transition_function=nav.navigate_preferences_global,
         name=nav_preferences,
         target=preferences_page,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     t_nav_preferences_personal = DelayedTransition(
         transition_function=nav.navigate_preferences_personal,
         name=nav_preferences_personal,
         target=preferences_personal_page,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     t_set_preferences_personal = DelayedTransition(
@@ -180,7 +181,7 @@ def get_preferences_activity(
         ),
         name=set_preferences_personal,
         target=selecting_menu,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     # preferences states
@@ -250,126 +251,126 @@ def get_admin_activity(
         transition_function=nav.navigate_admin_configuration,
         name=nav_admin,
         target=admin_page,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     t_nav_config = DelayedTransition(
         transition_function=nav.navigate_admin_configuration,
         name=nav_config,
         target=admin_config_page,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     t_check_versions = DelayedTransition(
         transition_function=actions.admin_check_versions,
         name=check_versions,
         target=admin_page,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     t_nav_groups = DelayedTransition(
         transition_function=nav.navigate_admin_groups,
         name=nav_groups,
         target=admin_groups_page,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     t_group_add = DelayedTransition(
         transition_function=actions.add_user_group,
         name=group_add,
         target=admin_group_added,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     t_group_delete = DelayedTransition(
         transition_function=actions.delete_user_group,
         name=group_delete,
         target=admin_group_deleting,
-        delay_after=5,
+        delay_after=config.idle.tiny,
     )
 
     t_group_delete_confirm = DelayedTransition(
         transition_function=actions.confirm_delete_user_group,
         name=group_delete_confirm,
         target=admin_groups_page,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     t_nav_users = DelayedTransition(
         transition_function=nav.navigate_admin_users,
         name=nav_users,
         target=admin_page,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     t_nav_sessions = DelayedTransition(
         transition_function=nav.navigate_admin_sessions,
         name=nav_sessions,
         target=admin_page,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     t_nav_alarms = DelayedTransition(
         transition_function=nav.navigate_admin_alarms,
         name=nav_alarms,
         target=admin_page,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     t_nav_locks = DelayedTransition(
         transition_function=nav.navigate_admin_locks,
         name=nav_locks,
         target=admin_page,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     t_nav_permissions = DelayedTransition(
         transition_function=nav.navigate_admin_permissions,
         name=nav_permissions,
         target=admin_page,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     t_nav_php_shell = DelayedTransition(
         transition_function=nav.navigate_admin_php_shell,
         name=nav_php_shell,
         target=admin_php_shell_page,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     t_exec_php = DelayedTransition(
         transition_function=actions.admin_exec_php,
         name=exec_php,
         target=admin_page,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     t_nav_sql_shell = DelayedTransition(
         transition_function=nav.navigate_admin_sql_shell,
         name=nav_sql_shell,
         target=admin_sql_shell_page,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     t_exec_sql = DelayedTransition(
         transition_function=actions.admin_exec_sql,
         name=exec_sql,
         target=admin_page,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     t_nav_cli_shell = DelayedTransition(
         transition_function=nav.navigate_admin_cli,
         name=nav_cli_shell,
         target=admin_cli_shell_page,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     t_exec_cli = DelayedTransition(
         transition_function=actions.admin_exec_cli,
         name=exec_cli,
         target=admin_page,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     # admin states
@@ -464,35 +465,35 @@ def get_notes_activity(
         transition_function=nav.navigate_notes_menu,
         name=nav_notes,
         target=notes_page,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     t_new_note = DelayedTransition(
         transition_function=actions.new_note,
         name=new_note,
         target=note_creator,
-        delay_after=5,
+        delay_after=config.idle.tiny,
     )
 
     t_write_note = DelayedTransition(
         transition_function=actions.write_note,
         name=write_note,
         target=notes_page,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     t_edit_note = DelayedTransition(
         transition_function=actions.edit_note,
         name=edit_note,
         target=note_editor,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     t_delete_note = DelayedTransition(
         transition_function=actions.delete_note,
         name=delete_note,
         target=notes_page,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     # note states
@@ -550,35 +551,35 @@ def get_tasks_activity(
         transition_function=nav.navigate_tasks_menu,
         name=nav_tasks,
         target=tasks_page,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     t_new_task = DelayedTransition(
         transition_function=actions.new_task,
         name=new_task,
         target=task_creator,
-        delay_after=5,
+        delay_after=config.idle.tiny,
     )
 
     t_save_task = DelayedTransition(
         transition_function=actions.save_new_task,
         name=save_task,
         target=tasks_page,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     t_edit_task = DelayedTransition(
         transition_function=actions.edit_task,
         name=edit_task,
         target=task_editor,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     t_delete_task = DelayedTransition(
         transition_function=actions.delete_task,
         name=delete_task,
         target=tasks_page,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     # task states
@@ -642,56 +643,56 @@ def get_address_book_activity(
         transition_function=nav.navigate_address_book_menu,
         name=nav_address_book,
         target=address_book_page,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     t_new_contact = DelayedTransition(
         transition_function=actions.start_add_contact,
         name=new_contact,
         target=contact_compose,
-        delay_after=5,
+        delay_after=config.idle.tiny,
     )
 
     t_submit_contact = DelayedTransition(
         transition_function=actions.submit_new_contact,
         name=submit_contact,
         target=address_book_page,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     t_nav_contacts_browse = DelayedTransition(
         transition_function=nav.navigate_address_book_browse,
         name=nav_contacts_browse,
         target=contacts_browser,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     t_contacts_do_nothing = DelayedTransition(
         transition_function=nav.navigate_address_book_menu,
         name=do_nothing,
         target=address_book_page,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     t_view_contact = DelayedTransition(
         transition_function=nav.navigate_address_book_contact,
         name=view_contact,
         target=contact_info,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     t_delete_contact = DelayedTransition(
         transition_function=actions.delete_contact,
         name=delete_contact,
         target=contact_delete_confirming,
-        delay_after=5,
+        delay_after=config.idle.tiny,
     )
 
     t_delete_contact_confirm = DelayedTransition(
         transition_function=actions.confirm_delete_contact,
         name=delete_contact_confirm,
         target=address_book_page,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     # address book states
@@ -761,35 +762,35 @@ def get_calendar_activity(
         transition_function=nav.navigate_calendar_menu,
         name=nav_calendar,
         target=calendar_page,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     t_new_event = DelayedTransition(
         transition_function=actions.new_calendar_event,
         name=new_event,
         target=event_compose,
-        delay_after=5,
+        delay_after=config.idle.tiny,
     )
 
     t_write_event = DelayedTransition(
         transition_function=actions.write_calendar_event,
         name=write_event,
         target=calendar_page,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     t_edit_event = DelayedTransition(
         transition_function=actions.edit_calendar_event,
         name=edit_event,
         target=event_edit,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     t_delete_event = DelayedTransition(
         transition_function=actions.delete_calendar_event,
         name=delete_event,
         target=calendar_page,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     # calendar states
@@ -858,7 +859,7 @@ def get_base_activity(
         ),
         name=login,
         target=selecting_menu,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     t_fail_login = DelayedTransition(
@@ -869,24 +870,28 @@ def get_base_activity(
         ),
         name=fail_login,
         target=login_page,
-        delay_after=5,
+        delay_after=config.idle.tiny,
     )
 
-    t_pause_horde = NoopTransition(
+    t_pause_horde = DelayedTransition(
+        transition_function=noop,
         name=pause_horde,
         target=logout_choice,
+        delay_after=config.idle.small,
     )
 
-    t_return_select = NoopTransition(
+    t_return_select = DelayedTransition(
+        transition_function=noop,
         name=return_select,
         target=selecting_menu,
+        delay_after=config.idle.medium,
     )
 
     t_horde_logout = DelayedTransition(
         transition_function=actions.logout_of_horde,
         name=horde_logout,
         target=root,
-        delay_after=5,
+        delay_after=config.idle.small,
     )
 
     s_login_check = states.LoggedInCheck(

@@ -22,6 +22,7 @@ from cr_kyoushi.simulation.model import (
     WorkSchedule,
 )
 
+from ..core.config import IdleConfig
 from ..core.selenium import SeleniumConfig
 
 
@@ -107,6 +108,11 @@ class StatemachineConfig(BaseModel):
     end_time: Optional[datetime] = Field(
         None,
         description="The state machines end time",
+    )
+
+    idle: IdleConfig = Field(
+        IdleConfig(),
+        description="The idle configuration for the state machine",
     )
 
     schedule: Optional[WorkSchedule] = Field(
