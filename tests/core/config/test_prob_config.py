@@ -35,11 +35,8 @@ class InvalidProbConfigSimple(ProbabilisticStateConfig):
 @pytest.mark.parametrize(
     "a, b, c, d",
     [
-        pytest.param(25, 25, 25, 25, id="int-uniform-probabilities"),
-        pytest.param(0.25, 0.25, 0.25, 0.25, id="float-uniform-probabilities"),
-        pytest.param(5, 20, 25, 50, id="int-mixed-probabilities"),
-        pytest.param(0.05, 0.2, 0.25, 0.5, id="float-mixed-probabilities"),
-        pytest.param(25.5, 24.5, 25, 25, id="float-int-probabilities"),
+        pytest.param(0.25, 0.25, 0.25, 0.25, id="uniform-probabilities"),
+        pytest.param(0.05, 0.2, 0.25, 0.5, id="mixed-probabilities"),
     ],
 )
 def test_given_valid_class_and_config_validates(a, b, c, d):
@@ -71,7 +68,6 @@ def test_given_valid_class_and_config_validates(a, b, c, d):
     [
         pytest.param(25, 25, 25, 50, id="int-too-large"),
         pytest.param(0.25, 0.25, 0.25, 0.5, id="float-too-large"),
-        pytest.param(5, 20, 25, 10, id="int-too-small"),
         pytest.param(0.05, 0.2, 0.25, 0.1, id="float-too-small"),
     ],
 )
@@ -85,9 +81,7 @@ def test_given_invalid_sum_raises(a, b, c, d):
 @pytest.mark.parametrize(
     "a, b, c, d",
     [
-        pytest.param(25, 25, 25, -50, id="int-negative"),
         pytest.param(0.25, 0.25, 0.25, -0.5, id="float-negative"),
-        pytest.param(5, 20, 25, 150, id="int-greater-100"),
         pytest.param(0.05, 0.2, 0.25, 150.10, id="float-greater-100"),
     ],
 )
@@ -103,14 +97,6 @@ def test_given_invalid_val_range_raises(a, b, c, d):
     [
         pytest.param(
             InvalidProbConfigSimple,
-            25,
-            25,
-            25,
-            "25",
-            id="simple-int-uniform-probabilities",
-        ),
-        pytest.param(
-            InvalidProbConfigSimple,
             0.25,
             0.25,
             0.25,
@@ -119,35 +105,11 @@ def test_given_invalid_val_range_raises(a, b, c, d):
         ),
         pytest.param(
             InvalidProbConfigSimple,
-            5,
-            20,
-            25,
-            "50",
-            id="simple-int-mixed-probabilities",
-        ),
-        pytest.param(
-            InvalidProbConfigSimple,
             0.05,
             0.2,
             0.25,
             "0.5",
             id="simple-float-mixed-probabilities",
-        ),
-        pytest.param(
-            InvalidProbConfigSimple,
-            25.5,
-            24.5,
-            25,
-            "25",
-            id="simple-float-int-probabilities",
-        ),
-        pytest.param(
-            InvalidProbConfigComplex,
-            25,
-            25,
-            25,
-            25,
-            id="complex-int-uniform-probabilities",
         ),
         pytest.param(
             InvalidProbConfigComplex,
@@ -159,27 +121,11 @@ def test_given_invalid_val_range_raises(a, b, c, d):
         ),
         pytest.param(
             InvalidProbConfigComplex,
-            5,
-            20,
-            25,
-            50,
-            id="complex-int-mixed-probabilities",
-        ),
-        pytest.param(
-            InvalidProbConfigComplex,
             0.05,
             0.2,
             0.25,
             0.5,
             id="complex-float-mixed-probabilities",
-        ),
-        pytest.param(
-            InvalidProbConfigComplex,
-            25.5,
-            24.5,
-            25,
-            25,
-            id="complex-float-int-probabilities",
         ),
     ],
 )

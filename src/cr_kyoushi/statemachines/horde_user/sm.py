@@ -217,6 +217,9 @@ class StatemachineFactory(sm.StatemachineFactory):
             name="selecting_activity",
             horde_transition=horde_transition,
             idle_transition=idle_transition,
+            horde_max_daily=config.horde.max_daily,
+            horde_weight=config.states.selecting_activity.horde,
+            idle_weight=config.states.selecting_activity.idle,
         )
 
         return Statemachine(

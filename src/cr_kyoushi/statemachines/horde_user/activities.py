@@ -44,6 +44,10 @@ def get_mail_activity(
     states.MailInfo,
     states.MailCompose,
 ]:
+    page_config = config.states.mails_page
+    view_config = config.states.mail_view
+    info_config = config.states.mail_info
+
     # mail transitions
 
     t_nav_mail = DelayedTransition(
@@ -114,6 +118,11 @@ def get_mail_activity(
         new_mail=t_new_mail,
         refresh_mail=t_refresh_mail,
         ret_transition=return_select,
+        view_mail_weight=page_config.view_mail,
+        new_mail_weight=page_config.new_mail,
+        refresh_mail_weight=page_config.refresh_mail,
+        ret_weight=page_config.return_,
+        ret_increase=page_config.extra.return_increase,
     )
 
     s_mail_view = states.MailView(
@@ -124,12 +133,17 @@ def get_mail_activity(
             name=do_nothing,
             target=mails_page,
         ),
+        delete_mail_weight=view_config.delete_mail,
+        open_mail_weight=view_config.open_mail,
+        do_nothing_weight=view_config.do_nothing,
     )
 
     s_mail_info = states.MailInfo(
         name=mail_info,
         delete_mail=t_delete_mail,
         reply_mail=t_reply_mail,
+        delete_mail_weight=info_config.delete_mail,
+        reply_mail_weight=info_config.reply_mail,
     )
 
     s_mail_compose = states.MailCompose(
@@ -246,6 +260,9 @@ def get_admin_activity(
     states.AdminSQLShellPage,
     states.AdminCLIShellPage,
 ]:
+    admin_config = config.states.admin_page
+    groups_config = config.states.admin_groups_page
+
     # admin transitions
     t_nav_admin = DelayedTransition(
         transition_function=nav.navigate_admin_configuration,
@@ -388,6 +405,18 @@ def get_admin_activity(
         nav_sql_shell=t_nav_sql_shell,
         nav_cli_shell=t_nav_cli_shell,
         ret_transition=return_select,
+        nav_config_weight=admin_config.nav_config,
+        nav_groups_weight=admin_config.nav_groups,
+        nav_users_weight=admin_config.nav_users,
+        nav_sessions_weight=admin_config.nav_sessions,
+        nav_alarms_weight=admin_config.nav_alarms,
+        nav_locks_weight=admin_config.nav_locks,
+        nav_permissions_weight=admin_config.nav_permissions,
+        nav_php_shell_weight=admin_config.nav_php_shell,
+        nav_sql_shell_weight=admin_config.nav_sql_shell,
+        nav_cli_shell_weight=admin_config.nav_cli_shell,
+        ret_weight=admin_config.return_,
+        ret_increase=admin_config.extra.return_increase,
     )
 
     s_admin_config_page = states.AdminConfigPage(
@@ -400,6 +429,10 @@ def get_admin_activity(
         group_add=t_group_add,
         group_delete=t_group_delete,
         ret_transition=return_select,
+        group_add_weight=groups_config.group_add,
+        group_delete_weight=groups_config.group_delete,
+        ret_weight=groups_config.return_,
+        ret_increase=groups_config.extra.return_increase,
     )
 
     s_admin_group_added = states.AdminGroupAdded(
@@ -460,6 +493,9 @@ def get_notes_activity(
     states.NoteCreator,
     states.NoteEditor,
 ]:
+    page_config = config.states.notes_page
+    editor_config = config.states.note_editor
+
     # notes transitions
     t_nav_notes = DelayedTransition(
         transition_function=nav.navigate_notes_menu,
@@ -503,6 +539,10 @@ def get_notes_activity(
         new_note=t_new_note,
         edit_note=t_edit_note,
         ret_transition=return_select,
+        new_note_weight=page_config.new_note,
+        edit_note_weight=page_config.edit_note,
+        ret_weight=page_config.return_,
+        ret_increase=page_config.extra.return_increase,
     )
 
     s_note_creator = states.NoteCreator(
@@ -514,6 +554,8 @@ def get_notes_activity(
         name=note_editor,
         write_note=t_write_note,
         delete_note=t_delete_note,
+        write_note_weight=editor_config.write_note,
+        delete_note_weight=editor_config.delete_note,
     )
 
     return (
@@ -546,6 +588,7 @@ def get_tasks_activity(
     states.TaskEditor,
 ]:
     # tasks transitions
+    page_config = config.states.tasks_page
 
     t_nav_tasks = DelayedTransition(
         transition_function=nav.navigate_tasks_menu,
@@ -589,6 +632,10 @@ def get_tasks_activity(
         new_task=t_new_task,
         edit_task=t_edit_task,
         ret_transition=return_select,
+        new_task_weight=page_config.new_task,
+        edit_task_weight=page_config.edit_task,
+        ret_weight=page_config.return_,
+        ret_increase=page_config.extra.return_increase,
     )
 
     s_task_creator = states.TaskCreator(
@@ -638,6 +685,9 @@ def get_address_book_activity(
     states.ContactDeleteConfirming,
 ]:
     # address book transitions
+    page_config = config.states.address_book_page
+    browser_config = config.states.contacts_browser
+    info_config = config.states.contact_info
 
     t_nav_address_book = DelayedTransition(
         transition_function=nav.navigate_address_book_menu,
@@ -702,6 +752,10 @@ def get_address_book_activity(
         new_contact=t_new_contact,
         browse_contacts=t_nav_contacts_browse,
         ret_transition=return_select,
+        new_contact_weight=page_config.new_contact,
+        browse_contacts_weight=page_config.browse_contacts,
+        ret_transition_weight=page_config.return_,
+        ret_increase=page_config.extra.return_increase,
     )
 
     s_contact_compose = states.ContactCompose(
@@ -713,12 +767,16 @@ def get_address_book_activity(
         name=contacts_browser,
         new_contact=t_new_contact,
         view_contact=t_view_contact,
+        new_contact_weight=browser_config.new_contact,
+        view_contact_weight=browser_config.view_contact,
     )
 
     s_contact_info = states.ContactInfo(
         name=contact_info,
         delete_contact=t_delete_contact,
         do_nothing=t_contacts_do_nothing,
+        delete_contact_weight=info_config.delete_contact,
+        do_nothing_weight=info_config.do_nothing,
     )
 
     s_contact_delete_confirming = states.ContactDeleteConfirming(
@@ -757,6 +815,9 @@ def get_calendar_activity(
     states.EventEdit,
 ]:
     # calendar transitions
+
+    page_config = config.states.calendar_page
+    edit_config = config.states.event_edit
 
     t_nav_calendar = DelayedTransition(
         transition_function=nav.navigate_calendar_menu,
@@ -800,6 +861,10 @@ def get_calendar_activity(
         new_event=t_new_event,
         edit_event=t_edit_event,
         ret_transition=return_select,
+        new_event_weight=page_config.new_event,
+        edit_event_weight=page_config.edit_event,
+        ret_weight=page_config.return_,
+        ret_increase=page_config.extra.return_increase,
     )
 
     s_event_compose = states.EventCompose(
@@ -811,6 +876,8 @@ def get_calendar_activity(
         name=event_edit,
         write_event=t_write_event,
         delete_event=t_delete_event,
+        write_event_weight=edit_config.write_event,
+        delete_event_weight=edit_config.delete_event,
     )
 
     return (
@@ -846,6 +913,7 @@ def get_base_activity(
     states.LoginPage,
     states.LogoutChoice,
 ]:
+
     t_horde_transition = Transition(
         transition_function=nav.GoToHordeWebsite(config.horde.url),
         name=horde_transition,
@@ -904,11 +972,14 @@ def get_base_activity(
         name=login_page,
         login=t_login,
         fail_login=t_fail_login,
+        fail_weight=config.states.login_page.fail_chance,
+        fail_decrease_factor=config.states.login_page.fail_decrease,
     )
 
     s_logout_choice = states.LogoutChoice(
         name=logout_choice,
         logout=t_horde_logout,
+        logout_prob=config.states.logout_choice.logout_chance,
     )
 
     return (
@@ -935,6 +1006,8 @@ def get_menu_activity(
     pause_horde: Transition,
     selecting_menu: str = "selecting_menu",
 ) -> states.SelectingMenu:
+    state_config = config.states.selecting_menu
+
     return states.SelectingMenu(
         name=selecting_menu,
         nav_mail=nav_mail,
@@ -945,12 +1018,13 @@ def get_menu_activity(
         nav_address_book=nav_address_book,
         nav_calendar=nav_calendar,
         ret_transition=pause_horde,
-        # nav_mail_weight=0.0,
-        # nav_preferences_weight=0.0,
-        # nav_admin_weight=0.0,
-        # nav_notes_weight=0.0,
-        # nav_tasks_weight=0.8,
-        # nav_address_book_weight=0.0,
-        # nav_calendar_weight=0.0,
-        # ret_weight=0.2,
+        nav_mail_weight=state_config.nav_mail,
+        nav_preferences_weight=state_config.nav_preferences,
+        nav_admin_weight=state_config.nav_admin,
+        nav_notes_weight=state_config.nav_notes,
+        nav_tasks_weight=state_config.nav_tasks,
+        nav_address_book_weight=state_config.nav_address_book,
+        nav_calendar_weight=state_config.nav_calendar,
+        ret_weight=state_config.return_,
+        ret_increase=state_config.extra.return_increase,
     )

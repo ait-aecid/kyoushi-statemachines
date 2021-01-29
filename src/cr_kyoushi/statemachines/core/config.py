@@ -67,14 +67,15 @@ class ProbabilisticStateConfig(BaseModel):
             The fields dictionary
         """
         for key, val in values.items():
-            field_type = cls.__fields__[key].type_
-            if field_type not in [ProbVal, float, int]:
-                raise ValueError(
-                    (
-                        "Probabilistic config fields must be int or float! "
-                        f"Found {key}: {field_type}"
+            if key != "extra":
+                field_type = cls.__fields__[key].type_
+                if field_type not in [ProbVal, float, int]:
+                    raise ValueError(
+                        (
+                            "Probabilistic config fields must be int or float! "
+                            f"Found {key}: {field_type}"
+                        )
                     )
-                )
         return values
 
     @root_validator
@@ -92,16 +93,14 @@ class ProbabilisticStateConfig(BaseModel):
         Returns:
             The fields dictionary
         """
-        prob_sum = sum(values.values(), 0.0)
+        fields = [val for key, val in values.items() if key != "extra"]
+        prob_sum = sum(fields, 0.0)
 
-        if prob_sum == 1.0 or prob_sum == 100:
+        if abs(1 - prob_sum) <= 1e-8:
             return values
 
         raise ValueError(
-            (
-                "Sum of all transition probabilities must be either 1.0 or 100, "
-                f"but is {prob_sum}"
-            )
+            ("Sum of all transition probabilities must be 1.0, " f"but is {prob_sum}")
         )
 
 

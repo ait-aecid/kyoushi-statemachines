@@ -272,9 +272,9 @@ class MailView(states.ProbabilisticState):
         delete_mail: Transition,
         open_mail: Transition,
         do_nothing: Transition,
-        delete_mail_prob: float = 0.3,
-        open_mail_prob: float = 0.4,
-        do_nothing_prob: float = 0.3,
+        delete_mail_weight: float = 0.3,
+        open_mail_weight: float = 0.4,
+        do_nothing_weight: float = 0.3,
     ):
 
         super().__init__(
@@ -285,9 +285,9 @@ class MailView(states.ProbabilisticState):
                 do_nothing,
             ],
             weights=[
-                delete_mail_prob,
-                open_mail_prob,
-                do_nothing_prob,
+                delete_mail_weight,
+                open_mail_weight,
+                do_nothing_weight,
             ],
         )
 
