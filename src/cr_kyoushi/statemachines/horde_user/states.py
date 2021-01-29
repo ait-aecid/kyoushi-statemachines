@@ -308,7 +308,7 @@ class MailInfo(states.ProbabilisticState):
         )
 
 
-ComposeMail = states.SequentialState
+MailCompose = states.SequentialState
 
 PreferencesPage = states.SequentialState
 
