@@ -1,0 +1,169 @@
+"Horde User" {
+  initial,
+  ^logout?: logout?,
+  selecting_activity,
+  idling,
+  ^opening_horde,
+  login_page,
+  selecting_menu,
+  mails_page,
+  mail_view,
+  mail_info,
+  mail_compose,
+  calendar_page,
+  contact_compose,
+  contacts_browser,
+  contact_info,
+  contact_delete_confirming,
+  address_book_page,
+  tasks_page,
+  task_creating,
+  task_editor,
+  notes_page,
+  note_creator,
+  note_editor,
+  admin_config_page,
+  admin_users_page,
+  admin_groups_page,
+  admin_group_deleting,
+  admin_permissions_page,
+  admin_locks_page,
+  admin_alarms_page,
+  admin_sessions_page,
+  admin_php_shell_page,
+  admin_sql_shell_page,
+  admin_cli_page,
+  preferences_page,
+  preferences_personal_page;
+
+  initial -> selecting_activity;
+
+  selecting_activity -> ^opening_horde: go_to_horde;
+
+
+  ^logout? -> selecting_activity: logout: [0.2];
+  ^logout? -> selecting_activity: noop: [0.8];
+  ^opening_horde -> login_page: [not logged_in];
+  ^opening_horde -> selecting_menu: [logged_in];
+  selecting_activity -> idling: idle;
+  idling -> selecting_activity;
+
+  login_page -> login_page: fail_login;
+  login_page -> selecting_menu: login;
+
+  // menu navigation
+  selecting_menu -> ^logout?: pause;
+  selecting_menu ->  mails_page: navigate_mail;
+  selecting_menu -> calendar_page: navigate_calendar;
+  selecting_menu -> address_book_page: navigate_address_book;
+  selecting_menu ->  tasks_page: navigate_tasks;
+  selecting_menu ->  notes_page: navigate_notes;
+  selecting_menu -> admin_page: navigate_admin;
+  selecting_menu ->  preferences_page: navigate_preferences;
+
+  mails_page -> selecting_menu: return;
+  calendar_page -> selecting_menu: return;
+  address_book_page -> selecting_menu: return;
+  tasks_page -> selecting_menu: return;
+  notes_page -> selecting_menu: return;
+  admin_page -> selecting_menu: return;
+  preferences_page -> selecting_menu: return;
+
+
+  // mail transitions
+  mails_page -> mail_view: view_mail;
+  mails_page -> mail_compose: new_mail;
+
+  mail_view -> mails_page: delete_mail;
+  mail_view -> mail_info: open_mail;
+  mail_view -> mail_compose: reply_mail;
+  mail_view -> mails_page: noop;
+
+  mail_info -> mails_page: delete_mail;
+  mail_info -> mail_compose: reply_mail;
+
+  mail_compose -> mails_page: send_mail;
+
+  // calendar transitions
+  calendar_page -> event_edit: edit_event;
+  calendar_page -> event_compose: new_event;
+
+  event_edit -> calendar_page: delete_event;
+  event_edit -> calendar_page: write_event;
+
+  event_compose -> calendar_page: write_event;
+
+  // address book transitions
+  address_book_page -> contact_compose: new_contact;
+  address_book_page -> contacts_browser: navigate_contact_browse;
+
+  contact_compose -> address_book_page: submit_contact;
+
+  contacts_browser -> contact_info: view_contact;
+  contacts_browser -> contact_compose: new_contact;
+
+  contact_info -> contact_delete_confirming: delete_contact;
+  contact_info -> address_book_page: do_nothing;
+  contact_delete_confirming -> address_book_page: confirm_delete_contact;
+
+  // tasks transitions
+  tasks_page -> task_creating: new_task;
+  tasks_page -> task_editor: edit_task;
+
+  task_creating -> tasks_page: save_task;
+
+  task_editor -> tasks_page: delete_task;
+
+  // notes transitions
+  notes_page -> note_creator: new_note;
+  notes_page -> note_editor: edit_note;
+
+  note_creator -> notes_page: write_note;
+
+  note_editor -> notes_page: write_note;
+  note_editor -> notes_page: delete_note;
+
+  // admin transitions
+  admin_page -> admin_config_page: check_versions;
+  admin_page -> admin_users_page: navigate_admin_users;
+  admin_page -> admin_groups_page: navigate_admin_groups;
+  admin_page -> admin_permissions_page: navigate_admin_permissions;
+  admin_page -> admin_locks_page: navigate_admin_locks;
+  admin_page -> admin_alarms_page: navigate_admin_alarms;
+  admin_page -> admin_sessions_page: navigate_admin_sessions;
+  admin_page -> admin_php_shell_page: navigate_admin_php_shell;
+  admin_page -> admin_sql_shell_page: navigate_admin_sql_shell;
+  admin_page -> admin_cli_page: navigate_admin_cli;
+
+  admin_config_page -> admin_page: return;
+  admin_users_page -> admin_page: return;
+  admin_groups_page -> admin_page: return;
+  admin_permissions_page -> admin_page: return;
+  admin_locks_page -> admin_page: return;
+  admin_alarms_page -> admin_page: return;
+  admin_sessions_page -> admin_page: return;
+  admin_php_shell_page -> admin_page: return;
+  admin_sql_shell_page -> admin_page: return;
+  admin_cli_page -> admin_page: return;
+
+  // ToDo admin config pages return transitions
+
+  // admin groups transitions
+  admin_groups_page -> admin_groups_page: group_add;
+  admin_groups_page -> admin_group_deleting: group_delete;
+
+  admin_group_deleting -> admin_groups_page: group_delete_confirm;
+
+
+  // shells and CLI transitions
+  admin_php_shell_page -> admin_php_shell_page: exec_php;
+  admin_sql_shell_page -> admin_sql_shell_page: exec_sql;
+  admin_cli_page -> admin_cli_page: exec_command;
+
+  // preferences transitions
+  preferences_page -> preferences_personal_page: navigate_preferences_personal;
+
+  preferences_personal_page -> preferences_personal_page: set_preferences_personal;
+
+
+};

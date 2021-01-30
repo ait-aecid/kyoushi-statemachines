@@ -1,18 +1,24 @@
 import pytest
 
-from pydantic import BaseModel
-from pydantic import ValidationError
+from pydantic import (
+    BaseModel,
+    ValidationError,
+)
 from pytest_mock import MockFixture
 from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.firefox import GeckoDriverManager
-from webdriver_manager.microsoft import EdgeChromiumDriverManager
-from webdriver_manager.microsoft import IEDriverManager
+from webdriver_manager.microsoft import (
+    EdgeChromiumDriverManager,
+    IEDriverManager,
+)
 from webdriver_manager.opera import OperaDriverManager
 
-from cr_kyoushi.statemachines.core.selenium import SeleniumConfig
-from cr_kyoushi.statemachines.core.selenium import WebdriverType
-from cr_kyoushi.statemachines.core.selenium import get_webdriver_manager
-from cr_kyoushi.statemachines.core.selenium import install_webdriver
+from cr_kyoushi.statemachines.core.selenium import (
+    SeleniumConfig,
+    WebdriverType,
+    get_webdriver_manager,
+    install_webdriver,
+)
 
 
 class WebdriverTestModel(BaseModel):

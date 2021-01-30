@@ -1,9 +1,9 @@
 import random
 
-from datetime import datetime
-from datetime import timedelta
-from typing import List
-from typing import Optional
+from typing import (
+    List,
+    Optional,
+)
 from urllib.parse import urlparse
 
 from pydantic import AnyUrl
@@ -14,16 +14,11 @@ from structlog import BoundLogger
 
 from cr_kyoushi.simulation import transitions
 from cr_kyoushi.simulation.errors import TransitionExecutionError
-from cr_kyoushi.simulation.model import ApproximateFloat
-from cr_kyoushi.simulation.util import now
-from cr_kyoushi.simulation.util import sleep
-from cr_kyoushi.simulation.util import sleep_until
 
 from .config import Context
 
 
 __all__ = [
-    "Idle",
     "VisitWebsite",
     "OpenLink",
     "leave_website",
@@ -41,36 +36,6 @@ def _get_available_links(log: BoundLogger, context: Context):
         for link in available_links
         if urlparse(link.get_attribute("href")).scheme in ["http", "https"]
     ]
-
-
-class Idle:
-    """Transition function that idles and does nothing"""
-
-    def __init__(
-        self,
-        idle_amount: ApproximateFloat,
-        end_time: Optional[datetime] = None,
-    ):
-        self._idle_amount: ApproximateFloat = idle_amount
-        self._end_time: Optional[datetime] = end_time
-
-    def __call__(
-        self,
-        log: BoundLogger,
-        current_state: str,
-        context: Context,
-        target: Optional[str],
-    ):
-        if self._end_time is None:
-            sleep(self._idle_amount)
-        # if we have an endtime we need special considerations
-        else:
-            # calc datetime to idle until
-            idle_time = now() + timedelta(seconds=self._idle_amount.value)
-
-            # sleep either until idle datetime or until end time
-            # if that is earlier
-            sleep_until(min(idle_time, self._end_time))
 
 
 class VisitWebsite:

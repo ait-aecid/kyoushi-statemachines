@@ -3,13 +3,20 @@ This module contains configuration and context classes or elements,
 which might be useful for many state machines.
 """
 
-from typing import Any
-from typing import Dict
-from typing import Union
+from typing import (
+    Any,
+    Dict,
+    Union,
+)
 
-from pydantic import BaseModel
-from pydantic import root_validator
-from pydantic import validator
+from pydantic import (
+    BaseModel,
+    Field,
+    root_validator,
+    validator,
+)
+
+from cr_kyoushi.simulation.model import ApproximateFloat
 
 
 ProbVal = Union[
@@ -60,14 +67,15 @@ class ProbabilisticStateConfig(BaseModel):
             The fields dictionary
         """
         for key, val in values.items():
-            field_type = cls.__fields__[key].type_
-            if field_type not in [ProbVal, float, int]:
-                raise ValueError(
-                    (
-                        "Probabilistic config fields must be int or float! "
-                        f"Found {key}: {field_type}"
+            if key != "extra":
+                field_type = cls.__fields__[key].type_
+                if field_type not in [ProbVal, float, int]:
+                    raise ValueError(
+                        (
+                            "Probabilistic config fields must be int or float! "
+                            f"Found {key}: {field_type}"
+                        )
                     )
-                )
         return values
 
     @root_validator
@@ -85,14 +93,45 @@ class ProbabilisticStateConfig(BaseModel):
         Returns:
             The fields dictionary
         """
-        prob_sum = sum(values.values(), 0.0)
+        fields = [val for key, val in values.items() if key != "extra"]
+        prob_sum = sum(fields, 0.0)
 
-        if prob_sum == 1.0 or prob_sum == 100:
+        if abs(1 - prob_sum) <= 1e-8:
             return values
 
         raise ValueError(
-            (
-                "Sum of all transition probabilities must be either 1.0 or 100, "
-                f"but is {prob_sum}"
-            )
+            ("Sum of all transition probabilities must be 1.0, " f"but is {prob_sum}")
         )
+
+
+class IdleConfig(BaseModel):
+    big: Union[ApproximateFloat, float] = Field(
+        ApproximateFloat(
+            min=600,  # 10*60 = 10m
+            max=3000,  # 50*60 = 50m
+        ),
+        description="The time in seconds to use for big idles",
+    )
+
+    medium: Union[ApproximateFloat, float] = Field(
+        ApproximateFloat(
+            min=60,  # 1m
+            max=300,  # 5*60 = 5m
+        ),
+        description="The time in seconds to use for medium idles",
+    )
+    small: Union[ApproximateFloat, float] = Field(
+        ApproximateFloat(
+            min=5,  # 5s
+            max=30,  # 30s
+        ),
+        description="The time in seconds to use for short idles",
+    )
+
+    tiny: Union[ApproximateFloat, float] = Field(
+        ApproximateFloat(
+            min=0.5,  # 500ms
+            max=1.5,  # 1s500ms
+        ),
+        description="The time in seconds to use for very short idles",
+    )

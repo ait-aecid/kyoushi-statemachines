@@ -2,33 +2,60 @@
 This module contains configuration and utility functions for using Selenium webdrivers
 as part of simulations.
 """
+import time
 
+from contextlib import contextmanager
 from enum import Enum
 from pathlib import Path
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Union
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Tuple,
+    Union,
+)
 
-from pydantic import AnyUrl
-from pydantic import BaseModel
-from pydantic import Field
-from pydantic import PositiveInt
-from pydantic import validator
+from pydantic import (
+    AnyUrl,
+    BaseModel,
+    Field,
+    PositiveInt,
+    SecretStr,
+    validator,
+)
 from pydantic.errors import EnumMemberError
 from selenium import webdriver
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.proxy import (
+    Proxy,
+    ProxyType,
+)
 from selenium.webdriver.edge.options import Options as EdgeOptions
 from selenium.webdriver.opera.options import Options as OperaOptions
+from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.support.expected_conditions import staleness_of
+from selenium.webdriver.support.wait import (
+    POLL_FREQUENCY,
+    WebDriverWait,
+)
 from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.firefox import GeckoDriverManager
 from webdriver_manager.manager import DriverManager
-from webdriver_manager.microsoft import EdgeChromiumDriverManager
-from webdriver_manager.microsoft import IEDriverManager
+from webdriver_manager.microsoft import (
+    EdgeChromiumDriverManager,
+    IEDriverManager,
+)
 from webdriver_manager.opera import OperaDriverManager
 from webdriver_manager.utils import ChromeType
 
-from cr_kyoushi.simulation.model import LogLevel
+from cr_kyoushi.simulation.model import (
+    ApproximateFloat,
+    LogLevel,
+)
 
 from .util import filter_none_keys
 
@@ -101,6 +128,45 @@ class WebdriverManagerConfig(BaseModel):
     )
 
 
+class SeleniumProxyConfig(BaseModel):
+    """Selenium webdriver proxy configuration"""
+
+    enabled: bool = Field(
+        False,
+        description="If a proxy should be used or not",
+    )
+
+    host: str = Field(
+        "localhost",
+        description="The proxy host",
+    )
+
+    port: PositiveInt = Field(
+        8080,
+        description="The proxy port",
+    )
+
+    socks: bool = Field(
+        False,
+        description="If a socks proxy should be used instead of a HTTP proxy",
+    )
+
+    socks_version: PositiveInt = Field(
+        5,
+        description="The SOCKS protocol version to use",
+    )
+
+    username: Optional[str] = Field(
+        None,
+        description="The socks username to use for authentication",
+    )
+
+    password: Optional[SecretStr] = Field(
+        None,
+        description="The socks password to use for authentication",
+    )
+
+
 class SeleniumConfig(BaseModel):
     """Configuration class for selenium drivers"""
 
@@ -122,6 +188,11 @@ class SeleniumConfig(BaseModel):
     headless: bool = Field(
         False,
         description="If the browser should be run in headless mode or not.",
+    )
+
+    proxy: SeleniumProxyConfig = Field(
+        SeleniumProxyConfig(),
+        description="The proxy configuration to use for the webdriver",
     )
 
     implicit_wait: float = Field(
@@ -299,6 +370,32 @@ def get_webdriver(
     # configure SSL cert insecure option
     options.set_capability("acceptInsecureCerts", config.accept_insecure_ssl)
 
+    # configure proxy
+    if config.proxy.enabled:
+        proxy_url = f"{config.proxy.host}:{str(config.proxy.port)}"
+        proxy = Proxy()
+
+        proxy.proxy_type = ProxyType.MANUAL
+        proxy.autodetect = False
+        proxy.ftp_proxy = proxy_url
+        if config.proxy.socks:
+            proxy.socks_proxy = proxy_url
+            # auth settings
+            if config.proxy.username is not None and config.proxy.password is not None:
+                proxy.socks_username = config.proxy.username
+                proxy.socks_password = config.proxy.password
+        else:
+            proxy.http_proxy = proxy_url
+            proxy.ssl_proxy = proxy_url
+
+        # options: webdriver.ChromeOptions
+        # apply proxy settings
+        proxy.add_to_capabilities(options.capabilities)
+        if config.proxy.socks:
+            # need to manually set the socksVersion since
+            # the proxy config object does not expose the setting
+            options.capabilities["proxy"]["socksVersion"] = config.proxy.socks_version
+
     # create driver
     driver = driver_info["driver"](
         executable_path=driver_path,
@@ -313,3 +410,148 @@ def get_webdriver(
     driver.set_window_position(x=config.window_x_position, y=config.window_y_position)
 
     return driver
+
+
+def slow_type(
+    element: WebElement,
+    text: str,
+    delay: Union[float, ApproximateFloat] = ApproximateFloat(
+        min=0.05,
+        max=0.35,
+    ),
+):
+    """Send a text to an element one character at a time with a delay.
+
+    Args:
+        element: The element to send the text to
+        text: The text to send
+        delay: The delay to use in between key strokes.
+               Average typing speed is 180-200 characters per minute or
+               3~ per second. The default was set with this in mind.
+    """
+    # convert to approximate float if we got a float
+    if not isinstance(delay, ApproximateFloat):
+        delay = ApproximateFloat.convert(delay)
+
+    # type the text
+    for character in text:
+        element.send_keys(character)
+        time.sleep(delay.value)
+
+
+def type_linebreak(driver: webdriver.Remote, count=1):
+    """Sends a linebreak to the currently focused input element (e.g., textarea).
+
+    This is done using ++shift+enter++ so no submit is triggered.
+
+    Args:
+        driver: The webdriver
+        count: The amount of line breaks to write
+    """
+    for i in range(0, count):
+        ActionChains(driver).key_down(Keys.SHIFT).key_down(Keys.ENTER).key_up(
+            Keys.SHIFT
+        ).key_up(Keys.ENTER).perform()
+
+
+def js_set_text(driver: webdriver.Remote, element: WebElement, text: str):
+    """Set the text value of an input element directly with Javascript.
+
+    This can be useful for avoiding onChange event listeners
+    evaluating partial texts.
+
+    Args:
+        driver: The webdriver
+        element: The input element to set the text for
+        text: The text to set
+    """
+    driver.execute_script(
+        f"arguments[0].value = '{text}'",
+        element,
+    )
+
+
+def wait_for_window_change(
+    driver: webdriver.Remote,
+    handles_before: List[str],
+    timeout: Union[float, int] = 10,
+    poll_frequency: float = POLL_FREQUENCY,
+):
+    """Wait for a new window to open and returns its window handle.
+
+    Args:
+        driver: The webdriver
+        handles_before: The handles list before the new window opens
+        timeout: The maximum time to wait for
+        poll_frequency: The frequency the condition should be checked
+    """
+    # wait for the window to appear
+    WebDriverWait(
+        driver=driver,
+        timeout=timeout,
+        poll_frequency=poll_frequency,
+    ).until(lambda driver: len(handles_before) != len(driver.window_handles))
+
+
+def get_new_window(
+    driver: webdriver.Remote,
+    handles_before: List[str],
+) -> Optional[str]:
+    """Get the new window based on the current and previous window list.
+
+    Args:
+        driver: The webdriver
+        handles_before: The window list before the new window opened
+
+    Returns:
+        The window handle for the new window
+    """
+    # get new window and return
+    handle_after = driver.window_handles
+    if len(handle_after) > len(handles_before):
+        return set(handle_after).difference(set(handles_before)).pop()
+    return None
+
+
+def wait_and_get_new_window(
+    driver: webdriver.Remote,
+    action: Callable[[], None],
+    timeout: Union[float, int] = 10,
+    poll_frequency: float = POLL_FREQUENCY,
+) -> Optional[str]:
+    """Executes the given function and waits for a new window to open and returns it handle.
+
+    Args:
+        driver: The webdriver
+        action: The function to execute before waiting for the window
+        timeout: The maximum time to wait
+        poll_frequency: The frequency to check for the presence of the new window
+
+    Returns:
+        Optional[str]: [description]
+    """
+    handles_before = driver.window_handles
+
+    action()
+
+    wait_for_window_change(driver, handles_before, timeout, poll_frequency)
+    return get_new_window(driver, handles_before)
+
+
+@contextmanager
+def wait_for_page_load(
+    driver: webdriver.Remote,
+    locator: Tuple[By, str] = (By.TAG_NAME, "html"),
+    timeout=120,
+):
+    """Context manager for waiting on page reloads or requests caused by interaction.
+
+    From https://www.cloudbees.com/blog/get-selenium-to-wait-for-page-load/
+
+    Args:
+        timeout: The maximum time to wait for the page to load
+    """
+    (by, value) = locator
+    old_page = driver.find_element(by, value)
+    yield
+    WebDriverWait(driver, timeout).until(staleness_of(old_page))

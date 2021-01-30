@@ -14,6 +14,7 @@ packages = [
 
 [tool.poetry.plugins."cr_kyoushi.simulation"]
 "ait.web_browser" = "cr_kyoushi.statemachines.web_browser:StatemachineFactory"
+"ait.horde_user" = "cr_kyoushi.statemachines.horde_user:StatemachineFactory"
 
 
 [[tool.poetry.source]]
@@ -23,9 +24,14 @@ secondary = true
 
 [tool.poetry.dependencies]
 python = "^3.7"
-cr-kyoushi-simulation = "^0.2.2"
+cr-kyoushi-simulation = "^0.3.1"
 selenium = "^3.141.0"
 webdriver-manager = "^3.2.2"
+Faker = "^5.6.5"
+titlecase = "^2.0.0"
+numpy = "^1.19.5"
+email-validator = "^1.1.2"
+idna = "^2.8"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
@@ -51,7 +57,9 @@ mkdocs-macros-plugin = "^0.5.0"
 
 [tool.isort]
 profile = "black"
-force_single_line = true
+force_single_line = false
+force_grid_wrap = 2
+multi_line_output = 3
 atomic = true
 include_trailing_comma = true
 lines_after_imports = 2
