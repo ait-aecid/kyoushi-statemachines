@@ -1,3 +1,7 @@
+"""
+A collection of helper functions used to create the various sub activities of the Horde user activity.
+"""
+
 from typing import (
     Dict,
     Tuple,
@@ -18,6 +22,19 @@ from . import (
     nav,
     states,
 )
+
+
+__all__ = [
+    "get_mail_activity",
+    "get_preferences_activity",
+    "get_admin_activity",
+    "get_notes_activity",
+    "get_tasks_activity",
+    "get_address_book_activity",
+    "get_calendar_activity",
+    "get_base_activity",
+    "get_menu_activity",
+]
 
 
 def get_mail_activity(
@@ -49,6 +66,14 @@ def get_mail_activity(
     states.MailInfo,
     states.MailCompose,
 ]:
+    """Creates the horde mail activity and its underlying states and transitions.
+
+    It is possible to assign different names to the states and transitions via the
+    function arguments.
+
+    Returns:
+        The mail activity states and the mail menu navigation transition.
+    """
     # mail transitions
 
     t_nav_mail = DelayedTransition(
@@ -102,10 +127,14 @@ def get_mail_activity(
     t_send_mail = Transition(
         transition_function=actions.SendMail(
             # we cast here since mypy does not recognize EmailStr as str
-            contacts=cast(Dict[str, float], horde.contacts),
+            contacts=cast(Dict[str, float], horde.mail.contacts),
             attachments={
-                str(path.absolute()): p for path, p in horde.attachments.items()
+                str(path.absolute()): p for path, p in horde.mail.attachments.items()
             },
+            extra_recipient_prob=horde.mail.extra_recipient,
+            max_recipients=horde.mail.max_recipients,
+            attachment_prob=horde.mail.attachment,
+            attachment_reply_prob=horde.mail.attachment_reply,
         ),
         name=send_mail,
         target=mails_page,
@@ -175,6 +204,14 @@ def get_preferences_activity(
     nav_preferences_personal: str = "nav_preferences_personal",
     set_preferences_personal: str = "set_preferences_personal",
 ) -> Tuple[Transition, states.PreferencesPage, states.PreferencesPersonalPage]:
+    """Creates the horde preference configuration activity and its underlying states and transitions.
+
+    It is possible to assign different names to the states and transitions via the
+    function arguments.
+
+    Returns:
+        The preference activity states and the its menu navigation transition.
+    """
     # preferences transitions
 
     t_nav_preferences = DelayedTransition(
@@ -264,6 +301,14 @@ def get_admin_activity(
     states.AdminSQLShellPage,
     states.AdminCLIShellPage,
 ]:
+    """Creates the horde admin configuration activity and its underlying states and transitions.
+
+    It is possible to assign different names to the states and transitions via the
+    function arguments.
+
+    Returns:
+        The admin activity states and the its menu navigation transition.
+    """
     # admin transitions
     t_nav_admin = DelayedTransition(
         transition_function=nav.navigate_admin_configuration,
@@ -496,6 +541,14 @@ def get_notes_activity(
     states.NoteCreator,
     states.NoteEditor,
 ]:
+    """Creates the horde notes activity and its underlying states and transitions.
+
+    It is possible to assign different names to the states and transitions via the
+    function arguments.
+
+    Returns:
+        The notes activity states and the its menu navigation transition.
+    """
     # notes transitions
     t_nav_notes = DelayedTransition(
         transition_function=nav.navigate_notes_menu,
@@ -588,6 +641,14 @@ def get_tasks_activity(
     states.TaskCreator,
     states.TaskEditor,
 ]:
+    """Creates the horde tasks activity and its underlying states and transitions.
+
+    It is possible to assign different names to the states and transitions via the
+    function arguments.
+
+    Returns:
+        The tasks activity states and the its menu navigation transition.
+    """
     # tasks transitions
     t_nav_tasks = DelayedTransition(
         transition_function=nav.navigate_tasks_menu,
@@ -686,6 +747,14 @@ def get_address_book_activity(
     states.ContactInfo,
     states.ContactDeleteConfirming,
 ]:
+    """Creates the horde address book activity and its underlying states and transitions.
+
+    It is possible to assign different names to the states and transitions via the
+    function arguments.
+
+    Returns:
+        The address book activity states and the its menu navigation transition.
+    """
     # address book transitions
 
     t_nav_address_book = DelayedTransition(
@@ -815,6 +884,14 @@ def get_calendar_activity(
     states.EventCompose,
     states.EventEdit,
 ]:
+    """Creates the horde calendar activity and its underlying states and transitions.
+
+    It is possible to assign different names to the states and transitions via the
+    function arguments.
+
+    Returns:
+        The calendar activity states and the its menu navigation transition.
+    """
     # calendar transitions
 
     t_nav_calendar = DelayedTransition(
@@ -914,6 +991,15 @@ def get_base_activity(
     states.LoginPage,
     states.LogoutChoice,
 ]:
+    """Creates the horde base activity (i.e., login and logout) and its underlying states and transitions.
+
+    It is possible to assign different names to the states and transitions via the
+    function arguments.
+
+    Returns:
+        The horde open, pause and return to selection menu transition as well as the
+        login and logout states.
+    """
 
     t_horde_transition = Transition(
         transition_function=nav.GoToHordeWebsite(horde.url),
@@ -1007,6 +1093,14 @@ def get_menu_activity(
     pause_horde: Transition,
     selecting_menu: str = "selecting_menu",
 ) -> states.SelectingMenu:
+    """Creates the horde main menu selection activity and its underlying state and transitions.
+
+    It is possible to assign different names to the states and transitions via the
+    function arguments.
+
+    Returns:
+        The menu selection state
+    """
     return states.SelectingMenu(
         name=selecting_menu,
         nav_mail=nav_mail,

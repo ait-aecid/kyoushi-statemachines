@@ -1,3 +1,5 @@
+"""Statemachine that only idles or executes the horde activity."""
+
 from datetime import datetime
 from typing import (
     List,
@@ -28,10 +30,8 @@ from .activities import (
     get_preferences_activity,
     get_tasks_activity,
 )
-from .config import (
-    Context,
-    StatemachineConfig,
-)
+from .config import StatemachineConfig
+from .context import Context
 from .states import ActivitySelectionState
 
 
@@ -39,6 +39,8 @@ __all__ = ["Statemachine", "StatemachineFactory"]
 
 
 class Statemachine(sm.WorkHoursStatemachine):
+    """Horde activity state machine"""
+
     _selenium_config: SeleniumConfig
     _webdriver_path: Optional[str]
 
@@ -95,6 +97,8 @@ class Statemachine(sm.WorkHoursStatemachine):
 
 
 class StatemachineFactory(sm.StatemachineFactory):
+    """Horde activity state machine factory"""
+
     @property
     def name(self) -> str:
         return "HordeUserStatemachineFactory"

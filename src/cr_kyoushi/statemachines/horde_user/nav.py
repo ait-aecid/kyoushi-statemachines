@@ -1,3 +1,5 @@
+"""Horde activities selenium navigation operations i.e., actions that move between pages or views"""
+
 import random
 
 from typing import (
@@ -20,7 +22,7 @@ from selenium.webdriver.common.by import By
 from structlog.stdlib import BoundLogger
 
 from ..core.selenium import wait_for_page_load
-from .config import (
+from .context import (
     Context,
     HordeContext,
 )
@@ -44,11 +46,35 @@ from .wait import (
 )
 
 
-# from cr_kyoushi.simulation import transitions
-# from cr_kyoushi.simulation.errors import TransitionExecutionError
+__all__ = [
+    "GoToHordeWebsite",
+    "navigate_mail_menu",
+    "navigate_calendar_menu",
+    "navigate_address_book_menu",
+    "navigate_address_book_browse",
+    "navigate_address_book_contact",
+    "navigate_tasks_menu",
+    "navigate_notes_menu",
+    "navigate_admin_configuration",
+    "navigate_admin_users",
+    "navigate_admin_groups",
+    "navigate_admin_permissions",
+    "navigate_admin_locks",
+    "navigate_admin_alarms",
+    "navigate_admin_sessions",
+    "navigate_admin_php_shell",
+    "navigate_admin_sql_shell",
+    "navigate_admin_cli",
+    "navigate_preferences_global",
+    "navigate_preferences_personal",
+]
 
 
 class GoToHordeWebsite:
+    """Go to horde action opens horde
+
+    The url can be configured"""
+
     def __init__(self, horde_url: AnyUrl):
         self.horde_url: AnyUrl = horde_url
 
@@ -69,6 +95,8 @@ class GoToHordeWebsite:
 
 
 class NavigateMainMenu:
+    """Base class for navigation on the main menu"""
+
     def __init__(self, menu_item: int, name: str):
         self.menu_item: int = menu_item
         self.name: str = name
@@ -126,6 +154,7 @@ class NavigateMailMenu(NavigateMainMenu):
 
 
 navigate_mail_menu = NavigateMailMenu()
+"""Navigate to the mails menu"""
 
 
 class NavigateCalendarMenu(NavigateMainMenu):
@@ -150,6 +179,7 @@ class NavigateCalendarMenu(NavigateMainMenu):
 
 
 navigate_calendar_menu = NavigateCalendarMenu()
+"""Navigate to the calendar menu"""
 
 
 class NavigateAddressBookMenu(NavigateMainMenu):
@@ -161,6 +191,7 @@ class NavigateAddressBookMenu(NavigateMainMenu):
 
 
 navigate_address_book_menu = NavigateAddressBookMenu()
+"""Navigate to the address book menu"""
 
 
 def navigate_address_book_browse(
@@ -169,6 +200,7 @@ def navigate_address_book_browse(
     context: Context,
     target: Optional[str],
 ):
+    """Navigate to the address book browse sub page"""
     driver: webdriver.Remote = context.driver
     if check_address_book_page(driver):
         log.info("Navigate to address book browse")
@@ -191,6 +223,7 @@ def navigate_address_book_contact(
     context: Context,
     target: Optional[str],
 ):
+    """Navigate to the contact view for a random contact"""
     driver: webdriver.Remote = context.driver
     horde: HordeContext = context.horde
     if (
@@ -250,6 +283,7 @@ class NavigateTasksMenu(NavigateMainMenu):
 
 
 navigate_tasks_menu = NavigateTasksMenu()
+"""Navigate to the tasks menu"""
 
 
 class NavigateNotesMenu(NavigateMainMenu):
@@ -274,9 +308,12 @@ class NavigateNotesMenu(NavigateMainMenu):
 
 
 navigate_notes_menu = NavigateNotesMenu()
+"""Navigate to the notes menu"""
 
 
 class NavigateSettingsMenu(NavigateMainMenu):
+    """Base class for settings menu navigation"""
+
     def __init__(
         self,
         sub_menu: int,
@@ -316,6 +353,7 @@ class NavigateAdminConfiguration(NavigateSettingsMenu):
 
 
 navigate_admin_configuration = NavigateAdminConfiguration()
+"""Navigate to the admin configuration settings menu"""
 
 
 class NavigateAdminUsers(NavigateSettingsMenu):
@@ -329,6 +367,7 @@ class NavigateAdminUsers(NavigateSettingsMenu):
 
 
 navigate_admin_users = NavigateAdminUsers()
+"""Navigate to the admin user settings menu"""
 
 
 class NavigateAdminGroups(NavigateSettingsMenu):
@@ -342,6 +381,7 @@ class NavigateAdminGroups(NavigateSettingsMenu):
 
 
 navigate_admin_groups = NavigateAdminGroups()
+"""Navigate to the admin groups settings menu"""
 
 
 class NavigateAdminPermissions(NavigateSettingsMenu):
@@ -355,6 +395,7 @@ class NavigateAdminPermissions(NavigateSettingsMenu):
 
 
 navigate_admin_permissions = NavigateAdminPermissions()
+"""Navigate to the admin permissions settings menu"""
 
 
 class NavigateAdminLocks(NavigateSettingsMenu):
@@ -368,6 +409,7 @@ class NavigateAdminLocks(NavigateSettingsMenu):
 
 
 navigate_admin_locks = NavigateAdminLocks()
+"""Navigate to the admin locks settings menu"""
 
 
 class NavigateAdminAlarms(NavigateSettingsMenu):
@@ -381,6 +423,7 @@ class NavigateAdminAlarms(NavigateSettingsMenu):
 
 
 navigate_admin_alarms = NavigateAdminAlarms()
+"""Navigate to the admin alarms settings menu"""
 
 
 class NavigateAdminSessions(NavigateSettingsMenu):
@@ -394,6 +437,7 @@ class NavigateAdminSessions(NavigateSettingsMenu):
 
 
 navigate_admin_sessions = NavigateAdminSessions()
+"""Navigate to the admin sessions settings menu"""
 
 
 class NavigateAdminPHPShell(NavigateSettingsMenu):
@@ -407,6 +451,7 @@ class NavigateAdminPHPShell(NavigateSettingsMenu):
 
 
 navigate_admin_php_shell = NavigateAdminPHPShell()
+"""Navigate to the admin php shell menu"""
 
 
 class NavigateAdminSQLShell(NavigateSettingsMenu):
@@ -420,6 +465,7 @@ class NavigateAdminSQLShell(NavigateSettingsMenu):
 
 
 navigate_admin_sql_shell = NavigateAdminSQLShell()
+"""Navigate to the admin sql shell menu"""
 
 
 class NavigateAdminCLI(NavigateSettingsMenu):
@@ -433,6 +479,7 @@ class NavigateAdminCLI(NavigateSettingsMenu):
 
 
 navigate_admin_cli = NavigateAdminCLI()
+"""Navigate to the admin cli shell menu"""
 
 
 class NavigatePreferencesGlobal(NavigateSettingsMenu):
@@ -446,6 +493,7 @@ class NavigatePreferencesGlobal(NavigateSettingsMenu):
 
 
 navigate_preferences_global = NavigatePreferencesGlobal()
+"""Navigate to the preferences menu"""
 
 
 def navigate_preferences_personal(
@@ -454,6 +502,7 @@ def navigate_preferences_personal(
     context: Context,
     target: Optional[str],
 ):
+    """Navigate to the personal preferences settings page"""
     # if we are not on the preference page navigate to it first
     if "User Preferences" not in context.driver.title:
         navigate_preferences_global(log, current_state, context, target)

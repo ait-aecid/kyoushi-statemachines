@@ -8,11 +8,48 @@ from cr_kyoushi.simulation.transitions import (
 from cr_kyoushi.simulation.util import now
 
 from ..core.states import ActivityState
-from .config import Context
+from .context import Context
 from .wait import (
     check_login_page,
     check_mail_page,
 )
+
+
+__all__ = [
+    "ActivitySelectionState",
+    "LoggedInCheck",
+    "LoginPage",
+    "SelectingMenu",
+    "LogoutChoice",
+    "MailsPage",
+    "MailView",
+    "MailInfo",
+    "MailCompose",
+    "PreferencesPage",
+    "PreferencesPersonalPage",
+    "AdminPage",
+    "AdminGroupsPage",
+    "AdminConfigPage",
+    "AdminGroupAdded",
+    "AdminGroupDeleting",
+    "AdminPHPShellPage",
+    "AdminSQLShellPage",
+    "AdminCLIShellPage",
+    "NotesPage",
+    "NoteCreator",
+    "NoteEditor",
+    "TasksPage",
+    "TaskCreator",
+    "TaskEditor",
+    "AddressBookPage",
+    "ContactsBrowser",
+    "ContactInfo",
+    "ContactCompose",
+    "ContactDeleteConfirming",
+    "CalendarPage",
+    "EventEdit",
+    "EventCompose",
+]
 
 
 class ActivitySelectionState(states.AdaptiveProbabilisticState):
@@ -74,6 +111,8 @@ class ActivitySelectionState(states.AdaptiveProbabilisticState):
 
 
 class LoggedInCheck(states.ChoiceState):
+    """Dummy state used to detect if the user is already logged in or not."""
+
     def __init__(
         self,
         name: str,
@@ -94,6 +133,8 @@ class LoggedInCheck(states.ChoiceState):
 
 
 class LoginPage(states.AdaptiveProbabilisticState):
+    """The horde login page state"""
+
     def __init__(
         self,
         name: str,
@@ -121,6 +162,12 @@ class LoginPage(states.AdaptiveProbabilisticState):
 
 
 class SelectingMenu(ActivityState):
+    """The horde selecting menu state.
+
+    This is the main state used to switch between the various horde
+    sub activities.
+    """
+
     def __init__(
         self,
         name: str,
@@ -192,6 +239,12 @@ class SelectingMenu(ActivityState):
 
 
 class LogoutChoice(states.ProbabilisticState):
+    """The horde logout choice state
+
+    Used as a decision state to decide wether the user should logout
+    of horde or simply leave it open in background when pausing the activity.
+    """
+
     def __init__(self, name: str, logout: Transition, logout_prob: float = 0.05):
         super().__init__(
             name,
@@ -266,6 +319,8 @@ class MailsPage(ActivityState):
 
 
 class MailView(states.ProbabilisticState):
+    """The horde mail view state"""
+
     def __init__(
         self,
         name: str,
@@ -293,6 +348,8 @@ class MailView(states.ProbabilisticState):
 
 
 class MailInfo(states.ProbabilisticState):
+    """The horde mail info state"""
+
     def __init__(
         self,
         name: str,
@@ -309,13 +366,23 @@ class MailInfo(states.ProbabilisticState):
 
 
 MailCompose = states.SequentialState
+"""The horde mail compose state"""
 
 PreferencesPage = states.SequentialState
+"""The horde preferences page state"""
 
 PreferencesPersonalPage = states.SequentialState
+"""The horde preferences personal page state"""
 
 
 class AdminPage(ActivityState):
+    """The horde admin page state
+
+    Used to control the selection of all admin sub activities.
+    Similar to how the selecting menu state is used to switch between the
+    higher level horder sub activities.
+    """
+
     def __init__(
         self,
         name: str,
@@ -381,6 +448,8 @@ AdminConfigPage = states.SequentialState
 
 
 class AdminGroupsPage(ActivityState):
+    """The horde admin groups page state"""
+
     def __init__(
         self,
         name: str,
@@ -423,17 +492,24 @@ class AdminGroupsPage(ActivityState):
 
 
 AdminGroupAdded = states.SequentialState
+"""The horde group added state"""
 
 AdminGroupDeleting = states.SequentialState
+"""The horde admin group deleting state"""
 
 AdminPHPShellPage = states.SequentialState
+"""The horde php shell page state"""
 
 AdminSQLShellPage = states.SequentialState
+"""The horde sql shell state"""
 
 AdminCLIShellPage = states.SequentialState
+"""The horde cli shell state"""
 
 
 class NotesPage(ActivityState):
+    """The horde notes page state"""
+
     def __init__(
         self,
         name: str,
@@ -467,9 +543,12 @@ class NotesPage(ActivityState):
 
 
 NoteCreator = states.SequentialState
+"""The horde note creator state"""
 
 
 class NoteEditor(states.ProbabilisticState):
+    """The horde note editor state"""
+
     def __init__(
         self,
         name: str,
@@ -486,6 +565,8 @@ class NoteEditor(states.ProbabilisticState):
 
 
 class TasksPage(ActivityState):
+    """The horde tasks page state"""
+
     def __init__(
         self,
         name: str,
@@ -519,11 +600,15 @@ class TasksPage(ActivityState):
 
 
 TaskCreator = states.SequentialState
+"""The horde task creator state"""
 
 TaskEditor = states.SequentialState
+"""The horde task editor state"""
 
 
 class AddressBookPage(ActivityState):
+    """The horde address book page state"""
+
     def __init__(
         self,
         name: str,
@@ -554,6 +639,8 @@ class AddressBookPage(ActivityState):
 
 
 class ContactsBrowser(states.AdaptiveProbabilisticState):
+    """The horde contacts browser state"""
+
     def __init__(
         self,
         name: str,
@@ -581,9 +668,12 @@ class ContactsBrowser(states.AdaptiveProbabilisticState):
 
 
 ContactCompose = states.SequentialState
+"""The horde contact compose state"""
 
 
 class ContactInfo(states.ProbabilisticState):
+    """The horde contact info state"""
+
     def __init__(
         self,
         name: str,
@@ -600,9 +690,12 @@ class ContactInfo(states.ProbabilisticState):
 
 
 ContactDeleteConfirming = states.SequentialState
+"""The horde contact delete confirming state"""
 
 
 class CalendarPage(ActivityState):
+    """The horde calendar page state"""
+
     def __init__(
         self,
         name: str,
@@ -636,9 +729,12 @@ class CalendarPage(ActivityState):
 
 
 EventCompose = states.SequentialState
+"""The horde event compose state"""
 
 
 class EventEdit(states.ProbabilisticState):
+    """The horde event edit state"""
+
     def __init__(
         self,
         name: str,

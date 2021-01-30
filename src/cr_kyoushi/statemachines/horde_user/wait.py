@@ -1,3 +1,5 @@
+"""Selenium DOM check functions used to verify and check for the current page state."""
+
 from typing import (
     Any,
     Callable,
@@ -16,7 +18,7 @@ from selenium.webdriver.support.wait import (
 )
 
 
-TIMEOUT = 30
+TIMEOUT = 60
 
 
 class CheckTitleContains:

@@ -1,3 +1,5 @@
+"""The horde user selenium actions i.e., things that actively do something"""
+
 import random
 import re
 
@@ -40,7 +42,7 @@ from ..core.selenium import (
     wait_for_window_change,
 )
 from ..core.util import get_title
-from .config import (
+from .context import (
     Context,
     HordeContext,
     MailInfo,
@@ -92,7 +94,53 @@ from .wait import (
 )
 
 
+__all__ = [
+    "LoginToHorde",
+    "SendMail",
+    "SetPersonalPreferences",
+    "logout_of_horde",
+    "refresh_mail",
+    "new_mail",
+    "view_mail",
+    "open_mail",
+    "reply_mail",
+    "delete_mail",
+    "new_calendar_event",
+    "write_calendar_event",
+    "edit_calendar_event",
+    "delete_calendar_event",
+    "start_add_contact",
+    "submit_new_contact",
+    "delete_contact",
+    "confirm_delete_contact",
+    "new_task",
+    "save_new_task",
+    "edit_task",
+    "delete_task",
+    "new_note",
+    "write_note",
+    "edit_note",
+    "delete_note",
+    "add_user_group",
+    "delete_user_group",
+    "confirm_delete_user_group",
+    "admin_check_versions",
+    "admin_exec_php",
+    "admin_exec_sql",
+    "admin_exec_cli",
+]
+
+
 class LoginToHorde:
+    """Login to horde action.
+
+    It is possible to configure both the username and password.
+
+    !!! Note
+        You can also create a login function that uses a wrong password and thus fails
+        to login by setting `fail` to `True`.
+    """
+
     def __init__(self, username: str, password: str, fail: bool = False):
         self.username: str = username
         self.password: str = password
@@ -169,6 +217,7 @@ def logout_of_horde(
     context: Context,
     target: Optional[str],
 ):
+    """Logout of horde action clicks the logout button available on all horde sub pages."""
     driver: webdriver.Remote = context.driver
     if check_horde_page(driver):
 
@@ -193,6 +242,7 @@ def refresh_mail(
     context: Context,
     target: Optional[str],
 ):
+    """Refresh mail action clicks the refresh button and causing new mails to be loaded."""
     driver: webdriver.Remote = context.driver
     if check_mail_page(driver):
         log.info("Checking for new mail")
@@ -216,6 +266,7 @@ def new_mail(
     context: Context,
     target: Optional[str],
 ):
+    """New mail action starts the mail composition dialog window"""
     driver: webdriver.Remote = context.driver
     if check_mail_page(driver):
         log.info("Writing new mail")
@@ -252,6 +303,7 @@ def view_mail(
     context: Context,
     target: Optional[str],
 ):
+    """View mail action clicks on a email in the list showing it in the bottom area"""
     driver: webdriver.Remote = context.driver
     mail: MailInfo = context.horde.mail
     # we can delete from overview page
@@ -299,6 +351,7 @@ def open_mail(
     context: Context,
     target: Optional[str],
 ):
+    """Open mail action opens the email in an extra window"""
     driver: webdriver.Remote = context.driver
     mail: MailInfo = context.horde.mail
     if check_mail_page(driver) and CheckMailExtendedView(mail.subject):
@@ -339,6 +392,7 @@ def reply_mail(
     context: Context,
     target: Optional[str],
 ):
+    """Reply mail action opens the mail compose dialog to reply to the selected email"""
     driver: webdriver.Remote = context.driver
     mail: MailInfo = context.horde.mail
     if (
@@ -389,6 +443,7 @@ def delete_mail(
     context: Context,
     target: Optional[str],
 ):
+    """Delete mail action deletes the selected email."""
     driver: webdriver.Remote = context.driver
     mail: MailInfo = context.horde.mail
     if (
@@ -435,6 +490,13 @@ def delete_mail(
 
 
 class SendMail:
+    """Send mail action writes and sends an email.
+
+    It is possible to configure the available contacts, attachments and their likelyhood to be selected.
+    Maximum amount of recipients and propability of adding more than one recipient or an attachments
+    can also be configured.
+    """
+
     def __init__(
         self,
         contacts: Dict[str, float],
@@ -626,6 +688,7 @@ def new_calendar_event(
     context: Context,
     target: Optional[str],
 ):
+    """New calendar event action starts the event creation dialog"""
     driver: webdriver.Remote = context.driver
     if check_calendar_page(driver):
         log.info("Adding calendar event")
@@ -647,6 +710,7 @@ def write_calendar_event(
     context: Context,
     target: Optional[str],
 ):
+    """Write calendar event action creates a new event on a random day in the current month."""
     driver: webdriver.Remote = context.driver
     horde: HordeContext = context.horde
     if check_calendar_write_view(driver):
@@ -753,6 +817,7 @@ def edit_calendar_event(
     context: Context,
     target: Optional[str],
 ):
+    """Edit calendar event action opens the edit dialog for a random visible event."""
     driver: webdriver.Remote = context.driver
     horde: HordeContext = context.horde
     if check_calendar_page(driver):
@@ -803,6 +868,7 @@ def delete_calendar_event(
     context: Context,
     target: Optional[str],
 ):
+    """Delete calendar event action deletes the event currently being edited."""
     driver: webdriver.Remote = context.driver
     horde: HordeContext = context.horde
     if check_calendar_edit_view(driver):
@@ -831,6 +897,7 @@ def delete_calendar_event(
 def __goto_new_contact_tab(
     driver: webdriver.Remote, name: str, section_id: int
 ) -> WebElement:
+    """Helper function for switching between the contact edit dialog tabs."""
     driver.find_element_by_xpath(f"//a[@href='#' and text()='{name}']").click()
 
     horde_wait(driver, CheckNewContactTab(section_id))
@@ -842,6 +909,7 @@ def start_add_contact(
     context: Context,
     target: Optional[str],
 ):
+    """Add contact event opens the create contact dialog."""
     driver: webdriver.Remote = context.driver
     if check_address_book_page(driver):
         log.info("Start adding new contact")
@@ -864,6 +932,7 @@ def submit_new_contact(
     context: Context,
     target: Optional[str],
 ):
+    """Submit new contact action creates and saves a new random contact."""
     driver: webdriver.Remote = context.driver
     if check_new_contact_page(driver):
 
@@ -925,6 +994,7 @@ def delete_contact(
     context: Context,
     target: Optional[str],
 ):
+    """Delete contact action deltes the currently viewed contact."""
     driver: webdriver.Remote = context.driver
     horde: HordeContext = context.horde
     if check_contact_page(driver):
@@ -951,6 +1021,7 @@ def confirm_delete_contact(
     context: Context,
     target: Optional[str],
 ):
+    """Confirm delete contact action clicks the confirm delte button."""
     driver: webdriver.Remote = context.driver
     horde: HordeContext = context.horde
     if check_contact_delete_confirm_page(driver):
@@ -984,6 +1055,7 @@ def new_task(
     context: Context,
     target: Optional[str],
 ):
+    """New task action starts the task creation dialog."""
     driver: webdriver.Remote = context.driver
     if check_tasks_page(driver):
         log.info("Adding task")
@@ -1007,6 +1079,7 @@ def save_new_task(
     context: Context,
     target: Optional[str],
 ):
+    """Save new task action creates and saves a new random task."""
     driver: webdriver.Remote = context.driver
     form_delay: Union[ApproximateFloat, float] = context.horde.form_field_delay
     if check_new_task_general_tab(driver):
@@ -1109,6 +1182,7 @@ def edit_task(
     context: Context,
     target: Optional[str],
 ):
+    """Edit task action opens the task editor for a random task."""
     driver: webdriver.Remote = context.driver
     horde: HordeContext = context.horde
     if check_tasks_page(driver):
@@ -1158,6 +1232,7 @@ def delete_task(
     context: Context,
     target: Optional[str],
 ):
+    """Delete task action deltes the task that is currently being edited."""
     driver: webdriver.Remote = context.driver
     horde: HordeContext = context.horde
     if check_edit_task_general_tab(driver):
@@ -1191,6 +1266,7 @@ def new_note(
     context: Context,
     target: Optional[str],
 ):
+    """New note action opens the note composition dialog for creating a new note."""
     driver: webdriver.Remote = context.driver
     if check_notes_page(driver):
         log.info("Adding note")
@@ -1214,6 +1290,7 @@ def write_note(
     context: Context,
     target: Optional[str],
 ):
+    """Write note action creates or edits a note and saves it."""
     driver: webdriver.Remote = context.driver
     if check_note_write_page(driver):
         # get elements
@@ -1300,6 +1377,7 @@ def edit_note(
     context: Context,
     target: Optional[str],
 ):
+    """Edit note action opens a random note for editting."""
     driver: webdriver.Remote = context.driver
     horde: HordeContext = context.horde
     if check_notes_page(driver):
@@ -1348,6 +1426,7 @@ def delete_note(
     context: Context,
     target: Optional[str],
 ):
+    """Delete note action deletes the note currently open for editing."""
     driver: webdriver.Remote = context.driver
     horde: HordeContext = context.horde
     if check_edit_note_page(driver):
@@ -1381,6 +1460,7 @@ def add_user_group(
     context: Context,
     target: Optional[str],
 ):
+    """Add user group action adds a new user group."""
     driver: webdriver.Remote = context.driver
     if check_admin_groups_page(driver):
         group_name = context.fake.word()
@@ -1417,6 +1497,7 @@ def delete_user_group(
     context: Context,
     target: Optional[str],
 ):
+    """Delete user group action deletes a random user group."""
     driver: webdriver.Remote = context.driver
     horde: HordeContext = context.horde
 
@@ -1468,6 +1549,7 @@ def confirm_delete_user_group(
     context: Context,
     target: Optional[str],
 ):
+    """Confirm delete user group action finishes the group deletion dialog"""
     driver: webdriver.Remote = context.driver
     horde: HordeContext = context.horde
 
@@ -1504,6 +1586,7 @@ def admin_check_versions(
     context: Context,
     target: Optional[str],
 ):
+    """Admin check versions action clicks the check versions button on the admin config page."""
     driver: webdriver.Remote = context.driver
     if check_admin_configuration_page(driver):
         log.info("Checking software versions")
@@ -1530,6 +1613,7 @@ def admin_exec_php(
     context: Context,
     target: Optional[str],
 ):
+    """Admin exec php action writes a "random" php script and executes it."""
     driver: webdriver.Remote = context.driver
     if check_admin_php_page(driver):
         # in future versions we can make this a configurable
@@ -1588,6 +1672,7 @@ def admin_exec_sql(
     context: Context,
     target: Optional[str],
 ):
+    """Admin exec sql action writes a "random" sql select and executes it."""
     driver: webdriver.Remote = context.driver
     if check_admin_sql_page(driver):
         # in future versions we can make this a configurable
@@ -1639,6 +1724,7 @@ def admin_exec_cli(
     context: Context,
     target: Optional[str],
 ):
+    """Admin exec cli action writes random cli commands and executes them."""
     driver: webdriver.Remote = context.driver
     if check_admin_cli_page(driver):
         # in future versions we can make this a configurable
@@ -1685,6 +1771,11 @@ def admin_exec_cli(
 
 
 class SetPersonalPreferences:
+    """Set personal preferences action sets the users full name perferenc.
+
+    The fullname can be configured.
+    """
+
     def __init__(self, full_name: str):
         self.full_name: str = full_name
 

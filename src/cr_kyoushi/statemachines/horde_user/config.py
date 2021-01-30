@@ -1,13 +1,11 @@
+"""Configuration classes for the horde user activity and state machine"""
+
 from datetime import datetime
-from enum import Enum
 from typing import (
     Dict,
-    List,
     Optional,
-    Union,
 )
 
-from faker import Faker
 from pydantic import (
     BaseModel,
     EmailStr,
@@ -16,12 +14,8 @@ from pydantic import (
     HttpUrl,
     validator,
 )
-from selenium import webdriver
 
-from cr_kyoushi.simulation.model import (
-    ApproximateFloat,
-    WorkSchedule,
-)
+from cr_kyoushi.simulation.model import WorkSchedule
 
 from ..core.config import (
     IdleConfig,
@@ -32,23 +26,50 @@ from ..core.selenium import SeleniumConfig
 
 __all__ = [
     "StatemachineConfig",
-    "Context",
+    "HordeStates",
+    "HordeUserStates",
+    "HordeMailConfig",
+    "HordeConfig",
+    "ActivityExtraConfig",
+    "ActivitySelectionConfig",
+    "LoginPageConfig",
+    "LogoutChoiceConfig",
+    "SelectingMenuConfig",
+    "MailsPageConfig",
+    "MailViewConfig",
+    "MailInfoConfig",
+    "AdminPageConfig",
+    "AdminGroupsPageConfig",
+    "NotesPageConfig",
+    "NoteEditorConfig",
+    "TasksPageConfig",
+    "AddressBookPageConfig",
+    "ContactsBrowserConfig",
+    "ContactInfoConfig",
+    "CalendarPageConfig",
+    "EventEditConfig",
+    "positive_smaller_one",
+    "greater_equal_one",
 ]
 
 
 def positive_smaller_one(v: float) -> float:
+    """Validates the given number v is 0 <= v <= 1."""
     if v > 1 or v < 0:
         raise ValueError("must be 0 <= f <= 1!")
     return v
 
 
 def greater_equal_one(v: float) -> float:
+    """Validates the given number v is v>=1"""
     if v < 1:
         raise ValueError("must be >= 1!")
     return v
 
 
 class ActivityExtraConfig(BaseModel):
+    """Base class for extra configuration fields for activity configs."""
+
     return_increase: float = Field(
         1.25,
         description=(
@@ -63,6 +84,8 @@ class ActivityExtraConfig(BaseModel):
 
 
 class ActivitySelectionConfig(ProbabilisticStateConfig):
+    """Horde user state machines selecting activity states configuration."""
+
     horde: float = Field(
         0.6,
         description="The base propability that horde will be selected.",
@@ -75,6 +98,8 @@ class ActivitySelectionConfig(ProbabilisticStateConfig):
 
 
 class LoginPageConfig(BaseModel):
+    """The login page states configuration"""
+
     fail_chance: float = Field(
         0.05,
         description="The chance the user will use an incorrect password",
@@ -97,13 +122,22 @@ class LoginPageConfig(BaseModel):
 
 
 class LogoutChoiceConfig(BaseModel):
+    """The logout choice states configuration"""
+
     logout_chance: float = Field(
         0.05,
         description="The chance the user will logout when stopping the horde activity",
     )
 
+    # validators
+    _validate_chance = validator("logout_chance", allow_reuse=True)(
+        positive_smaller_one
+    )
+
 
 class SelectingMenuConfig(ProbabilisticStateConfig):
+    """The selecting menu states configuration"""
+
     nav_mail: float = Field(
         0.3,
         description="The base propability that nav_mail will be selected.",
@@ -146,6 +180,8 @@ class SelectingMenuConfig(ProbabilisticStateConfig):
 
 
 class MailsPageConfig(ProbabilisticStateConfig):
+    """The mails page states configuration"""
+
     view_mail: float = Field(
         0.45,
         description="The base propability that view mail will be selected.",
@@ -174,6 +210,8 @@ class MailsPageConfig(ProbabilisticStateConfig):
 
 
 class MailViewConfig(ProbabilisticStateConfig):
+    """The mail view states configuration"""
+
     delete_mail: float = Field(
         0.3,
         description="The base propability that delete mail will be selected.",
@@ -191,6 +229,8 @@ class MailViewConfig(ProbabilisticStateConfig):
 
 
 class MailInfoConfig(ProbabilisticStateConfig):
+    """The mail info states configuration"""
+
     delete_mail: float = Field(
         0.3,
         description="The base propability that delete mail will be selected.",
@@ -203,6 +243,8 @@ class MailInfoConfig(ProbabilisticStateConfig):
 
 
 class AdminPageConfig(ProbabilisticStateConfig):
+    """The admin page states configuration"""
+
     nav_config: float = Field(
         0.15,
         description="The base propability that nav config will be selected.",
@@ -266,6 +308,8 @@ class AdminPageConfig(ProbabilisticStateConfig):
 
 
 class AdminGroupsPageConfig(ProbabilisticStateConfig):
+    """The admin groups pages states configuration"""
+
     group_add: float = Field(
         0.45,
         description="The base propability that group add will be selected.",
@@ -289,6 +333,8 @@ class AdminGroupsPageConfig(ProbabilisticStateConfig):
 
 
 class NotesPageConfig(ProbabilisticStateConfig):
+    """The notes page states configuration"""
+
     new_note: float = Field(
         0.5,
         description="The base propability that new note will be selected.",
@@ -312,6 +358,8 @@ class NotesPageConfig(ProbabilisticStateConfig):
 
 
 class NoteEditorConfig(ProbabilisticStateConfig):
+    """The note editor states configuration"""
+
     write_note: float = Field(
         0.6,
         description="The base propability that write note will be selected.",
@@ -324,6 +372,8 @@ class NoteEditorConfig(ProbabilisticStateConfig):
 
 
 class TasksPageConfig(ProbabilisticStateConfig):
+    """The tasks page states configuration"""
+
     new_task: float = Field(
         0.5,
         description="The base propability that new task will be selected.",
@@ -347,6 +397,8 @@ class TasksPageConfig(ProbabilisticStateConfig):
 
 
 class AddressBookPageConfig(ProbabilisticStateConfig):
+    """The address book page states configuration"""
+
     new_contact: float = Field(
         0.2,
         description="The base propability that new contact will be selected.",
@@ -370,6 +422,8 @@ class AddressBookPageConfig(ProbabilisticStateConfig):
 
 
 class ContactsBrowserConfig(ProbabilisticStateConfig):
+    """The contacts browser states configuration"""
+
     new_contact: float = Field(
         0.35,
         description="The base propability that new contact will be selected.",
@@ -382,6 +436,8 @@ class ContactsBrowserConfig(ProbabilisticStateConfig):
 
 
 class ContactInfoConfig(ProbabilisticStateConfig):
+    """The contact info  states configuration"""
+
     delete_contact: float = Field(
         0.4,
         description="The base propability that delete contact will be selected.",
@@ -394,6 +450,8 @@ class ContactInfoConfig(ProbabilisticStateConfig):
 
 
 class CalendarPageConfig(ProbabilisticStateConfig):
+    """The calendar page  states configuration"""
+
     new_event: float = Field(
         0.4,
         description="The base propability that new event will be selected.",
@@ -417,6 +475,8 @@ class CalendarPageConfig(ProbabilisticStateConfig):
 
 
 class EventEditConfig(ProbabilisticStateConfig):
+    """The event edit  states configuration"""
+
     write_event: float = Field(
         0.6,
         description="The base propability that write event will be selected.",
@@ -429,6 +489,8 @@ class EventEditConfig(ProbabilisticStateConfig):
 
 
 class HordeStates(BaseModel):
+    """Configuration class for all horde activity states."""
+
     login_page: LoginPageConfig = Field(
         LoginPageConfig(),
         description="The login page states config",
@@ -511,13 +573,62 @@ class HordeStates(BaseModel):
 
 
 class HordeUserStates(HordeStates):
+    """Configuration class for the horde state machine states"""
+
     selecting_activity: ActivitySelectionConfig = Field(
         ActivitySelectionConfig(),
         description="The selecting activity states config",
     )
 
 
+class HordeMailConfig(BaseModel):
+    """Configuration class for the horde users mail activities"""
+
+    contacts: Dict[EmailStr, float] = Field(
+        {},
+        description="The email contacts for the horde user",
+    )
+
+    attachments: Dict[FilePath, float] = Field(
+        {},
+        description="A dict of attachment files the user might send",
+    )
+
+    extra_recipient: float = Field(
+        0.1,
+        description="The propability that an additional recipient is added to a mail",
+    )
+
+    max_recipients: int = Field(
+        3,
+        description="The maximum amount of recipients",
+    )
+
+    attachment: float = Field(
+        0.2,
+        description="The propability that an attachment is added to a new email",
+    )
+
+    attachment_reply: float = Field(
+        0.1,
+        description="The propability that an attachment is added to a reply",
+    )
+
+    # validators
+    _validate_recipient = validator("extra_recipient", allow_reuse=True)(
+        positive_smaller_one
+    )
+    _validate_attachment = validator("attachment", allow_reuse=True)(
+        positive_smaller_one
+    )
+    _validate_attachment_reply = validator("attachment_reply", allow_reuse=True)(
+        positive_smaller_one
+    )
+
+
 class HordeConfig(BaseModel):
+    """Configuration class for the horde user"""
+
     url: HttpUrl = Field(
         "http://localhost",
         description="The horde servers base URL",
@@ -543,19 +654,14 @@ class HordeConfig(BaseModel):
         description="The horde users password",
     )
 
-    contacts: Dict[EmailStr, float] = Field(
-        {},
-        description="The email contacts for the horde user",
-    )
-
-    attachments: Dict[FilePath, float] = Field(
-        {},
-        description="A dict of attachment files the user might send",
-    )
-
     max_daily: int = Field(
         10,
         description="The maximum amount of times the horde activity will be entered per day",
+    )
+
+    mail: HordeMailConfig = Field(
+        HordeMailConfig(),
+        description="The mail configuration for the horde user",
     )
 
 
@@ -624,232 +730,3 @@ class StatemachineConfig(BaseModel):
         HordeConfig(),
         description="The horde user specific configuration",
     )
-
-
-class BaseInfo(BaseModel):
-    def clear(self):
-        """Resets the info object to its initial state.
-
-        i.e., all fields are `None`
-        """
-        for field in self.__fields__:
-            self.__setattr__(field, None)
-
-
-class MailSendType(str, Enum):
-    NEW = "new"
-    REPLY = "reply"
-    FORWARD = "forward"
-
-
-class MailInfo(BaseInfo):
-    send_type: Optional[MailSendType] = Field(
-        None,
-        description="The mail send type that is being composed for",
-    )
-
-    buid: Optional[int] = Field(
-        None,
-        description="The mail id that is being viewed/replied to",
-    )
-
-    mailbox: Optional[str] = Field(
-        None,
-        description="The mailbox id of the message that is being viewed/replied to",
-    )
-
-    recipients: Optional[List[str]] = Field(
-        None,
-        description="The mail recipients",
-    )
-
-    subject: Optional[str] = Field(
-        None,
-        description="The mail subject line",
-    )
-
-    content: Optional[str] = Field(
-        None,
-        description="The mail content",
-    )
-
-    attachment: Optional[FilePath] = Field(
-        None,
-        description="The source path of the mail attachment",
-    )
-
-
-class CalendarEventInfo(BaseInfo):
-    id: Optional[str] = Field(
-        None,
-        description="The event id",
-    )
-
-    calendar: Optional[str] = Field(
-        None,
-        description="The calendar id",
-    )
-
-    start: Optional[datetime] = Field(
-        None,
-        description="The event start date and time",
-    )
-
-    end: Optional[datetime] = Field(
-        None,
-        description="The event end date and time",
-    )
-
-    title: Optional[str] = Field(
-        None,
-        description="The event title",
-    )
-
-    description: Optional[List[str]] = Field(
-        None,
-        description="The event description",
-    )
-
-    location: Optional[str] = Field(
-        None,
-        description="The event location",
-    )
-
-
-class GroupInfo(BaseInfo):
-    gid: Optional[int] = Field(
-        None,
-        description="The horde group id",
-    )
-
-    name: Optional[str] = Field(
-        None,
-        description="The horde group name",
-    )
-
-
-class ContactInfo(BaseInfo):
-    source: Optional[str] = Field(
-        None,
-        description="The contact source id",
-    )
-
-    key: Optional[str] = Field(
-        None,
-        description="The contact key",
-    )
-
-    name: Optional[str] = Field(
-        None,
-        description="The contact full name",
-    )
-
-
-class TaskInfo(BaseInfo):
-    list_id: Optional[str] = Field(
-        None,
-        description="The tasklist id",
-    )
-
-    id: Optional[str] = Field(
-        None,
-        description="The task id",
-    )
-
-    name: Optional[str] = Field(
-        None,
-        description="The task name",
-    )
-
-
-class MemoInfo(BaseInfo):
-    list_id: Optional[str] = Field(
-        None,
-        description="The memolist id",
-    )
-
-    target_list_id: Optional[str] = Field(
-        None,
-        description="The target memolist when editing a memo",
-    )
-
-    id: Optional[str] = Field(
-        None,
-        description="The memo id",
-    )
-
-    title: Optional[str] = Field(
-        None,
-        description="The memo name",
-    )
-
-    content: Optional[List[str]] = Field(
-        None,
-        description="The memo content",
-    )
-
-    tags: Optional[List[str]] = Field(
-        None,
-        description="The memos tags",
-    )
-
-
-class HordeContext(BaseModel):
-    mail: MailInfo = Field(
-        MailInfo(),
-        description="The mail that is currently beeing viewed/modified",
-    )
-
-    event: CalendarEventInfo = Field(
-        CalendarEventInfo(),
-        description="The calendar event that is currently being modified",
-    )
-
-    group: GroupInfo = Field(
-        GroupInfo(),
-        description="The group that is currently being modified",
-    )
-
-    contact: ContactInfo = Field(
-        ContactInfo(),
-        description="The contact that is currently beeing modified",
-    )
-
-    task: TaskInfo = Field(
-        TaskInfo(),
-        description="The task that is currently beeing modified",
-    )
-
-    memo: MemoInfo = Field(
-        MemoInfo(),
-        description="The memo that is currently beeing modified",
-    )
-
-    form_field_delay: Union[float, ApproximateFloat] = Field(
-        ApproximateFloat(
-            min=0.5,
-            max=3,
-        ),
-        description="The delay to use in between form fields to fill out",
-    )
-
-
-class Context(BaseModel):
-    driver: webdriver.Remote
-    """The selenium web driver"""
-
-    main_window: str = Field(
-        ...,
-        description="The main window of the webdriver",
-    )
-
-    fake: Faker
-    """Faker instance to use for generating various random content"""
-
-    horde: HordeContext = Field(
-        HordeContext(),
-        description="The horde specific context variables",
-    )
-
-    class Config:
-        arbitrary_types_allowed = True
