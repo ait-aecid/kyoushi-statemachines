@@ -34,6 +34,12 @@ nav:
     - Selenium: reference/core/selenium.md
 - State Machines:
     Web Browser: statemachines/web_browser.md
+    Horde User:
+      State Machine: statemachines/horde_user/sm.md
+      States: statemachines/horde_user/states.md
+      Activities: statemachines/horde_user/activities.md
+      Selenium Navigation: statemachines/horde_user/nav.md
+      Selenium Actions: statemachines/horde_user/actions.md
 - License: license.md
 
 markdown_extensions:
