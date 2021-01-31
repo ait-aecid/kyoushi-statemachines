@@ -136,8 +136,6 @@ def check_mail_compose_window(driver: webdriver.Remote) -> Optional[Any]:
         return (
             # ensure all loading indicators are invisible
             check_mail_info_loading(driver)
-            # check if from field is loaded
-            and ec.visibility_of_element_located((By.ID, "identity"))(driver)
             # and send button usable
             and ec.element_to_be_clickable((By.ID, "send_button"))(driver)
             # and mail body textarea here

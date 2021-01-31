@@ -194,7 +194,6 @@ class LoginToHorde:
                 timeout=90,
             ):
                 driver.find_element(By.ID, "login-button").click()
-                print("clicked")
 
             if self.fail:
                 log.info("Failed login try")
