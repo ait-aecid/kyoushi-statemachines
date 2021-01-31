@@ -66,9 +66,9 @@ class ProbabilisticStateConfig(BaseModel):
         Returns:
             The fields dictionary
         """
-        for key, val in values.items():
+        for key, val in cls.__fields__.items():
             if key != "extra":
-                field_type = cls.__fields__[key].type_
+                field_type = val.type_
                 if field_type not in [ProbVal, float, int]:
                     raise ValueError(
                         (
