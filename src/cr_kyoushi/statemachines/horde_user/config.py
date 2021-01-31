@@ -316,12 +316,12 @@ class AdminGroupsPageConfig(ProbabilisticStateConfig):
     )
 
     group_delete: float = Field(
-        0.35,
+        0.25,
         description="The base propability that groupe delete will be selected.",
     )
 
     return_: float = Field(
-        0.2,
+        0.3,
         description="The base propability that the activity will be left.",
         alias="return",
     )

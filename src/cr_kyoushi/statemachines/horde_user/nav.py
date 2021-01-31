@@ -311,27 +311,25 @@ navigate_notes_menu = NavigateNotesMenu()
 """Navigate to the notes menu"""
 
 
-class NavigateSettingsMenu(NavigateMainMenu):
+class NavigateSettingsMenu:
     """Base class for settings menu navigation"""
 
     def __init__(
         self,
-        sub_menu: int,
         link_text: str,
         on_page_check: Callable[[webdriver.Remote], Optional[Any]],
         name: str,
     ):
-        self.sub_menu: int = sub_menu
         self.link_text: str = link_text
         self.on_page_check: Callable[[webdriver.Remote], Optional[Any]] = on_page_check
-        super().__init__(7, name)
+        self.name: str = name
 
     def click_menu(self, log: BoundLogger, context: Context):
         if not self.on_page_check(context.driver):
-            menu_nav = context.driver.find_element_by_css_selector(
-                f"div.horde-navipoint:nth-child({self.menu_item}) > ul:nth-child(2) > li:nth-child(1) > ul:nth-child(2) > li:nth-child({self.sub_menu})"
+            menu_nav = context.driver.find_element_by_xpath(
+                "//div[@id='horde-navigation']"
+                "//ul[.//div[contains(@class, 'horde-icon-settings') and contains(@class, 'horde-settings')]]"
             )
-
             target_menu = menu_nav.find_element_by_xpath(
                 f".//a[ text() = '{self.link_text}' ]"
             )
@@ -341,11 +339,27 @@ class NavigateSettingsMenu(NavigateMainMenu):
         else:
             log.info(f"{self.name} already active")
 
+    def wait_page(self, log: BoundLogger, context: Context):
+        pass
+
+    def prepare_page(self, log: BoundLogger, context: Context):
+        pass
+
+    def __call__(
+        self,
+        log: BoundLogger,
+        current_state: str,
+        context: Context,
+        target: Optional[str],
+    ):
+        self.click_menu(log, context)
+        self.wait_page(log, context)
+        self.prepare_page(log, context)
+
 
 class NavigateAdminConfiguration(NavigateSettingsMenu):
     def __init__(self):
         super().__init__(
-            sub_menu=1,
             link_text="Configuration",
             on_page_check=check_admin_configuration_page,
             name="Admin Configuration",
@@ -359,7 +373,6 @@ navigate_admin_configuration = NavigateAdminConfiguration()
 class NavigateAdminUsers(NavigateSettingsMenu):
     def __init__(self):
         super().__init__(
-            sub_menu=1,
             link_text="Users",
             on_page_check=CheckTitleContains("User Administration"),
             name="Admin Users",
@@ -373,7 +386,6 @@ navigate_admin_users = NavigateAdminUsers()
 class NavigateAdminGroups(NavigateSettingsMenu):
     def __init__(self):
         super().__init__(
-            sub_menu=1,
             link_text="Groups",
             on_page_check=check_admin_groups_page,
             name="Admin Groups",
@@ -387,7 +399,6 @@ navigate_admin_groups = NavigateAdminGroups()
 class NavigateAdminPermissions(NavigateSettingsMenu):
     def __init__(self):
         super().__init__(
-            sub_menu=1,
             link_text="Permissions",
             on_page_check=CheckTitleContains("Permissions Administration"),
             name="Admin Permissions",
@@ -401,7 +412,6 @@ navigate_admin_permissions = NavigateAdminPermissions()
 class NavigateAdminLocks(NavigateSettingsMenu):
     def __init__(self):
         super().__init__(
-            sub_menu=1,
             link_text="Locks",
             on_page_check=CheckTitleContains("Locks"),
             name="Admin Locks",
@@ -415,7 +425,6 @@ navigate_admin_locks = NavigateAdminLocks()
 class NavigateAdminAlarms(NavigateSettingsMenu):
     def __init__(self):
         super().__init__(
-            sub_menu=1,
             link_text="Alarms",
             on_page_check=CheckTitleContains("Alarms"),
             name="Admin Alarms",
@@ -429,7 +438,6 @@ navigate_admin_alarms = NavigateAdminAlarms()
 class NavigateAdminSessions(NavigateSettingsMenu):
     def __init__(self):
         super().__init__(
-            sub_menu=1,
             link_text="Sessions",
             on_page_check=CheckTitleContains("Session Administration"),
             name="Admin Sessions",
@@ -443,7 +451,6 @@ navigate_admin_sessions = NavigateAdminSessions()
 class NavigateAdminPHPShell(NavigateSettingsMenu):
     def __init__(self):
         super().__init__(
-            sub_menu=1,
             link_text="PHP Shell",
             on_page_check=check_admin_php_page,
             name="Admin PHPShell",
@@ -457,7 +464,6 @@ navigate_admin_php_shell = NavigateAdminPHPShell()
 class NavigateAdminSQLShell(NavigateSettingsMenu):
     def __init__(self):
         super().__init__(
-            sub_menu=1,
             link_text="SQL Shell",
             on_page_check=check_admin_sql_page,
             name="Admin SQLShell",
@@ -471,7 +477,6 @@ navigate_admin_sql_shell = NavigateAdminSQLShell()
 class NavigateAdminCLI(NavigateSettingsMenu):
     def __init__(self):
         super().__init__(
-            sub_menu=1,
             link_text="CLI",
             on_page_check=check_admin_cli_page,
             name="Admin CLI",
@@ -485,7 +490,6 @@ navigate_admin_cli = NavigateAdminCLI()
 class NavigatePreferencesGlobal(NavigateSettingsMenu):
     def __init__(self):
         super().__init__(
-            sub_menu=2,
             link_text="Global Preferences",
             on_page_check=CheckTitleContains("User Preferences"),
             name="Global Preferences",
