@@ -60,6 +60,8 @@ from cr_kyoushi.simulation.model import (
 from .util import filter_none_keys
 
 
+TIMEOUT = 60
+
 __all__ = [
     "WebdriverType",
     "WebdriverManagerConfig",
@@ -555,3 +557,13 @@ def wait_for_page_load(
     old_page = driver.find_element(by, value)
     yield
     WebDriverWait(driver, timeout).until(staleness_of(old_page))
+
+
+def driver_wait(
+    driver: webdriver.Remote,
+    check_func: Callable[[webdriver.Remote], Optional[Any]],
+    timeout: Union[float, int] = TIMEOUT,
+    poll_frequency: float = POLL_FREQUENCY,
+    ignored_exceptions: Tuple[Exception, ...] = None,
+):
+    WebDriverWait(driver, timeout, poll_frequency, ignored_exceptions).until(check_func)
