@@ -86,6 +86,7 @@ gitlab-package:
   - pip install poetry
   - poetry --version
   - poetry config virtualenvs.in-project true
+  - poetry config http-basic.simulation gitlab-ci-token "${CI_JOB_TOKEN}"
   - poetry install -vv
   - poetry build
   # need to use inline username and password since config would use an extra file for basic auth credentials
