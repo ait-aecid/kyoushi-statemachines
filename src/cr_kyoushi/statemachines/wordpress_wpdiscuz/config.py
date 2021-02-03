@@ -19,6 +19,20 @@ from ..core.config import (
 from ..core.selenium import SeleniumConfig
 
 
+class ActivitySelectionConfig(ProbabilisticStateConfig):
+    """Wordpess wpDiscuz user state machines selecting activity states configuration."""
+
+    wpdiscuz: float = Field(
+        0.6,
+        description="The base propability that wpdiscuz will be selected.",
+    )
+
+    idle: float = Field(
+        0.4,
+        description="The base propability that idle will be selected.",
+    )
+
+
 class PostsPageExtraConfig(ActivityExtraConfig):
     max_page: int = Field(
         3,
@@ -138,6 +152,34 @@ class PostPageConfig(ProbabilisticStateConfig):
     )
 
 
+class WpDiscuzStates(BaseModel):
+    """Configuration class for all wpdiscuz activity states."""
+
+    posts_page: PostsPageConfig = Field(
+        PostsPageConfig(),
+        description="The posts page states config",
+    )
+
+    close_choice: CloseChoiceConfig = Field(
+        CloseChoiceConfig(),
+        description="The close choice states config",
+    )
+
+    post_page: PostPageConfig = Field(
+        PostPageConfig(),
+        description="The post page states config",
+    )
+
+
+class WpDiscuzUserStates(WpDiscuzStates):
+    """Configuration class for the wordpress wpdiscuz state machine states"""
+
+    selecting_activity: ActivitySelectionConfig = Field(
+        ActivitySelectionConfig(),
+        description="The selecting activity states config",
+    )
+
+
 class WpDiscuzConfig(BaseModel):
     """Configuration class for the wpdiscuz user"""
 
@@ -221,6 +263,11 @@ class StatemachineConfig(BaseModel):
     selenium: SeleniumConfig = Field(
         SeleniumConfig(),
         description="Selenium configuration for the web browser user",
+    )
+
+    states: WpDiscuzUserStates = Field(
+        WpDiscuzUserStates(),
+        description="The states configuration for the state machine",
     )
 
     wpdiscuz: WpDiscuzConfig = Field(
