@@ -171,16 +171,16 @@ def _get_comment_ids(comment: WebElement) -> Tuple[str, str]:
 
 
 class VoteComment:
-    def __init__(self, author: str, up_vote: bool = True):
-        """Vote comment action up or down votes a random comment.
+    """Vote comment action up or down votes a random comment.
 
-        Comments posted by the given author are excluded.
+    Comments posted by the author are excluded.
+    """
 
+    def __init__(self, up_vote: bool = True):
+        """
         Args:
-            author: The author whos comments to ignore.
             up_vote. If the vote should be an up or down vote.
         """
-        self.author: str = author
         self.up_vote: bool = up_vote
 
     def __call__(
@@ -195,12 +195,13 @@ class VoteComment:
         comment_info = context.wpdiscuz.comment
         # clear comment context
         comment_info.clear()
+        author = context.wpdiscuz.author
 
         # bind post and comment info to logging
         log = log.bind(wordpress_post=post_info, wordpress_comment=comment_info)
 
         if check_post_page(driver):
-            comments = get_comments_not_voted(driver, self.author)
+            comments = get_comments_not_voted(driver, author)
 
             if len(comments) > 0:
                 comment = random.choice(comments)
@@ -274,16 +275,16 @@ def new_comment(
 
 
 class ReplyComment:
-    def __init__(self, author: str, max_level: Optional[int] = None):
-        """Reply comment action initiates the process of replying to a comment.
+    """Reply comment action initiates the process of replying to a comment.
 
-        Comments posted by the given author are can never be replied to.
+    Comments posted by the author are can never be replied to.
+    """
 
+    def __init__(self, max_level: Optional[int] = None):
+        """
         Args:
-            author: The author whos comments to ignore.
             max_level. The maximum comment depth level to reply to
         """
-        self.author: str = author
         self.max_level: Optional[int] = max_level
 
     def __call__(
@@ -298,12 +299,13 @@ class ReplyComment:
         comment_info = context.wpdiscuz.comment
         # clear comment context
         comment_info.clear()
+        comment_info.author = context.wpdiscuz.author
 
         # bind post and comment info to logging
         log = log.bind(wordpress_post=post_info, wordpress_comment=comment_info)
 
         if check_post_page(driver):
-            comments = get_comments(driver, self.author, self.max_level)
+            comments = get_comments(driver, comment_info.author, self.max_level)
 
             if len(comments) > 0:
                 comment = random.choice(comments)
@@ -344,82 +346,72 @@ class ReplyComment:
             )
 
 
-class WriteComment:
-    def __init__(self, author: str, email: str):
-        """Write comment action writes a wpdiscuz comment.
+def write_comment(
+    log: BoundLogger,
+    current_state: str,
+    context: Context,
+    target: Optional[str],
+):
+    """Write comment action writes a wpdiscuz comment.
 
-        This could be a reply to a comment or a new top level comment.
+    This could be a reply to a comment or a new top level comment.
+    """
+    driver: webdriver.Remote = context.driver
+    post_info = context.wpdiscuz.post
+    comment_info = context.wpdiscuz.comment
 
-        Args:
-            author: The author whos comments to ignore.
-            email. The email address of the author
-        """
-        self.author: str = author
-        self.email: str = email
+    # bind post and comment info to logging
+    log = log.bind(wordpress_post=post_info, wordpress_comment=comment_info)
 
-    def __call__(
-        self,
-        log: BoundLogger,
-        current_state: str,
-        context: Context,
-        target: Optional[str],
-    ):
-        driver: webdriver.Remote = context.driver
-        post_info = context.wpdiscuz.post
-        comment_info = context.wpdiscuz.comment
+    parent_cid = comment_info.parent_cid
+    cid = comment_info.cid
 
-        # bind post and comment info to logging
-        log = log.bind(wordpress_post=post_info, wordpress_comment=comment_info)
+    # when writing a new comment we do not have ids
+    # wpdiscuz marks the editor for this with the fake ids 0_0
+    if parent_cid is None or cid is None:
+        parent_cid = "0"
+        cid = "0"
 
-        parent_cid = comment_info.parent_cid
-        cid = comment_info.cid
+    if check_post_page(driver) and CheckCommentWriter(parent_cid, cid):
+        editor_div = driver.find_element_by_id(f"wpd-editor-{cid}_{parent_cid}")
+        comment_info.author = context.wpdiscuz.author
+        comment_info.email = context.wpdiscuz.email
+        comment_info.text = " ".join(context.fake.sentences(random.randint(1, 2)))
 
-        # when writing a new comment we do not have ids
-        # wpdiscuz marks the editor for this with the fake ids 0_0
-        if parent_cid is None or cid is None:
-            parent_cid = "0"
-            cid = "0"
+        input_text = editor_div.find_element_by_class_name("ql-editor")
+        input_name = driver.find_element_by_id(f"wc_name-{cid}_{parent_cid}")
+        input_email = driver.find_element_by_id(f"wc_email-{cid}_{parent_cid}")
 
-        if check_post_page(driver) and CheckCommentWriter(parent_cid, cid):
-            editor_div = driver.find_element_by_id(f"wpd-editor-{cid}_{parent_cid}")
-            comment_info.author = self.author
-            comment_info.email = self.email
-            comment_info.text = " ".join(context.fake.sentences(random.randint(1, 2)))
+        log.info("Writing comment")
 
-            input_text = editor_div.find_element_by_class_name("ql-editor")
-            input_name = driver.find_element_by_id(f"wc_name-{cid}_{parent_cid}")
-            input_email = driver.find_element_by_id(f"wc_email-{cid}_{parent_cid}")
+        input_text.clear()
+        slow_type(input_text, comment_info.text)
 
-            log.info("Writing comment")
+        input_name.clear()
+        slow_type(input_name, comment_info.author)
 
-            input_text.clear()
-            slow_type(input_text, comment_info.text)
+        input_email.clear()
+        slow_type(input_email, comment_info.email)
 
-            input_name.clear()
-            slow_type(input_name, comment_info.author)
+        log.info("Submitting comment")
 
-            input_email.clear()
-            slow_type(input_email, comment_info.email)
+        # after submitting a comment wpdiscuz automatically scrolls to it
+        # so we save current y post to be able to wait for change later
+        y_pos = driver.execute_script("return window.pageYOffset")
+        driver.find_element_by_id(f"wpd-field-submit-{cid}_{parent_cid}").click()
 
-            log.info("Submitting comment")
+        # ensure comment submitted
+        driver_wait(driver, check_comment_submitted)
 
-            # after submitting a comment wpdiscuz automatically scrolls to it
-            # so we save current y post to be able to wait for change later
-            y_pos = driver.execute_script("return window.pageYOffset")
-            driver.find_element_by_id(f"wpd-field-submit-{cid}_{parent_cid}").click()
-
-            # ensure comment submitted
-            driver_wait(driver, check_comment_submitted)
-
-            if check_comment_action_failed(driver):
-                log.info("Failed to submit comment")
-            else:
-                log.info("Submitted comment")
-                # if the submit was a success we have to wait for the auto scroll
-                WaitForScrollFinish(driver, y_pos=y_pos).wait()
+        if check_comment_action_failed(driver):
+            log.info("Failed to submit comment")
         else:
-            log.error(
-                "Invalid action for current page",
-                horde_action="write_comment",
-                current_page=driver.current_url,
-            )
+            log.info("Submitted comment")
+            # if the submit was a success we have to wait for the auto scroll
+            WaitForScrollFinish(driver, y_pos=y_pos).wait()
+    else:
+        log.error(
+            "Invalid action for current page",
+            horde_action="write_comment",
+            current_page=driver.current_url,
+        )

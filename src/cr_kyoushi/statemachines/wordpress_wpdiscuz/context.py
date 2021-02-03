@@ -78,6 +78,16 @@ class CommentInfo(BaseInfo):
 
 
 class WpDiscuzContext(BaseModel):
+    author: str = Field(
+        "Max Mustermann",
+        description="The wpdiscuz comment author",
+    )
+
+    email: str = Field(
+        "max.mustermann@localhost.local",
+        description="The wpdiscuz comment authors email",
+    )
+
     posts_page: int = Field(
         1,
         description="The current posts page number",
