@@ -60,7 +60,7 @@ from cr_kyoushi.simulation.model import (
 from .util import filter_none_keys
 
 
-TIMEOUT = 60
+TIMEOUT = 120
 
 __all__ = [
     "WebdriverType",
@@ -544,7 +544,7 @@ def wait_and_get_new_window(
 def wait_for_page_load(
     driver: webdriver.Remote,
     locator: Tuple[By, str] = (By.TAG_NAME, "html"),
-    timeout=120,
+    timeout=TIMEOUT,
 ):
     """Context manager for waiting on page reloads or requests caused by interaction.
 
@@ -566,4 +566,123 @@ def driver_wait(
     poll_frequency: float = POLL_FREQUENCY,
     ignored_exceptions: Tuple[Exception, ...] = None,
 ):
+    """Wrapper function for WebDriverWait until with a custom timeout value
+
+    Args:
+        driver: The webdriver instance
+        check_func: The poll check function
+        timeout: The maximum time to wait.
+        poll_frequency: The poll frequency.
+        ignored_exceptions: The exceptions to ignore and not count as errors.
+    """
     WebDriverWait(driver, timeout, poll_frequency, ignored_exceptions).until(check_func)
+
+
+def scroll_to(driver: webdriver.Remote, elem: WebElement, wait: bool = True):
+    driver.execute_script("arguments[0].scrollIntoView();", elem)
+    driver_wait(driver, check_element_in_viewport(elem))
+
+
+def element_in_viewport(driver: webdriver.Remote, elem: WebElement) -> bool:
+    """Checks wether an element is not only visible but is also in the current viewport.
+
+    See https://stackoverflow.com/a/46816183
+
+    Args:
+        driver: The webdriver
+        elem: The element to check
+
+    Returns:
+        `True` if the element is in the viewport `False` otherwise.
+    """
+    elem_left_bound = elem.location.get("x")
+    elem_top_bound = elem.location.get("y")
+    elem_width = elem.size.get("width")
+    elem_height = elem.size.get("height")
+    elem_right_bound = elem_left_bound + elem_width
+    elem_lower_bound = elem_top_bound + elem_height
+
+    win_upper_bound = driver.execute_script("return window.pageYOffset")
+    win_left_bound = driver.execute_script("return window.pageXOffset")
+    win_width = driver.execute_script("return document.documentElement.clientWidth")
+    win_height = driver.execute_script("return document.documentElement.clientHeight")
+    win_right_bound = win_left_bound + win_width
+    win_lower_bound = win_upper_bound + win_height
+
+    return all(
+        (
+            win_left_bound <= elem_left_bound,
+            win_right_bound >= elem_right_bound,
+            win_upper_bound <= elem_top_bound,
+            win_lower_bound >= elem_lower_bound,
+        )
+    )
+
+
+def check_element_in_viewport(elem: WebElement) -> Callable[[webdriver.Remote], bool]:
+    return lambda driver: element_in_viewport(driver, elem)
+
+
+class WaitForScrollFinish:
+    """Utility class that can be used to wait for a vertical scroll to finish.
+
+    Can also be used as context manager to encapsulate a code block with the
+    wait directive. Meaning the y_pos is saved at the start of the block
+    and the check is started once the indented block has finished.
+
+    Examples:
+      ```python
+      with WaitForScrollFinish(driver):
+          # y post is magically saved here
+          driver.find_element_by_id('some-input').send_keys('input')
+          driver.find_element_by_id('some-button').click()
+          # scroll checks and waits magically begin here
+     ```
+    """
+
+    def __init__(
+        self,
+        driver: webdriver.Remote,
+        y_pos: int = 0,
+        timeout: int = TIMEOUT,
+    ):
+        """
+        Args:
+            driver: The webdriver instance
+            y_pos: The initial y position to use. Used when you want to manually call the wait functions.
+            timeout: The maximum amount of time to wait for the scroll to finish.
+        """
+        self.driver: webdriver.Remote = driver
+        self.timeout: int = timeout
+        self.y_pos_org: int = y_pos
+
+    def __enter__(self):
+        self.y_pos_org = self.driver.execute_script("return window.pageYOffset")
+        return self
+
+    def check_stable(self, driver: webdriver.Remote) -> bool:
+        current = driver.execute_script("return window.pageYOffset")
+        # compare current to old y post
+        if current == self.y_pos_org:
+            return True
+        # if not the same updated saved y pos and return false
+        self.y_pos_org = current
+        return False
+
+    def wait_changed(self):
+        # wait for the scroll location to change
+        WebDriverWait(self.driver, self.timeout).until(
+            lambda driver: driver.execute_script("return window.pageYOffset")
+            != self.y_pos_org
+        )
+
+    def wait_stable(self):
+        # wait for the scroll bar to stop
+        WebDriverWait(self.driver, self.timeout).until(self.check_stable)
+
+    def wait(self):
+        self.wait_changed()
+        self.wait_stable()
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        self.wait()
