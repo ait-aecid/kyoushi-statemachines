@@ -18,10 +18,12 @@ from pydantic import (
 from cr_kyoushi.simulation.model import WorkSchedule
 
 from ..core.config import (
+    ActivityExtraConfig,
     IdleConfig,
     ProbabilisticStateConfig,
 )
 from ..core.selenium import SeleniumConfig
+from ..core.util import positive_smaller_one
 
 
 __all__ = [
@@ -30,7 +32,6 @@ __all__ = [
     "HordeUserStates",
     "HordeMailConfig",
     "HordeConfig",
-    "ActivityExtraConfig",
     "ActivitySelectionConfig",
     "LoginPageConfig",
     "LogoutChoiceConfig",
@@ -48,39 +49,7 @@ __all__ = [
     "ContactInfoConfig",
     "CalendarPageConfig",
     "EventEditConfig",
-    "positive_smaller_one",
-    "greater_equal_one",
 ]
-
-
-def positive_smaller_one(v: float) -> float:
-    """Validates the given number v is 0 <= v <= 1."""
-    if v > 1 or v < 0:
-        raise ValueError("must be 0 <= f <= 1!")
-    return v
-
-
-def greater_equal_one(v: float) -> float:
-    """Validates the given number v is v>=1"""
-    if v < 1:
-        raise ValueError("must be >= 1!")
-    return v
-
-
-class ActivityExtraConfig(BaseModel):
-    """Base class for extra configuration fields for activity configs."""
-
-    return_increase: float = Field(
-        1.25,
-        description=(
-            "The multiplicative factor the return transitions weight "
-            "should be increased each time it is not selected."
-        ),
-    )
-
-    _validate_increase = validator("return_increase", allow_reuse=True)(
-        greater_equal_one
-    )
 
 
 class ActivitySelectionConfig(ProbabilisticStateConfig):

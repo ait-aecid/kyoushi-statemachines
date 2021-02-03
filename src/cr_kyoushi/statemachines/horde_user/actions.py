@@ -34,6 +34,7 @@ from cr_kyoushi.simulation.model import ApproximateFloat
 from cr_kyoushi.simulation.util import sleep
 
 from ..core.selenium import (
+    driver_wait,
     js_set_text,
     slow_type,
     type_linebreak,
@@ -90,7 +91,6 @@ from .wait import (
     check_notes_page,
     check_personal_information,
     check_tasks_page,
-    horde_wait,
 )
 
 
@@ -197,10 +197,10 @@ class LoginToHorde:
 
             if self.fail:
                 log.info("Failed login try")
-                horde_wait(context.driver, check_login_failed_page)
+                driver_wait(context.driver, check_login_failed_page)
             else:
                 # ensure the page loaded after login
-                horde_wait(context.driver, check_home_page)
+                driver_wait(context.driver, check_home_page)
                 log.info("Logged in")
         else:
             log.error(
@@ -226,7 +226,7 @@ def logout_of_horde(
         with wait_for_page_load(driver):
             ActionChains(driver).move_to_element(logout_icon).click().perform()
 
-        horde_wait(driver, check_logged_out)
+        driver_wait(driver, check_logged_out)
     else:
         log.error(
             "Invalid action for current page",
@@ -249,7 +249,7 @@ def refresh_mail(
         driver.find_element_by_id("checkmaillink").click()
 
         # ensure compose window is fully loaded
-        horde_wait(driver, check_mail_page)
+        driver_wait(driver, check_mail_page)
         log.info("Checked for new mail")
     else:
         log.error(
@@ -287,7 +287,7 @@ def new_mail(
         driver.switch_to_window(mail_window)
 
         # ensure compose window is fully loaded
-        horde_wait(driver, check_mail_compose_window)
+        driver_wait(driver, check_mail_compose_window)
     else:
         log.error(
             "Invalid action for current page",
@@ -326,7 +326,7 @@ def view_mail(
             mail_div.click()
 
             # ensure mail details are loaded
-            horde_wait(driver, CheckMailExtendedView(mail.subject))
+            driver_wait(driver, CheckMailExtendedView(mail.subject))
 
             # get additional mail info
             (mail.mailbox, mail.buid) = (
@@ -374,7 +374,7 @@ def open_mail(
         driver.switch_to_window(mail_window)
 
         # ensure info window is fully loaded
-        horde_wait(driver, check_mail_info_window)
+        driver_wait(driver, check_mail_info_window)
 
         log.info("Opened mail")
     else:
@@ -425,7 +425,7 @@ def reply_mail(
             driver.find_element_by_id("reply_link").click()
 
         # wait for compose view to be active
-        horde_wait(driver, check_mail_compose_window)
+        driver_wait(driver, check_mail_compose_window)
 
         log.info("Opened reply mail view")
     else:
@@ -478,7 +478,7 @@ def delete_mail(
             driver.switch_to_window(context.main_window)
 
         # ensure mail page has loaded again
-        horde_wait(driver, check_mail_page)
+        driver_wait(driver, check_mail_page)
         log.info("Deleted mail")
     else:
         log.error(
@@ -658,7 +658,7 @@ class SendMail:
                 driver.switch_to_window(context.main_window)
 
             # wait for sent success/fail message
-            horde_wait(driver, check_horde_action)
+            driver_wait(driver, check_horde_action)
             if check_horde_action_success(driver):
                 log.info("Sent mail")
             else:
@@ -672,7 +672,7 @@ class SendMail:
                 driver.switch_to_window(context.main_window)
 
             # wait for mail page to be ready again
-            horde_wait(driver, check_mail_page)
+            driver_wait(driver, check_mail_page)
         else:
             log.error(
                 "Invalid action for current page",
@@ -694,7 +694,7 @@ def new_calendar_event(
         context.horde.event.clear()
         driver.find_element_by_id("kronolithNewEvent").click()
         # wait for new calender form view to load
-        horde_wait(driver, check_calendar_write_view)
+        driver_wait(driver, check_calendar_write_view)
     else:
         log.error(
             "Invalid action for current page",
@@ -799,7 +799,7 @@ def write_calendar_event(
         save_button.click()
 
         # ensure calendar page is loaded
-        horde_wait(driver, check_calendar_page)
+        driver_wait(driver, check_calendar_page)
 
         log.info("Saved calendar event")
     else:
@@ -850,7 +850,7 @@ def edit_calendar_event(
             log.info("Editing calendar event")
             event_div.click()
             # wait for calendar edit view to load
-            horde_wait(driver, check_calendar_edit_view)
+            driver_wait(driver, check_calendar_edit_view)
         else:
             log.warn("No calendar event to edit")
     else:
@@ -877,12 +877,12 @@ def delete_calendar_event(
         driver.find_element_by_id("kronolithEventDelete").click()
 
         # wait for delete confirm view to load
-        horde_wait(driver, check_calendar_delete_confirm_view)
+        driver_wait(driver, check_calendar_delete_confirm_view)
 
         driver.find_element(By.ID, "kronolithEventDeleteConfirm").click()
 
         # wait for the calendar view to be visible again
-        horde_wait(driver, check_calendar_page)
+        driver_wait(driver, check_calendar_page)
 
         log.info("Deleted calendar event")
     else:
@@ -899,7 +899,7 @@ def __goto_new_contact_tab(
     """Helper function for switching between the contact edit dialog tabs."""
     driver.find_element_by_xpath(f"//a[@href='#' and text()='{name}']").click()
 
-    horde_wait(driver, CheckNewContactTab(section_id))
+    driver_wait(driver, CheckNewContactTab(section_id))
 
 
 def start_add_contact(
@@ -916,7 +916,7 @@ def start_add_contact(
             driver.find_element(By.LINK_TEXT, "New Contact").click()
 
         # wait for new contacts page to load
-        horde_wait(driver, check_new_contact_page)
+        driver_wait(driver, check_new_contact_page)
     else:
         log.error(
             "Invalid action for current page",
@@ -973,7 +973,7 @@ def submit_new_contact(
                 "form[id='turba_form_addcontact'] * input[value='Add'][type='submit']"
             ).click()
 
-        horde_wait(driver, check_horde_action)
+        driver_wait(driver, check_horde_action)
         if check_horde_action_success(driver):
             log.info("Added contact")
         else:
@@ -1005,7 +1005,7 @@ def delete_contact(
         ).click()
 
         # wait for delete confirm page to load
-        horde_wait(driver, check_contact_delete_confirm_page)
+        driver_wait(driver, check_contact_delete_confirm_page)
     else:
         log.error(
             "Invalid action for current page",
@@ -1033,7 +1033,7 @@ def confirm_delete_contact(
             ).click()
 
         # horde wait for success/fail message
-        horde_wait(driver, check_horde_action)
+        driver_wait(driver, check_horde_action)
 
         if check_horde_action_success(driver):
             log.info("Deleted contact")
@@ -1063,7 +1063,7 @@ def new_task(
                 "//div[@class='horde-new']//span[@class='horde-new-link']/a"
             ).click()
         # wait for new task form to load
-        horde_wait(driver, check_new_task_general_tab)
+        driver_wait(driver, check_new_task_general_tab)
     else:
         log.error(
             "Invalid action for current page",
@@ -1105,7 +1105,7 @@ def save_new_task(
             # tas dropdown selection obscureing assignee selection
             driver.find_element_by_tag_name("body").send_keys(Keys.ESCAPE)
 
-            horde_wait(driver, check_input_suggestions_invisible)
+            driver_wait(driver, check_input_suggestions_invisible)
 
         # set assignee
         assignee_select = Select(driver.find_element(By.CSS_SELECTOR, "#assignee"))
@@ -1159,14 +1159,14 @@ def save_new_task(
                 "//form[@id='nag_form_task']//input[@type='submit' and @value='Save']"
             ).click()
 
-        horde_wait(driver, check_horde_action)
+        driver_wait(driver, check_horde_action)
         if check_horde_action_success(driver):
             log.info("Saved task")
         else:
             log.info("Failed to save task")
 
         # wait for task page to load
-        horde_wait(driver, check_tasks_page)
+        driver_wait(driver, check_tasks_page)
     else:
         log.error(
             "Invalid action for current page",
@@ -1214,7 +1214,7 @@ def edit_task(
             driver.get(task_link.get_attribute("href"))
 
             # wait for task info view to load
-            horde_wait(driver, check_edit_task_general_tab)
+            driver_wait(driver, check_edit_task_general_tab)
         else:
             log.warn("No task to edit")
     else:
@@ -1244,7 +1244,7 @@ def delete_task(
             ).click()
 
         # horde wait for success/fail message
-        horde_wait(driver, check_horde_action)
+        driver_wait(driver, check_horde_action)
 
         if check_horde_action_success(driver):
             log.info("Deleted task")
@@ -1274,7 +1274,7 @@ def new_note(
                 "//div[@class='horde-new']//a[contains(@title,'New Note')]"
             ).click()
         # wait for new note form to load
-        horde_wait(driver, check_new_note_page)
+        driver_wait(driver, check_new_note_page)
     else:
         log.error(
             "Invalid action for current page",
@@ -1354,14 +1354,14 @@ def write_note(
         with wait_for_page_load(driver):
             save_button.click()
 
-        horde_wait(driver, check_horde_action)
+        driver_wait(driver, check_horde_action)
         if check_horde_action_success(driver):
             log.info("Saved note")
         else:
             log.info("Failed to save note")
 
         # ensure notes page is loaded
-        horde_wait(driver, check_notes_page)
+        driver_wait(driver, check_notes_page)
     else:
         log.error(
             "Invalid action for current page",
@@ -1408,7 +1408,7 @@ def edit_note(
             with wait_for_page_load(driver):
                 memo_link.click()
             # wait for memo edit view to load
-            horde_wait(driver, check_edit_note_page)
+            driver_wait(driver, check_edit_note_page)
         else:
             log.warn("No note to edit")
     else:
@@ -1438,7 +1438,7 @@ def delete_note(
             ).click()
 
         # horde wait for success/fail message
-        horde_wait(driver, check_horde_action)
+        driver_wait(driver, check_horde_action)
 
         if check_horde_action_success(driver):
             log.info("Deleted note")
@@ -1477,7 +1477,7 @@ def add_user_group(
         with wait_for_page_load(driver):
             submit_button.click()
 
-        horde_wait(driver, check_horde_action)
+        driver_wait(driver, check_horde_action)
         if check_horde_action_success(driver):
             log.info("Added group")
         else:
@@ -1530,7 +1530,7 @@ def delete_user_group(
                 ).click()
 
             # wait for confirm page to load
-            horde_wait(driver, check_horde_group_delete_confirm)
+            driver_wait(driver, check_horde_group_delete_confirm)
 
         else:
             log.warn("No group to delete")
@@ -1564,7 +1564,7 @@ def confirm_delete_user_group(
             ).click()
 
         # horde wait for success/fail message
-        horde_wait(driver, check_horde_action)
+        driver_wait(driver, check_horde_action)
 
         if check_horde_action_success(driver):
             log.info("Deleted group")
@@ -1595,7 +1595,7 @@ def admin_check_versions(
             ).click()
 
         # wait for version table to load
-        horde_wait(driver, check_admin_version_check_view)
+        driver_wait(driver, check_admin_version_check_view)
         log.info("Checked software versions")
 
     else:
@@ -1654,7 +1654,7 @@ def admin_exec_php(
             ).click()
 
         # wait for version table to load
-        horde_wait(driver, check_admin_php_execute_view)
+        driver_wait(driver, check_admin_php_execute_view)
         log.info("Executed PHP code")
 
     else:
@@ -1706,7 +1706,7 @@ def admin_exec_sql(
             ).click()
 
         # wait for version table to load
-        horde_wait(driver, check_admin_sql_execute_view)
+        driver_wait(driver, check_admin_sql_execute_view)
         log.info("Executed SQL code")
 
     else:
@@ -1758,7 +1758,7 @@ def admin_exec_cli(
             ).click()
 
         # wait for version table to load
-        horde_wait(driver, check_admin_cli_execute_view)
+        driver_wait(driver, check_admin_cli_execute_view)
         log.info("Executed CLI command")
 
     else:
@@ -1804,14 +1804,14 @@ class SetPersonalPreferences:
                     "//input[@value='Save' and @type='submit']"
                 ).click()
 
-            horde_wait(driver, check_horde_action)
+            driver_wait(driver, check_horde_action)
             if check_horde_action_success(driver):
                 log.info("Saved personal information")
             else:
                 log.info("Failed to save personal information")
 
             # wait for page to be ready again
-            horde_wait(driver, check_personal_information)
+            driver_wait(driver, check_personal_information)
 
         else:
             log.error(

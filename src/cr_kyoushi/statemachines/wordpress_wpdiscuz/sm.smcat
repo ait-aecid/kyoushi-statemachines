@@ -1,0 +1,36 @@
+"Wordpress User" {
+  initial,
+  selecting_activity,
+  idling,
+  posts_page,
+  post_page,
+  ^?close_wordpress,
+  comment_compose;
+
+
+  initial -> selecting_activity;
+
+  selecting_activity -> idling: idle;
+  selecting_activity -> posts_page: goto_wordpress;
+
+  idling -> selecting_activity;
+
+  posts_page -> posts_page: nav_posts_newer;
+  posts_page -> posts_page: nav_posts_older;
+  posts_page -> post_page: nav_post;
+  posts_page -> ^?close_wordpress: exit_wordpress;
+
+  ^?close_wordpress -> selecting_activity: close_wordpress: [0.5];
+  ^?close_wordpress -> selecting_activity: leave_open: [0.5];
+
+
+
+  post_page -> post_page: up_vote_comment;
+  post_page -> post_page: down_vote_comment;
+  post_page -> post_page: rate_post;
+  post_page -> comment_compose: comment_on_post;
+  post_page -> comment_compose: reply_to_comment;
+  post_page -> posts_page: return_home;
+
+  comment_compose -> post_page: write_comment;
+};

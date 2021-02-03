@@ -21,7 +21,10 @@ from selenium.common.exceptions import (
 from selenium.webdriver.common.by import By
 from structlog.stdlib import BoundLogger
 
-from ..core.selenium import wait_for_page_load
+from ..core.selenium import (
+    driver_wait,
+    wait_for_page_load,
+)
 from .context import (
     Context,
     HordeContext,
@@ -42,7 +45,6 @@ from .wait import (
     check_personal_information,
     check_tasks_page,
     check_view_contact_page,
-    horde_wait,
 )
 
 
@@ -88,7 +90,7 @@ class GoToHordeWebsite:
         if not check_home_page(context.driver):
             log.info("Opening horde")
             context.driver.get(self.horde_url)
-            horde_wait(context.driver, check_home_page)
+            driver_wait(context.driver, check_home_page)
             log.info("Opened horde")
         else:
             log.info("Already on horde")
@@ -138,7 +140,7 @@ class NavigateMailMenu(NavigateMainMenu):
         super().__init__(menu_item=1, name="Mail")
 
     def wait_page(self, log: BoundLogger, context: Context):
-        horde_wait(context.driver, check_mail_page)
+        driver_wait(context.driver, check_mail_page)
 
     def prepare_page(self, log: BoundLogger, context: Context):
         try:
@@ -162,7 +164,7 @@ class NavigateCalendarMenu(NavigateMainMenu):
         super().__init__(menu_item=2, name="Calendar")
 
     def wait_page(self, log: BoundLogger, context: Context):
-        horde_wait(context.driver, check_calendar_page)
+        driver_wait(context.driver, check_calendar_page)
 
     def prepare_page(self, log: BoundLogger, context: Context):
         try:
@@ -187,7 +189,7 @@ class NavigateAddressBookMenu(NavigateMainMenu):
         super().__init__(menu_item=3, name="AddressBook")
 
     def wait_page(self, log: BoundLogger, context: Context):
-        horde_wait(context.driver, check_address_book_page)
+        driver_wait(context.driver, check_address_book_page)
 
 
 navigate_address_book_menu = NavigateAddressBookMenu()
@@ -208,7 +210,7 @@ def navigate_address_book_browse(
             driver.find_element(By.LINK_TEXT, "Browse").click()
 
         # wait for browse page to load
-        horde_wait(driver, check_address_book_browse)
+        driver_wait(driver, check_address_book_browse)
     else:
         log.error(
             "Invalid action for current page",
@@ -251,7 +253,7 @@ def navigate_address_book_contact(
             contact_link.click()
 
         # wait for contact view page to load
-        horde_wait(driver, check_view_contact_page)
+        driver_wait(driver, check_view_contact_page)
 
     else:
         log.error(
@@ -266,7 +268,7 @@ class NavigateTasksMenu(NavigateMainMenu):
         super().__init__(menu_item=4, name="Tasks")
 
     def wait_page(self, log: BoundLogger, context: Context):
-        horde_wait(context.driver, check_tasks_page)
+        driver_wait(context.driver, check_tasks_page)
 
     def prepare_page(self, log: BoundLogger, context: Context):
         try:
@@ -291,7 +293,7 @@ class NavigateNotesMenu(NavigateMainMenu):
         super().__init__(menu_item=5, name="Notes")
 
     def wait_page(self, log: BoundLogger, context: Context):
-        horde_wait(context.driver, check_notes_page)
+        driver_wait(context.driver, check_notes_page)
 
     def prepare_page(self, log: BoundLogger, context: Context):
         try:
@@ -523,4 +525,4 @@ def navigate_preferences_personal(
         link_element = context.driver.find_element_by_link_text("Personal Information")
         context.driver.get(link_element.get_attribute("href"))
 
-    horde_wait(context.driver, check_personal_information)
+    driver_wait(context.driver, check_personal_information)

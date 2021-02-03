@@ -18,6 +18,8 @@ from selenium import webdriver
 
 from cr_kyoushi.simulation.model import ApproximateFloat
 
+from ..core.model import BaseInfo
+
 
 __all__ = [
     "HordeContext",
@@ -31,18 +33,6 @@ __all__ = [
     "TaskInfo",
     "MemoInfo",
 ]
-
-
-class BaseInfo(BaseModel):
-    """Base class for context info models"""
-
-    def clear(self):
-        """Resets the info object to its initial state.
-
-        i.e., all fields are `None`
-        """
-        for field in self.__fields__:
-            self.__setattr__(field, None)
 
 
 class MailSendType(str, Enum):

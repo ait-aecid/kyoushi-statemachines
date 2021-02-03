@@ -2,23 +2,13 @@
 
 from typing import (
     Any,
-    Callable,
     Optional,
-    Tuple,
-    Union,
 )
 
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
-from selenium.webdriver.support.wait import (
-    POLL_FREQUENCY,
-    WebDriverWait,
-)
-
-
-TIMEOUT = 60
 
 
 class CheckTitleContains:
@@ -27,16 +17,6 @@ class CheckTitleContains:
 
     def __call__(self, driver: webdriver.Remote) -> Optional[Any]:
         return self.title in driver.title
-
-
-def horde_wait(
-    driver: webdriver.Remote,
-    check_func: Callable[[webdriver.Remote], Optional[Any]],
-    timeout: Union[float, int] = TIMEOUT,
-    poll_frequency: float = POLL_FREQUENCY,
-    ignored_exceptions: Tuple[Exception, ...] = None,
-):
-    WebDriverWait(driver, timeout, poll_frequency, ignored_exceptions).until(check_func)
 
 
 def check_login_page(driver: webdriver.Remote) -> Optional[Any]:
