@@ -131,7 +131,13 @@ class PostsPage(ActivityState):
             self._modifiers[self._post] = 0
 
 
-class ExitChoice(states.ProbabilisticState):
+class CloseChoice(states.ProbabilisticState):
+    """Close wordpress decision state
+
+    Used for randomly deciding if the wordpress page gets closed
+    or left open in the background.
+    """
+
     def __init__(
         self,
         name: str,
@@ -144,6 +150,11 @@ class ExitChoice(states.ProbabilisticState):
 
 
 class PostPage(ActivityState):
+    """Post page state
+
+    Controls the action a user taks when they have opend a post.
+    """
+
     def __init__(
         self,
         name: str,
@@ -153,12 +164,12 @@ class PostPage(ActivityState):
         comment: Transition,
         reply: Transition,
         ret_transition: Transition,
-        rate_post_weight: float = 0.15,
-        down_vote_weight: float = 0.25,
-        up_vote_weight: float = 0.35,
-        comment_weight: float = 0.5,
-        reply_weight: float = 0.5,
-        ret_weight: float = 0.25,
+        rate_post_weight: float = 0.1,
+        down_vote_weight: float = 0.1,
+        up_vote_weight: float = 0.15,
+        comment_weight: float = 0.25,
+        reply_weight: float = 0.2,
+        ret_weight: float = 0.2,
         ret_increase: float = 1.5,
         comment_max_level: int = 3,
     ):
@@ -215,4 +226,5 @@ class PostPage(ActivityState):
             self._modifiers[self._reply] = 0
 
 
-comment_compose = states.SequentialState
+CommentCompose = states.SequentialState
+"""Comment compose state"""
