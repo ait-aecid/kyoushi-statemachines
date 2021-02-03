@@ -34,3 +34,17 @@ def get_title(fake: Faker, nb_words=3) -> str:
         # ensure the title does not end with a .
         fake.sentence(nb_words=nb_words).replace(".", "")
     )
+
+
+def positive_smaller_one(v: float) -> float:
+    """Validates the given number v is 0 <= v <= 1."""
+    if v > 1 or v < 0:
+        raise ValueError("must be 0 <= f <= 1!")
+    return v
+
+
+def greater_equal_one(v: float) -> float:
+    """Validates the given number v is v>=1"""
+    if v < 1:
+        raise ValueError("must be >= 1!")
+    return v

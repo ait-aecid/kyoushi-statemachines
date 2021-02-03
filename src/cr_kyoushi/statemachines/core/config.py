@@ -18,11 +18,29 @@ from pydantic import (
 
 from cr_kyoushi.simulation.model import ApproximateFloat
 
+from ..core.util import greater_equal_one
+
 
 ProbVal = Union[
     float, int
 ]  # float must be first or otherwise pydantic validation will do weird things
 """Type alias for probability values"""
+
+
+class ActivityExtraConfig(BaseModel):
+    """Base class for extra configuration fields for activity configs."""
+
+    return_increase: float = Field(
+        1.25,
+        description=(
+            "The multiplicative factor the return transitions weight "
+            "should be increased each time it is not selected."
+        ),
+    )
+
+    _validate_increase = validator("return_increase", allow_reuse=True)(
+        greater_equal_one
+    )
 
 
 class ProbabilisticStateConfig(BaseModel):
