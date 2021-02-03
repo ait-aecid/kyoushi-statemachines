@@ -1,5 +1,4 @@
 """Statemachine that only idles or executes the wordpress wpDiscuz activity."""
-
 from datetime import datetime
 from typing import (
     List,
@@ -18,8 +17,17 @@ from ..core.selenium import (
     get_webdriver,
     install_webdriver,
 )
+from ..core.transitions import IdleTransition
+from .activities import (
+    get_post_activity,
+    get_posts_activity,
+)
 from .config import StatemachineConfig
-from .context import Context
+from .context import (
+    Context,
+    WpDiscuzContext,
+)
+from .states import ActivitySelectionState
 
 
 __all__ = ["Statemachine", "StatemachineFactory"]
@@ -33,6 +41,8 @@ class Statemachine(sm.WorkHoursStatemachine):
 
     def __init__(
         self,
+        author: str,
+        email: str,
         initial_state: str,
         states: List[State],
         selenium_config: SeleniumConfig,
@@ -49,6 +59,8 @@ class Statemachine(sm.WorkHoursStatemachine):
             work_schedule=work_schedule,
             max_errors=max_errors,
         )
+        self.author: str = author
+        self.email: str = email
         self._selenium_config = selenium_config
         self._webdriver_path = None
         self.context: Optional[Context] = None
@@ -70,6 +82,10 @@ class Statemachine(sm.WorkHoursStatemachine):
             driver=driver,
             main_window=driver.current_window_handle,
             fake=self.fake,
+            wpdiscuz=WpDiscuzContext(
+                author=self.author,
+                email=self.email,
+            ),
         )
 
     def destroy_context(self):
@@ -95,11 +111,47 @@ class StatemachineFactory(sm.StatemachineFactory):
         return StatemachineConfig
 
     def build(self, config: StatemachineConfig):
+        idle = config.idle
+
+        (goto_wordpress, posts_page, close_choice) = get_posts_activity(
+            idle=idle,
+            user_config=config.wpdiscuz,
+            posts_config=config.states.posts_page,
+            close_config=config.states.close_choice,
+        )
+
+        (post_page, comment_compose) = get_post_activity(
+            idle=idle,
+            post_config=config.states.post_page,
+            return_home=goto_wordpress,
+        )
+
+        idle_transition = IdleTransition(
+            idle_amount=idle.big,
+            end_time=config.end_time,
+            name="idle",
+            target="selecting_activity",
+        )
+
+        initial = ActivitySelectionState(
+            name="selecting_activity",
+            wpdiscuz_transition=goto_wordpress,
+            idle_transition=idle_transition,
+            wpdiscuz_max_daily=config.wpdiscuz.max_daily,
+            wpdiscuz_weight=config.states.selecting_activity.wpdiscuz,
+            idle_weight=config.states.selecting_activity.idle,
+        )
 
         return Statemachine(
+            author=config.wpdiscuz.author,
+            email=config.wpdiscuz.email,
             initial_state="selecting_activity",
             states=[
-                # ToDo
+                initial,
+                posts_page,
+                close_choice,
+                post_page,
+                comment_compose,
             ],
             selenium_config=config.selenium,
             start_time=config.start_time,

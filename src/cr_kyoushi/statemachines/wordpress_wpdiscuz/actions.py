@@ -28,6 +28,7 @@ from .wait import (
     check_comment_action_failed,
     check_comment_submitted,
     check_post_page,
+    check_post_rated,
 )
 
 
@@ -47,13 +48,14 @@ class RatePost:
         post_info = context.wpdiscuz.post
 
         if check_post_page(driver):
-            rating_div = driver.find_element_by_id("wpd-post-rating")
-            if "wpd-not-rated" in rating_div.get_attribute("class"):
+            if not check_post_rated(driver):
                 # get random rating
                 post_info.rating = random.randint(self.min_rating, self.max_rating)
 
                 # set log context
                 log = log.bind(wordpress_post=post_info)
+
+                rating_div = driver.find_element_by_id("wpd-post-rating")
 
                 rating_star = rating_div.find_element_by_xpath(
                     f".//div[@class='wpd-rating-stars']/*[name()='svg' and position()={post_info.rating}]"

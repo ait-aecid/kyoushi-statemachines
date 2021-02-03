@@ -91,6 +91,19 @@ def check_post_page(driver: webdriver.Remote) -> Optional[Any]:
         return False
 
 
+def check_post_rated(driver: webdriver.Remote) -> Optional[Any]:
+    try:
+        rating_div = driver.find_element_by_id("wpd-post-rating")
+        if "wpd-not-rated" in rating_div.get_attribute("class"):
+            return False
+        else:
+            return True
+    except NoSuchElementException:
+        # if the rating element does not exist
+        # then we consider the post rated
+        return True
+
+
 def check_rating_stars_visible(driver: webdriver.Remote) -> Optional[Any]:
     # f".//div[@class='wpd-rating-stars']/*[name()='svg' and position()={post_info.rating}]"
     try:

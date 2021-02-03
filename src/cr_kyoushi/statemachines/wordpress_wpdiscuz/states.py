@@ -8,6 +8,7 @@ from ..core.states import ActivityState
 from .actions import get_comments
 from .context import Context
 from .wait import (
+    check_post_rated,
     check_posts_can_next,
     check_posts_can_previous,
 )
@@ -197,6 +198,7 @@ class PostPage(ActivityState):
         )
         self._up_vote: Transition = up_vote
         self._down_vote: Transition = down_vote
+        self._rate: Transition = rate_post
         self._reply: Transition = reply
         self._max_level: int = comment_max_level
 
@@ -212,6 +214,12 @@ class PostPage(ActivityState):
         else:
             self._modifiers[self._up_vote] = 0
             self._modifiers[self._down_vote] = 0
+
+        # enabled/disable rating depending on if the post is already rated
+        if not check_post_rated(context.driver):
+            self._modifiers[self._rate] = 1
+        else:
+            self._modifiers[self._rate] = 0
 
         # enable/disable voting depending on if there are comments
         # not by the author not deeper than the max level
