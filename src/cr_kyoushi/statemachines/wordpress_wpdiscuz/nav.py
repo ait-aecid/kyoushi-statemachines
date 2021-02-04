@@ -1,3 +1,5 @@
+"""Wordpress wpDiscuz selenium navigation operations i.e., actions that move between pages or views"""
+
 import random
 
 from datetime import datetime
@@ -17,9 +19,6 @@ from .wait import (
     check_posts_can_previous,
     check_posts_page,
 )
-
-
-"""Wordpress wpDiscuz selenium navigation operations i.e., actions that move between pages or views"""
 
 
 class GoToWordpress:
