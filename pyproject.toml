@@ -16,6 +16,7 @@ packages = [
 "ait.web_browser" = "cr_kyoushi.statemachines.web_browser:StatemachineFactory"
 "ait.horde_user" = "cr_kyoushi.statemachines.horde_user:StatemachineFactory"
 "ait.wordpress_wpdiscuz" = "cr_kyoushi.statemachines.wordpress_wpdiscuz:StatemachineFactory"
+"ait.wordpress_editor" = "cr_kyoushi.statemachines.wordpress_editor:StatemachineFactory"
 
 
 [[tool.poetry.source]]

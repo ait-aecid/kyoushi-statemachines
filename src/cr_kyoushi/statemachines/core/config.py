@@ -63,7 +63,7 @@ class ProbabilisticStateConfig(BaseModel):
         Returns:
             The validated field value
         """
-        if v >= 0 and v <= 100:
+        if not (isinstance(v, int) or isinstance(v, float)) or (v >= 0 and v <= 100):
             return v
         raise ValueError("Probability value must be between 0.0 and 1.0 or 0 and 100!")
 

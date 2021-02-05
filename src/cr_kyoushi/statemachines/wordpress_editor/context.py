@@ -46,10 +46,6 @@ class WordpressCommentReplyInfo(BaseInfo):
 
 
 class WordpressEditorContext(BaseModel):
-    author: str = Field(
-        "Max Mustermann",
-        description="The editors name",
-    )
 
     username: str = Field(
         "mmustermann",

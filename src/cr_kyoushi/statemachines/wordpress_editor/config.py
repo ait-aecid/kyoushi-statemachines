@@ -105,11 +105,6 @@ class SelectingMenuConfig(ProbabilisticStateConfig):
         description="Extra configuration for the state",
     )
 
-    #  new_reply_weight=0.45,
-    #     ret_weight=0.55,
-    #     ret_increase=1.25,
-    #     reply_only_guests=True,
-
 
 class CommentsPageExtraConfig(ActivityExtraConfig):
     reply_only_guests: bool = Field(
@@ -209,11 +204,6 @@ class WordpressEditorConfig(BaseModel):
     url: HttpUrl = Field(
         "http://localhost",
         description="The wordpress servers wp-admin URL",
-    )
-
-    author: str = Field(
-        "Max Mustermann",
-        description="The editors name",
     )
 
     username: str = Field(
