@@ -1,3 +1,7 @@
+"""
+A collection of helper functions used to create the various sub activities of the wordpress wpDiscuz user activity.
+"""
+
 from typing import Tuple
 
 from cr_kyoushi.simulation.transitions import (

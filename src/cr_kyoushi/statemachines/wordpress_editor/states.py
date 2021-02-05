@@ -150,7 +150,7 @@ class LogoutChoice(states.ProbabilisticState):
         self,
         name: str,
         logout: Transition,
-        background: str = "background_wp_admin",
+        close: str = "close_wp_admin",
         logout_prob: float = 0.05,
     ):
         """
@@ -165,7 +165,7 @@ class LogoutChoice(states.ProbabilisticState):
             [
                 logout,
                 # if we do not log out we do nothing
-                NoopTransition(name=background, target=logout.target),
+                NoopTransition(name=close, target=logout.target),
             ],
             [logout_prob, 1 - logout_prob],
         )
