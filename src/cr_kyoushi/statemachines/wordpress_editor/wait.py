@@ -30,6 +30,23 @@ def check_login_page(driver: webdriver.Remote) -> Optional[Any]:
         return False
 
 
+def check_logged_out(driver):
+    try:
+        return (
+            # check on login page
+            check_login_page(driver)
+            # and logout message is present
+            and ec.visibility_of_all_elements_located(
+                (
+                    By.XPATH,
+                    "//div[@id='login']/p[@class='message' and contains(text(), 'logged out')]",
+                )
+            )(driver)
+        )
+    except NoSuchElementException:
+        return False
+
+
 def check_login_error(driver: webdriver.Remote) -> Optional[Any]:
     try:
         return (

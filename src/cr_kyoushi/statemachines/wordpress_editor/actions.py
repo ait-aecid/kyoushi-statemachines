@@ -28,6 +28,7 @@ from .wait import (
     check_admin_menu,
     check_admin_posts,
     check_comment_reply_editor,
+    check_logged_out,
     check_login_error,
     check_login_page,
     check_post_editor,
@@ -71,6 +72,32 @@ def login_to_wordpress(
         log.error(
             "Invalid action for current page",
             wp_editor_action="login",
+            current_page=driver.current_url,
+        )
+
+
+def logout_of_wordpress(
+    log: BoundLogger,
+    current_state: str,
+    context: Context,
+    target: Optional[str],
+):
+    driver: webdriver.Remote = context.driver
+    if check_admin_menu(driver):
+        logout_link = driver.find_element_by_xpath(
+            "//li[@id='wp-admin-bar-logout']/a"
+        ).get_attribute("href")
+
+        log.info("Logging out of wordpress")
+
+        driver.get(logout_link)
+        driver_wait(driver, check_logged_out)
+
+        log.info("Logged out of wordpress")
+    else:
+        log.error(
+            "Invalid action for current page",
+            wp_editor_action="logout",
             current_page=driver.current_url,
         )
 
