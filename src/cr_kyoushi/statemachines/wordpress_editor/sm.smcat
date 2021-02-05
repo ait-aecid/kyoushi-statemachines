@@ -1,0 +1,56 @@
+"Wordpress Editor" {
+  initial,
+  selecting_activity,
+  ^opening_wp_admin,
+  ^logout?,
+  idling,
+  login_page,
+  selecting_menu,
+  dashboard,
+  posts,
+  post_editor,
+  post_publishing,
+  post_published,
+  media,
+  comments,
+  reply_editor;
+
+
+  initial -> selecting_activity;
+
+  selecting_activity -> idling: idle;
+  selecting_activity -> ^opening_wp_admin: goto_wp_admin;
+
+  idling -> selecting_activity;
+
+  ^opening_wp_admin -> login_page: [not logged_in];
+  ^opening_wp_admin -> selecting_menu: [logged_in];
+
+  login_page -> selecting_menu: login;
+  login_page -> login_page: fail_login;
+
+  ^logout? -> selecting_activity: logout: [0.2];
+  ^logout? -> selecting_activity: noop: [0.8];
+
+
+   selecting_menu -> ^logout?: pause;
+   selecting_menu -> dashboard: nav_dashboard;
+   selecting_menu -> posts: nav_posts;
+   selecting_menu -> media: nav_media;
+   selecting_menu -> comments: nav_comments;
+
+   dashboard -> selecting_menu: noop;
+
+   posts -> selecting_menu: noop;
+   posts -> post_editor: new_post;
+   post_editor -> post_publishing: write_post;
+   post_publishing -> post_published: publish_post;
+   post_published -> selecting_menu: nav_home;
+
+   media -> selecting_menu: noop;
+
+   comments -> selecting_menu: noop;
+   comments -> reply_editor: new_reply;
+   reply_editor -> comments: write_reply;
+
+};
