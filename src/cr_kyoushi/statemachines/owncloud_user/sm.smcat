@@ -1,0 +1,69 @@
+"Owncloud User" {
+  initial,
+  selecting_activity,
+  ^opening_owncloud,
+  ^logout?,
+  idling,
+  login_page,
+  selecting_menu,
+  file_browser,
+  file_upload_menu,
+  file_details,
+  sharing_details,
+  sharing_in;
+
+
+  initial -> selecting_activity;
+
+  selecting_activity -> idling: idle;
+  selecting_activity -> ^opening_owncloud: goto_owncloud;
+
+  idling -> selecting_activity;
+
+  ^opening_owncloud -> login_page: [not logged_in];
+  ^opening_owncloud -> selecting_menu: [logged_in];
+
+  login_page -> selecting_menu: login;
+  login_page -> login_page: fail_login;
+
+  ^logout? -> selecting_activity: logout: [0.2];
+  ^logout? -> selecting_activity: noop: [0.8];
+
+
+   selecting_menu -> ^logout?: pause;
+   selecting_menu -> file_browser: nav_all_files;
+   selecting_menu -> file_browser: nav_favorites;
+   selecting_menu -> sharing_in: nav_sharing_in;
+   selecting_menu -> file_browser: nav_sharing_out;
+
+   sharing_in -> sharing_in: accept_share;
+   sharing_in -> sharing_in: decline_share;
+   sharing_in -> file_browser: browse;
+
+   file_browser -> file_browser: open_directory;
+   file_browser -> file_browser: nav_directory_root;
+   file_browser -> file_browser: nav_directory_in_path;
+   file_browser -> file_browser: download_file;
+   file_browser -> file_browser: delete_file;
+   file_browser -> file_browser: create_directory;
+   file_browser -> file_upload_menu: upload_file;
+   file_browser -> file_details: view_details;
+   file_browser -> selecting_menu: return;
+
+   file_upload_menu -> file_browser: replace_file;
+   file_upload_menu -> file_browser: keep_both;
+   file_upload_menu -> file_browser: keep_old;
+
+
+   file_details -> file_details: view_comments;
+   file_details -> file_details: view_versions;
+   file_details -> sharing_details: view_sharing;
+   file_details -> file_browser: return;
+
+   sharing_details -> sharing_details: share_user;
+   sharing_details -> sharing_details: unshare_user;
+   sharing_details -> file_details: return;
+
+
+
+};
