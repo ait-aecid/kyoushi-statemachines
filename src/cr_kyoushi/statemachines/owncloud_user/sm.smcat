@@ -6,11 +6,13 @@
   idling,
   login_page,
   selecting_menu,
-  file_browser,
+  favorites,
+  sharing_in,
+  sharing_out,
+  all_files,
   file_upload_menu,
   file_details,
-  sharing_details,
-  sharing_in;
+  sharing_details;
 
 
   initial -> selecting_activity;
@@ -29,41 +31,60 @@
   ^logout? -> selecting_activity: logout: [0.2];
   ^logout? -> selecting_activity: noop: [0.8];
 
-
    selecting_menu -> ^logout?: pause;
-   selecting_menu -> file_browser: nav_all_files;
-   selecting_menu -> file_browser: nav_favorites;
+   selecting_menu -> favorites: nav_favorites;
    selecting_menu -> sharing_in: nav_sharing_in;
-   selecting_menu -> file_browser: nav_sharing_out;
+   selecting_menu -> sharing_out: nav_sharing_out;
+   selecting_menu -> all_files: nav_all_files;
 
-   sharing_in -> sharing_in: accept_share;
-   sharing_in -> sharing_in: decline_share;
-   sharing_in -> file_browser: browse;
+   all_files -> all_files: favorite;
+   all_files -> all_files: remove_favorite;
+   all_files -> all_files: open_directory;
+   all_files -> all_files: nav_root_dir;
+   all_files -> all_files: download_file;
+   all_files -> all_files: delete_file;
+   all_files -> all_files: create_directory;
+   all_files -> file_upload_menu: upload_file;
+   all_files -> file_details: view_details;
+   all_files -> selecting_menu: return;
 
-   file_browser -> file_browser: open_directory;
-   file_browser -> file_browser: nav_directory_root;
-   file_browser -> file_browser: nav_directory_in_path;
-   file_browser -> file_browser: download_file;
-   file_browser -> file_browser: delete_file;
-   file_browser -> file_browser: create_directory;
-   file_browser -> file_upload_menu: upload_file;
-   file_browser -> file_details: view_details;
-   file_browser -> selecting_menu: return;
-
-   file_upload_menu -> file_browser: replace_file;
-   file_upload_menu -> file_browser: keep_both;
-   file_upload_menu -> file_browser: keep_old;
-
+   file_upload_menu -> all_files: replace_file;
+   file_upload_menu -> all_files: keep_both;
+   file_upload_menu -> all_files: keep_old;
 
    file_details -> file_details: view_comments;
    file_details -> file_details: view_versions;
    file_details -> sharing_details: view_sharing;
-   file_details -> file_browser: return;
+   file_details -> favorites: return;
+   file_details -> sharing_in: return;
+   file_details -> sharing_out: return;
+   file_details -> all_files: return;
 
    sharing_details -> sharing_details: share_user;
    sharing_details -> sharing_details: unshare_user;
    sharing_details -> file_details: return;
 
+   favorites -> favorites: favorite;
+   favorites -> favorites: remove_favorite;
+   favorites -> favorites: download_file;
+   favorites -> favorites: delete_file;
+   favorites -> file_details: view_details;
+   favorites -> all_files: open_directory;
+   favorites -> selecting_menu: return;
 
+   sharing_in -> sharing_in: accept_share;
+   sharing_in -> sharing_in: decline_share;
+   sharing_in -> sharing_in: download_file;
+   sharing_in -> file_details: view_details;
+   sharing_in -> all_files: open_directory;
+   sharing_in -> selecting_menu: return;
+
+   sharing_out -> sharing_out: favorite;
+   sharing_out -> sharing_out: remove_favorite;
+   sharing_out -> sharing_out: download_file;
+   sharing_out -> sharing_out: delete_file;
+   sharing_out -> file_details: view_details;
+   sharing_out -> all_files: open_directory;
+   sharing_out -> selecting_menu: return;
 
 };
