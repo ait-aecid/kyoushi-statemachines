@@ -44,6 +44,8 @@
    all_files -> all_files: nav_root_dir;
    all_files -> all_files: download_file;
    all_files -> all_files: delete_file;
+   all_files -> all_files: download_dir;
+   all_files -> all_files: delete_dir;
    all_files -> all_files: create_directory;
    all_files -> file_upload_menu: upload_file;
    all_files -> file_details: view_details;
@@ -57,7 +59,6 @@
    file_details -> file_details: view_versions;
    file_details -> sharing_details: view_sharing;
    file_details -> favorites: return;
-   file_details -> sharing_in: return;
    file_details -> sharing_out: return;
    file_details -> all_files: return;
 
@@ -70,6 +71,8 @@
    favorites -> favorites: remove_favorite;
    favorites -> favorites: download_file;
    favorites -> favorites: delete_file;
+   favorites -> favorites: download_dir;
+   favorites -> favorites: delete_dir;
    favorites -> file_details: view_details;
    favorites -> all_files: open_directory;
    favorites -> selecting_menu: return;
@@ -84,6 +87,8 @@
    sharing_out -> sharing_out: remove_favorite;
    sharing_out -> sharing_out: download_file;
    sharing_out -> sharing_out: delete_file;
+   sharing_out -> sharing_out: download_dir;
+   sharing_out -> sharing_out: delete_dir;
    sharing_out -> file_details: view_details;
    sharing_out -> all_files: open_directory;
    sharing_out -> selecting_menu: return;

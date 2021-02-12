@@ -511,6 +511,24 @@ delete = MenuAction(
     check_function=CheckFileDeleted,
 )
 
+delete_file = MenuAction(
+    name="delete",
+    action="Delete",
+    data_type="dir",
+    exclude_type=True,
+    required_permissions=OwncloudPermissions.DELETE,
+    check_function=CheckFileDeleted,
+)
+
+delete_directory = MenuAction(
+    name="delete",
+    action="Delete",
+    data_type="dir",
+    exclude_type=False,
+    required_permissions=OwncloudPermissions.DELETE,
+    check_function=CheckFileDeleted,
+)
+
 
 class Download(MenuActionBase):
     def __init__(

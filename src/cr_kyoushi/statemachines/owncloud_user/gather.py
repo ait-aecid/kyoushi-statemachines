@@ -76,16 +76,25 @@ def get_unfavored_files(driver: webdriver.Remote) -> List[WebElement]:
     )
 
 
+def is_permissions(
+    permissions: OwncloudPermissions,
+    check: Optional[int] = None,
+) -> bool:
+    if check is not None:
+        data_permissions: OwncloudPermissions = OwncloudPermissions(check)
+        return (
+            # either we have all permissions for the object
+            data_permissions is OwncloudPermissions.ALL
+            # or we have the desired permissions
+            or permissions in data_permissions  # type: ignore
+        )
+    else:
+        return False
+
+
 def has_permissions(tr: WebElement, permissions: OwncloudPermissions) -> bool:
-    data_permissions: OwncloudPermissions = OwncloudPermissions(
-        int(tr.get_attribute("data-permissions"))
-    )
-    return (
-        # either we have all permissions for the object
-        data_permissions is OwncloudPermissions.ALL
-        # or we have the desired permissions
-        or permissions in data_permissions  # type: ignore
-    )
+    data_permissions: int = int(tr.get_attribute("data-permissions"))
+    return is_permissions(permissions, data_permissions)
 
 
 def get_data(
@@ -201,3 +210,7 @@ def get_app_content_scroll(driver: webdriver.Remote) -> float:
     return float(
         driver.execute_script('return document.getElementById("app-content").scrollTop')
     )
+
+
+def get_app_content_scroll_space(driver: webdriver.Remote) -> float:
+    return get_app_content_max_scroll(driver) - get_app_content_scroll(driver)
