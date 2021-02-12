@@ -416,6 +416,7 @@ class AllFilesView(ActivityState):
         view_details_weight: float = 0.125,
         ret_weight: float = 0.075,
         ret_increase=1.2,
+        upload_files: Dict[str, float] = {},
         modify_directories: List[Pattern] = [re.compile(r"\/.+")],
         max_directory_create_depth: Optional[int] = None,
         max_directory_count: Optional[int] = None,
@@ -453,6 +454,7 @@ class AllFilesView(ActivityState):
             ret_weight: The base weight of the return transition
             ret_increase: The factor to increase the return transitions weight by
                           until it is selected.
+            upload_files: Dictionary of files the user can upload
             modify_directories: List of path regular expressions for directories that the user can modify.
                                 Note that the user still needs the actual permissions to do so.
             max_directory_create_depth: The maximum directory level to create sub directories in.
@@ -498,6 +500,7 @@ class AllFilesView(ActivityState):
             modifiers=None,
             ret_increase=ret_increase,
         )
+        self.upload_files: Dict[str, float] = upload_files
         self.modify_dir: List[Pattern] = modify_directories
         self.max_create_dir: Optional[int] = max_directory_create_depth
         self.max_dir: Optional[int] = max_directory_count
@@ -546,7 +549,8 @@ class AllFilesView(ActivityState):
             # and that the user is configured to modify the current dir
             and not any(regex.match(current_dir) for regex in self.modify_dir)
         ):
-            self._modifiers[self._upload_file] = 1
+            # activate upload file if we have files to upload
+            self._modifiers[self._upload_file] = 1 if len(self.upload_files) > 0 else 0
 
             current_depth = len(Path(get_current_directory(context.driver)).parts)
             dir_count = len(get_dirs(context.driver))

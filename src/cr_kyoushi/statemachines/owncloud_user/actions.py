@@ -241,7 +241,7 @@ class Scroll:
             )
 
 
-def favorite_file(
+def favorite(
     log: BoundLogger,
     current_state: str,
     context: Context,
@@ -283,7 +283,7 @@ def favorite_file(
         )
 
 
-def unfavorite_file(
+def unfavorite(
     log: BoundLogger,
     current_state: str,
     context: Context,
@@ -723,6 +723,10 @@ class ProcessShare:
             )
 
 
+accept_share = ProcessShare(accept=True)
+decline_share = ProcessShare(accept=False)
+
+
 class UploadFile:
     def __init__(self, upload_files: Dict[str, float]):
         self.upload_files: Dict[str, float] = upload_files
@@ -855,6 +859,12 @@ class UploadProcessReplace:
                 owncloud_action="upload_process_replace",
                 current_page=driver.current_url,
             )
+
+
+upload_keep_both = UploadProcessReplace(keep_new=True, keep_old=True)
+upload_keep_new = UploadProcessReplace(keep_new=True, keep_old=False)
+upload_keep_old = UploadProcessReplace(keep_new=False, keep_old=True)
+upload_cancel = UploadProcessReplace(keep_new=False, keep_old=False)
 
 
 def close_details(

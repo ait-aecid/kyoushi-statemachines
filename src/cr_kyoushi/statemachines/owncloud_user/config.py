@@ -113,47 +113,6 @@ class SelectingMenuConfig(ProbabilisticStateConfig):
     )
 
 
-class FilesViewExtraBaseConfig(ActivityExtraConfig):
-    """Extra configuration class for the basic files view states"""
-
-    min_scroll_space: float = Field(
-        200.0,
-        description=(
-            "The minimum amount of scroll space that has to be "
-            "available for the user to consider scrolling down."
-        ),
-    )
-
-
-class FilesViewExtraConfig(FilesViewExtraBaseConfig):
-    """Extra configuration class for the files view states"""
-
-    modify_directories: List[Pattern] = Field(
-        [re.compile(r"\/.+")],
-        description=(
-            "List of regular expresions used to control which "
-            "directories can be modified. i.e., dir create, file upload, delete"
-        ),
-    )
-
-    favor_factor: float = Field(
-        1.0,
-        description="Factor used to decrease favorite and remove_favorite chance.",
-    )
-
-    min_scroll_space: float = Field(
-        200.0,
-        description=(
-            "The minimum amount of scroll space that has to be "
-            "available for the user to consider scrolling down."
-        ),
-    )
-
-    _validate_favor_factor = validator("favor_factor", allow_reuse=True)(
-        positive_smaller_one
-    )
-
-
 class FilesViewConfig(ProbabilisticStateConfig):
     """The files view states configuration (e.g., favorites)"""
 
@@ -208,8 +167,8 @@ class FilesViewConfig(ProbabilisticStateConfig):
         alias="return",
     )
 
-    extra: FilesViewExtraConfig = Field(
-        FilesViewExtraConfig(),
+    extra: ActivityExtraConfig = Field(
+        ActivityExtraConfig(),
         description="Extra configuration for the state",
     )
 
@@ -217,18 +176,6 @@ class FilesViewConfig(ProbabilisticStateConfig):
 FavoritesViewConfig = FilesViewConfig
 
 SharingOutViewConfig = FilesViewConfig
-
-
-class AllFilesViewExtraConfig(FilesViewExtraConfig):
-    max_directory_create_depth: Optional[int] = Field(
-        None,
-        description="The maximum directory level to create sub directories in.",
-    )
-
-    max_directory_count: Optional[int] = Field(
-        None,
-        description="The maximum sub directories to create.",
-    )
 
 
 class AllFilesViewConfig(ProbabilisticStateConfig):
@@ -300,8 +247,8 @@ class AllFilesViewConfig(ProbabilisticStateConfig):
         alias="return",
     )
 
-    extra: AllFilesViewExtraConfig = Field(
-        AllFilesViewExtraConfig(),
+    extra: ActivityExtraConfig = Field(
+        ActivityExtraConfig(),
         description="Extra configuration for the state",
     )
 
@@ -330,8 +277,8 @@ class SharingInViewConfig(ProbabilisticStateConfig):
         alias="return",
     )
 
-    extra: FilesViewExtraBaseConfig = Field(
-        FilesViewExtraBaseConfig(),
+    extra: ActivityExtraConfig = Field(
+        ActivityExtraConfig(),
         description="Extra configuration for the state",
     )
 
@@ -360,8 +307,8 @@ class FileDetailsViewConfig(ProbabilisticStateConfig):
         alias="return",
     )
 
-    extra: FilesViewExtraBaseConfig = Field(
-        FilesViewExtraBaseConfig(),
+    extra: ActivityExtraConfig = Field(
+        ActivityExtraConfig(),
         description="Extra configuration for the state",
     )
 
@@ -397,8 +344,8 @@ class SharingDetailsConfig(ProbabilisticStateConfig):
         alias="return",
     )
 
-    extra: FilesViewExtraBaseConfig = Field(
-        FilesViewExtraBaseConfig(),
+    extra: SharingDetailsExtraConfig = Field(
+        SharingDetailsExtraConfig(),
         description="Extra configuration for the state",
     )
 
@@ -509,6 +456,46 @@ class OwncloudUserConfig(BaseModel):
             "The maximum amount of times the owncloud user "
             "activity will be entered per day"
         ),
+    )
+
+    upload_files: Dict[str, float] = Field(
+        [],
+        description="Files the user might upload mapped to their propabilities",
+    )
+
+    modify_directories: List[Pattern] = Field(
+        [re.compile(r"\/.+")],
+        description=(
+            "List of regular expresions used to control which "
+            "directories can be modified. i.e., dir create, file upload, delete"
+        ),
+    )
+
+    max_directory_create_depth: Optional[int] = Field(
+        None,
+        description="The maximum directory level to create sub directories in.",
+    )
+
+    max_directory_count: Optional[int] = Field(
+        None,
+        description="The maximum sub directories to create.",
+    )
+
+    favor_factor: float = Field(
+        1.0,
+        description="Factor used to decrease favorite and remove_favorite chance.",
+    )
+
+    min_scroll_space: float = Field(
+        200.0,
+        description=(
+            "The minimum amount of scroll space that has to be "
+            "available for the user to consider scrolling down."
+        ),
+    )
+
+    _validate_favor_factor = validator("favor_factor", allow_reuse=True)(
+        positive_smaller_one
     )
 
 

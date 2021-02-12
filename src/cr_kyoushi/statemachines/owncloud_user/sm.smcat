@@ -62,8 +62,8 @@
    file_details -> sharing_out: return;
    file_details -> all_files: return;
 
-   sharing_details -> sharing_details: share_user;
-   sharing_details -> sharing_details: unshare_user;
+   sharing_details -> sharing_details: share_file;
+   sharing_details -> sharing_details: unshare_file;
    sharing_details -> file_details: return;
 
    favorites -> favorites: scroll_down;
