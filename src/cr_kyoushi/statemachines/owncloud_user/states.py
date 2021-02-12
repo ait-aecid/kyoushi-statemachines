@@ -5,6 +5,7 @@ from typing import (
     Dict,
     List,
     Optional,
+    Pattern,
 )
 
 from selenium.common.exceptions import NoSuchElementException
@@ -169,11 +170,11 @@ class SelectingMenu(ActivityState):
         nav_sharing_in: Transition,
         nav_sharing_out: Transition,
         ret_transition: Transition,
-        nav_all_weight: float = 0.3,
-        nav_favorites_weight: float = 0.1,
-        nav_sharing_in_weight: float = 0,
-        nav_sharing_out_weight: float = 0.15,
-        ret_weight: float = 0.075,
+        nav_all_weight: float = 0.25,
+        nav_favorites_weight: float = 0.2,
+        nav_sharing_in_weight: float = 0.25,
+        nav_sharing_out_weight: float = 0.2,
+        ret_weight: float = 0.1,
         ret_increase=1.25,
     ):
         """
@@ -415,7 +416,7 @@ class AllFilesView(ActivityState):
         view_details_weight: float = 0.125,
         ret_weight: float = 0.075,
         ret_increase=1.2,
-        modify_directories: List[str] = [r"\/.+"],
+        modify_directories: List[Pattern] = [re.compile(r"\/.+")],
         max_directory_create_depth: Optional[int] = None,
         max_directory_count: Optional[int] = None,
         favor_weight_factor: float = 1.0,
@@ -497,9 +498,7 @@ class AllFilesView(ActivityState):
             modifiers=None,
             ret_increase=ret_increase,
         )
-        self.modify_dir: List[re.Pattern] = [
-            re.compile(regex) for regex in modify_directories
-        ]
+        self.modify_dir: List[Pattern] = modify_directories
         self.max_create_dir: Optional[int] = max_directory_create_depth
         self.max_dir: Optional[int] = max_directory_count
         self.favor_factor: float = favor_weight_factor
@@ -640,7 +639,7 @@ class FilesView(ActivityState):
         view_details_weight: float = 0.15,
         ret_weight: float = 0.1,
         ret_increase=1.2,
-        modify_directories: List[str] = [r"\/.+"],
+        modify_directories: List[Pattern] = [re.compile(r"\/.+")],
         favor_weight_factor: float = 1.0,
         min_scroll_space: float = 200.0,
     ):
@@ -712,9 +711,7 @@ class FilesView(ActivityState):
             modifiers=None,
             ret_increase=ret_increase,
         )
-        self.modify_dir: List[re.Pattern] = [
-            re.compile(regex) for regex in modify_directories
-        ]
+        self.modify_dir: List[Pattern] = modify_directories
         self.favor_factor: float = favor_weight_factor
         self.min_scroll_space: float = min_scroll_space
 
@@ -933,11 +930,12 @@ class SharingDetails(ActivityState):
         share: Transition,
         unshare: Transition,
         ret_transition: Transition,
-        share_weight: float = 0.15,
-        unshare_weight: float = 0.4,
-        ret_weight: float = 0.1,
+        share_weight: float = 0.4,
+        unshare_weight: float = 0.35,
+        ret_weight: float = 0.25,
         ret_increase=1.2,
         share_users: Dict[str, float] = {},
+        max_shares: Optional[int] = None,
     ):
         """
         Args:
@@ -952,6 +950,7 @@ class SharingDetails(ActivityState):
             ret_increase: The factor to increase the return transitions weight by
                           until it is selected.
             share_users: The dictionary of users the owncloud user can share files to.
+            max_shares: The maximum number of users one file/dir can be shared to.
         """
         super().__init__(
             name,
@@ -972,6 +971,7 @@ class SharingDetails(ActivityState):
         self._share: Transition = share
         self._unshare: Transition = unshare
         self.users: Dict[str, float] = share_users
+        self.max_shares: Optional[int] = max_shares
 
     def adapt_before(self, log: BoundLogger, context: Context):
         super().adapt_before(log, context)
@@ -982,7 +982,17 @@ class SharingDetails(ActivityState):
         )
 
         self._modifiers[self._share] = (
-            1 if len(get_sharable_users(context.driver, self.users)) > 0 else 0
+            1
+            # disable sharing if we have no users to share to
+            if len(get_sharable_users(context.driver, self.users)) > 0
+            # or we shared this file/dir the maximum amount of users
+            and (
+                # if no max is defined then we can share
+                # as long as there are users to share to
+                self.max_shares is None
+                or len(get_shared_users(context.driver)) < self.max_shares
+            )
+            else 0
         )
 
 
