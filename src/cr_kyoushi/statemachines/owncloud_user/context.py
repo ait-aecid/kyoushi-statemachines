@@ -65,6 +65,45 @@ class FileInfo(BaseInfo):
     )
 
 
+class UploadInfo(BaseInfo):
+    directory: Optional[str] = Field(
+        None,
+        description="The upload target directory",
+    )
+
+    source: Optional[str] = Field(
+        None,
+        description="The upload source directory",
+    )
+
+    name: Optional[str] = Field(
+        None,
+        description="The upload files name",
+    )
+
+    keep_new: Optional[bool] = Field(
+        None,
+        description="If incase of replace the new file is kept or not",
+    )
+
+    keep_old: Optional[bool] = Field(
+        None,
+        description="If incase of replace the old file is kept or not",
+    )
+
+
+class OwncloudContext(BaseModel):
+    upload: UploadInfo = Field(
+        UploadInfo(),
+        description="The file upload context information",
+    )
+
+    file: FileInfo = Field(
+        FileInfo(),
+        description="The file beeing viewed",
+    )
+
+
 class Context(BaseModel):
     """Owncloud user state machine context class"""
 
@@ -78,6 +117,11 @@ class Context(BaseModel):
 
     fake: Faker
     """Faker instance to use for generating various random content"""
+
+    owncloud: OwncloudContext = Field(
+        OwncloudContext(),
+        description="The owncloud user context",
+    )
 
     class Config:
         arbitrary_types_allowed = True

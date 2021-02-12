@@ -37,6 +37,7 @@
    selecting_menu -> sharing_out: nav_sharing_out;
    selecting_menu -> all_files: nav_all_files;
 
+   all_files -> all_files: scroll_down;
    all_files -> all_files: favorite;
    all_files -> all_files: remove_favorite;
    all_files -> all_files: open_directory;
@@ -64,6 +65,7 @@
    sharing_details -> sharing_details: unshare_user;
    sharing_details -> file_details: return;
 
+   favorites -> favorites: scroll_down;
    favorites -> favorites: favorite;
    favorites -> favorites: remove_favorite;
    favorites -> favorites: download_file;
@@ -72,13 +74,12 @@
    favorites -> all_files: open_directory;
    favorites -> selecting_menu: return;
 
+   sharing_in -> sharing_in: scroll_down;
    sharing_in -> sharing_in: accept_share;
    sharing_in -> sharing_in: decline_share;
-   sharing_in -> sharing_in: download_file;
-   sharing_in -> file_details: view_details;
-   sharing_in -> all_files: open_directory;
    sharing_in -> selecting_menu: return;
 
+   sharing_out -> sharing_out: scroll_down;
    sharing_out -> sharing_out: favorite;
    sharing_out -> sharing_out: remove_favorite;
    sharing_out -> sharing_out: download_file;

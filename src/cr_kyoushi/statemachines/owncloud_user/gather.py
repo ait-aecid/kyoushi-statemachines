@@ -1,11 +1,14 @@
 from enum import IntFlag
 from typing import (
+    Dict,
     List,
     Optional,
 )
 
 from selenium import webdriver
 from selenium.webdriver.remote.webelement import WebElement
+
+from cr_kyoushi.simulation.util import normalize_propabilities
 
 from .context import FileInfo
 
@@ -53,6 +56,14 @@ def get_current_content(driver: webdriver.Remote) -> WebElement:
     return driver.find_element_by_id(get_current_content_id(driver))
 
 
+def get_current_directory(driver: webdriver.Remote) -> str:
+    return (
+        get_current_content(driver)
+        .find_element_by_xpath(".//input[@id='dir']")
+        .get_attribute("value")
+    )
+
+
 def get_favored_files(driver: webdriver.Remote) -> List[WebElement]:
     return get_current_content(driver).find_elements_by_xpath(
         ".//tbody[@id='fileList']/tr[not(@data-favorite='true')]"
@@ -83,16 +94,30 @@ def get_data(
     exclude_type: bool = False,
     permissions: Optional[OwncloudPermissions] = None,
 ) -> List[WebElement]:
+    """Gets all the data rows matching the given filter attributes.
+
+    !!! Warning
+        ownCloud dynamically loads elements as the user scrolls.
+        As this will only return already loaded data elements.
+
+    Args:
+        driver: The webdriver instance
+        data_type: The data type to filter for
+        exclude_type: If `True` then the data type filter will be a negative match
+        permissions: The permissions the user must have on the data elements
+
+    Returns:
+        List of `tr` web elements for the data elements
+    """
     condition = ""
     if data_type:
         condition = f"@data-type='{data_type}'"
         if exclude_type:
-            condition = f"[not({condition})]"
-        else:
-            condition = f"[{condition}]"
+            condition = f"not({condition})"
+        condition = f" and {condition}"
 
     data = get_current_content(driver).find_elements_by_xpath(
-        f".//tbody[@id='fileList']/tr{condition}"
+        f".//tbody[@id='fileList']/tr[(@data-share-state='0' or not(@data-share-state)) {condition}]"
     )
     if permissions is not None:
         return [d for d in data if has_permissions(d, permissions)]
@@ -120,4 +145,59 @@ def get_files(
         data_type="dir",
         exclude_type=True,
         permissions=permissions,
+    )
+
+
+def get_share_pending(driver: webdriver.Remote) -> List[WebElement]:
+    return get_current_content(driver).find_elements_by_xpath(
+        ".//tbody[@id='fileList']/tr[contains(@class, 'share-state-pending')]"
+    )
+
+
+def get_shared_users(driver: webdriver.Remote) -> List[WebElement]:
+    return driver.find_elements_by_xpath(
+        "//div[@id='app-sidebar' and not(contains(@class,'disappear'))]"
+        "//ul[@id='shareWithList']/li"
+    )
+
+
+def get_sharable_users(
+    driver: webdriver.Remote,
+    users: Dict[str, float],
+) -> Dict[str, float]:
+    shared_users = [
+        li.get_attribute("data-share-with") for li in get_shared_users(driver)
+    ]
+
+    # remove all users that have the file shared
+    current_users = users.copy()
+    for key in shared_users:
+        if key in current_users:
+            del current_users[key]
+
+    # fix the propabilities
+    if len(current_users) > 0:
+        keys = list(current_users.keys())
+        adjusted_p = normalize_propabilities(current_users.values())
+        current_users = dict(zip(keys, adjusted_p))
+    return current_users
+
+
+def get_app_content_max_scroll(driver: webdriver.Remote) -> float:
+    return float(
+        driver.execute_script(
+            """
+            return (
+                document.getElementById("app-content").scrollHeight
+                -
+                document.getElementById("app-content").clientHeight
+            )
+            """
+        )
+    )
+
+
+def get_app_content_scroll(driver: webdriver.Remote) -> float:
+    return float(
+        driver.execute_script('return document.getElementById("app-content").scrollTop')
     )
