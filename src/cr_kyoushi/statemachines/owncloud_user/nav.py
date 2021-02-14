@@ -41,7 +41,6 @@ class GoToOwncloud:
             log.info("Opening owncloud")
             context.driver.get(self.url)
             driver_wait(context.driver, check_owncloud_main)
-            driver_wait(context.driver, check_loaded)
             log.info("Opened owncloud")
         else:
             log.info(

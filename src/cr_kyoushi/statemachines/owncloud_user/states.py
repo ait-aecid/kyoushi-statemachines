@@ -41,6 +41,7 @@ from .wait import (
     check_file_details_share_available,
     check_file_details_versions_available,
     check_file_exists_dialog,
+    check_file_sharable,
     check_login_page,
     check_new_button,
 )
@@ -309,37 +310,38 @@ def _update_read_actions(
         context: The sm context
     """
     data = get_data(context.driver)
+    data_infos = [get_file_info(d) for d in data]
+    print(data_infos)
+
     if len(data) > 0:
-        modifiers[view_details] = 1
-        data_infos = [get_file_info(d) for d in data]
-
-        # check if we have any directories we can read
-        if any(
-            d
-            for d in data_infos
-            if d.file_type == "dir"
-            and is_permissions(OwncloudPermissions.READ, d.permissions)
-        ):
-            modifiers[download_directory] = 1
-            modifiers[open_directory] = 1
-        else:
-            modifiers[download_directory] = 0
-            modifiers[open_directory] = 0
-
-        # check if we have any files we can read
-        if any(
-            d
-            for d in data_infos
-            if d.file_type != "dir"
-            and is_permissions(OwncloudPermissions.READ, d.permissions)
-        ):
-            modifiers[download_file] = 1
-        else:
-            modifiers[download_file] = 0
-
-    else:
         # need at least 1 data object to view details
+        modifiers[view_details] = 1
+    else:
         modifiers[view_details] = 0
+
+    # check if we have any directories we can read
+    if any(
+        d
+        for d in data_infos
+        if d.file_type == "dir"
+        and is_permissions(OwncloudPermissions.READ, d.permissions)
+    ):
+        modifiers[download_directory] = 1
+        modifiers[open_directory] = 1
+    else:
+        modifiers[download_directory] = 0
+        modifiers[open_directory] = 0
+
+    # check if we have any files we can read
+    if any(
+        d
+        for d in data_infos
+        if d.file_type != "dir"
+        and is_permissions(OwncloudPermissions.READ, d.permissions)
+    ):
+        modifiers[download_file] = 1
+    else:
+        modifiers[download_file] = 0
 
 
 def _update_delete_actions(
@@ -547,7 +549,7 @@ class AllFilesView(ActivityState):
             # i.e., we have owncloud permissions to create
             check_new_button(context.driver)
             # and that the user is configured to modify the current dir
-            and not any(regex.match(current_dir) for regex in self.modify_dir)
+            and any(regex.match(current_dir) for regex in self.modify_dir)
         ):
             # activate upload file if we have files to upload
             self._modifiers[self._upload_file] = 1 if len(self.upload_files) > 0 else 0
@@ -601,7 +603,7 @@ class AllFilesView(ActivityState):
             self._modifiers,
             self._delete_file,
             self._delete_directory,
-            self._modify_dirs,
+            self.modify_dir,
         )
 
         self._update_nav_root(context)
@@ -761,7 +763,7 @@ class FilesView(ActivityState):
             self._modifiers,
             self._delete_file,
             self._delete_directory,
-            self._modify_dirs,
+            self.modify_dir,
         )
 
         log.debug(
@@ -985,19 +987,22 @@ class SharingDetails(ActivityState):
             1 if len(get_shared_users(context.driver)) > 0 else 0
         )
 
-        self._modifiers[self._share] = (
-            1
-            # disable sharing if we have no users to share to
-            if len(get_sharable_users(context.driver, self.users)) > 0
-            # or we shared this file/dir the maximum amount of users
+        if (
+            # enable sharing only if the file/dir is sharable
+            check_file_sharable(context.driver)
+            # and we have no users to share to
+            and len(get_sharable_users(context.driver, self.users)) > 0
+            # and we shared this file/dir to less than the maximum amount of users
             and (
                 # if no max is defined then we can share
                 # as long as there are users to share to
                 self.max_shares is None
                 or len(get_shared_users(context.driver)) < self.max_shares
             )
-            else 0
-        )
+        ):
+            self._modifiers[self._share] = 1
+        else:
+            self._modifiers[self._share] = 0
 
 
 class CloseCheckState(states.State):
@@ -1071,8 +1076,8 @@ class UploadMenu(states.ProbabilisticState):
         keep_new: Transition,
         keep_both: Transition,
         keep_old: Transition,
-        keep_new_weight: float = 0.15,
-        keep_both_weight: float = 0.4,
+        keep_new_weight: float = 0.6,
+        keep_both_weight: float = 0.3,
         keep_old_weight: float = 0.1,
         new_file: str = "new_file",
     ):

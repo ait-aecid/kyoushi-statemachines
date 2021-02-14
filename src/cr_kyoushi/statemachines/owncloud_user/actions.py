@@ -74,7 +74,6 @@ from .wait import (
     check_new_folder_input,
     check_new_menu,
     check_no_details_view,
-    check_no_file_busy,
     check_no_file_exists_dialog,
     check_no_upload_progress,
     check_sharingin_content,
@@ -249,7 +248,7 @@ def favorite(
 ):
     driver: webdriver.Remote = context.driver
     if check_favorite_stars(driver):
-        files = get_favored_files(driver)
+        files = get_unfavored_files(driver)
 
         if len(files):
             file = random.choice(files)
@@ -269,7 +268,7 @@ def favorite(
 
             action = ActionChains(driver)
             action.move_to_element(file).move_to_element(star_link)
-            action.click(star_link).perform()
+            action.click(star_link).release().perform()
             driver_wait(driver, CheckFileNotBusy(file_info.fid))
 
             log.info("Favored file")
@@ -291,7 +290,7 @@ def unfavorite(
 ):
     driver: webdriver.Remote = context.driver
     if check_favorite_stars(driver):
-        files = get_unfavored_files(driver)
+        files = get_favored_files(driver)
         if len(files):
             file = random.choice(files)
             file_info = get_file_info(file)
@@ -310,7 +309,7 @@ def unfavorite(
 
             action = ActionChains(driver)
             action.move_to_element(file).move_to_element(star_link)
-            action.click(star_link).perform()
+            action.click(star_link).release().perform()
             driver_wait(driver, CheckFileNotBusy(file_info.fid))
 
             log.info("Unfavored file")
@@ -349,7 +348,7 @@ def open_directory(
             _scroll_to_file(log, driver, dir_link)
 
             log.info("Opening directory")
-            ActionChains(driver).double_click(dir_link).perform()
+            ActionChains(driver).click(dir_link).perform()
             driver_wait(driver, check_loaded)
             driver_wait(driver, check_all_files_content)
 
@@ -663,9 +662,9 @@ def create_directory(
 
         log.info("Creating directory")
 
-        folder_input.send_keys("\n")
+        # folder_input.send_keys("\n")
+        folder_input.submit()
         driver_wait(driver, check_loaded)
-        driver_wait(driver, check_no_file_busy)
 
         log.info("Created directory")
     else:
@@ -710,7 +709,6 @@ class ProcessShare:
                 action.move_to_element(action_button).click().perform()
 
                 driver_wait(driver, check_loaded)
-                driver_wait(driver, check_no_file_busy)
 
                 log.info("Processed pending share")
             else:
@@ -1002,6 +1000,11 @@ class ShareFile:
                 owncloud_action="share_file",
                 current_page=driver.current_url,
             )
+            from structlog import get_context
+
+            tid = get_context(log)["transition_id"]
+            log.error("Saved screen shot")
+            driver.save_screenshot(f"/tmp/asddfasdadasdasdad/{tid}.png")
 
 
 def unshare_file(

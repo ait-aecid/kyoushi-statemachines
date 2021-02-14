@@ -6,6 +6,7 @@ from typing import (
 )
 
 from selenium import webdriver
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.remote.webelement import WebElement
 
 from cr_kyoushi.simulation.util import normalize_propabilities
@@ -57,20 +58,25 @@ def get_current_content(driver: webdriver.Remote) -> WebElement:
 
 
 def get_current_directory(driver: webdriver.Remote) -> str:
-    return (
-        get_current_content(driver)
-        .find_element_by_xpath(".//input[@id='dir']")
-        .get_attribute("value")
-    )
+    try:
+        return (
+            get_current_content(driver)
+            .find_element_by_xpath(".//input[@id='dir']")
+            .get_attribute("value")
+        )
+    except NoSuchElementException:
+        # if file view is empty
+        # then there is no dir
+        return ""
 
 
-def get_favored_files(driver: webdriver.Remote) -> List[WebElement]:
+def get_unfavored_files(driver: webdriver.Remote) -> List[WebElement]:
     return get_current_content(driver).find_elements_by_xpath(
         ".//tbody[@id='fileList']/tr[not(@data-favorite='true')]"
     )
 
 
-def get_unfavored_files(driver: webdriver.Remote) -> List[WebElement]:
+def get_favored_files(driver: webdriver.Remote) -> List[WebElement]:
     return get_current_content(driver).find_elements_by_xpath(
         ".//tbody[@id='fileList']/tr[@data-favorite='true']"
     )

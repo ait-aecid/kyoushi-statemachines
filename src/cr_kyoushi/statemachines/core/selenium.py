@@ -484,6 +484,8 @@ def get_webdriver(
                 "browser.helperApps.neverAsk.saveToDisk",
                 ",".join(config.download.autosave),
             )
+            # need to disable pdf viewer as well
+            fox_profile.set_preference("pdfjs.disabled", True)
 
     # common arguments
     args = {

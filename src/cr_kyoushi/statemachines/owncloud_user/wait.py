@@ -91,6 +91,8 @@ def check_files_main_menu(driver: webdriver.Remote) -> Optional[Any]:
             and ec.visibility_of_all_elements_located(
                 (By.XPATH, "//div[@id='app-navigation']//li[@data-id='files']")
             )(driver)
+            # and everything is loaded
+            and check_loaded(driver)
         )
     except NoSuchElementException:
         return False
@@ -161,7 +163,7 @@ def check_loading_mask(driver: webdriver.Remote) -> Optional[Any]:
 
 
 def check_loaded(driver: webdriver.Remote) -> Optional[Any]:
-    return not check_loading_mask(driver)
+    return not check_loading_mask(driver) and check_no_file_busy(driver)
 
 
 def check_no_file_busy(driver: webdriver.Remote) -> Optional[Any]:
@@ -638,7 +640,7 @@ def check_file_sharable(driver: webdriver.Remote) -> Optional[Any]:
 
 def check_user_autocomplete(driver: webdriver.Remote) -> Optional[Any]:
     try:
-        return ec.visibility_of_all_elements_located(
+        return ec.visibility_of_any_elements_located(
             (
                 By.XPATH,
                 "//ul[starts-with(@id,'ui-id-') and contains(@class, 'ui-autocomplete')]",

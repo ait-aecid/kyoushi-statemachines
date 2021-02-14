@@ -41,7 +41,6 @@ def get_base_activity(
     # transitions
     Transition,
     Transition,
-    Transition,
     # states
     states.LoggedInCheck,
     states.LoginPage,
@@ -90,13 +89,6 @@ def get_base_activity(
         delay_after=idle.small,
     )
 
-    t_return_select = DelayedTransition(
-        transition_function=noop,
-        name=return_select,
-        target=selecting_menu,
-        delay_after=idle.medium,
-    )
-
     t_owncloud_logout = DelayedTransition(
         transition_function=actions.logout_of_owncloud,
         name=owncloud_logout,
@@ -128,7 +120,6 @@ def get_base_activity(
         # transitions
         t_owncloud_transition,
         t_pause_owncloud,
-        t_return_select,
         # states
         s_login_check,
         s_login_page,
@@ -216,7 +207,7 @@ def get_file_view_activity(
         noop,
         name=do_nothing,
         target=selecting_menu,
-        delay_after=idle.small,
+        delay_after=idle.medium,
     )
 
     t_nav_all_files = DelayedTransition(
@@ -294,7 +285,7 @@ def get_file_view_activity(
     t_files_upload_file = DelayedTransition(
         actions.UploadFile(owncloud.upload_files),
         name=upload_file,
-        target=all_files,
+        target=upload_menu,
         delay_after=idle.tiny,
     )
 
@@ -518,7 +509,7 @@ def get_file_view_activity(
         scroll_down_weight=all_files_config.scroll_down,
         favorite_weight=all_files_config.favorite,
         remove_favorite_weight=all_files_config.remove_favorite,
-        open_directory_weight=t_open_directory,
+        open_directory_weight=all_files_config.open_directory,
         nav_root_weight=all_files_config.nav_root,
         download_file_weight=all_files_config.download_file,
         delete_file_weight=all_files_config.delete_file,
@@ -552,7 +543,7 @@ def get_file_view_activity(
         scroll_down_weight=favorites_config.scroll_down,
         favorite_weight=favorites_config.favorite,
         remove_favorite_weight=favorites_config.remove_favorite,
-        open_directory_weight=t_open_directory,
+        open_directory_weight=favorites_config.open_directory,
         download_file_weight=favorites_config.download_file,
         delete_file_weight=favorites_config.delete_file,
         download_directory_weight=favorites_config.download_directory,
@@ -594,7 +585,7 @@ def get_file_view_activity(
         scroll_down_weight=sharing_out_config.scroll_down,
         favorite_weight=sharing_out_config.favorite,
         remove_favorite_weight=sharing_out_config.remove_favorite,
-        open_directory_weight=t_open_directory,
+        open_directory_weight=sharing_out_config.open_directory,
         download_file_weight=sharing_out_config.download_file,
         delete_file_weight=sharing_out_config.delete_file,
         download_directory_weight=sharing_out_config.download_directory,
@@ -630,7 +621,6 @@ def get_file_view_activity(
 
 def get_file_details_activity(
     idle: IdleConfig,
-    menu_config: config.SelectingMenuConfig,
     details_config: config.FileDetailsViewConfig,
     sharing_config: config.SharingDetailsConfig,
     # states

@@ -354,12 +354,12 @@ class UploadMenuConfig(ProbabilisticStateConfig):
     """The upload menu state configuration"""
 
     keep_new: float = Field(
-        0.15,
+        0.6,
         description="The base propability that keep_new will be selected.",
     )
 
     keep_both: float = Field(
-        0.4,
+        0.3,
         description="The base propability that keep_both will be selected.",
     )
 
