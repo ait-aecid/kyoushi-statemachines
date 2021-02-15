@@ -2,6 +2,7 @@
 This module contains configuration and utility functions for using Selenium webdrivers
 as part of simulations.
 """
+import os
 import time
 
 from contextlib import contextmanager
@@ -25,7 +26,10 @@ from pydantic import (
     SecretStr,
     validator,
 )
-from pydantic.errors import EnumMemberError
+from pydantic.errors import (
+    EnumMemberError,
+    PathNotADirectoryError,
+)
 from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
@@ -169,6 +173,32 @@ class SeleniumProxyConfig(BaseModel):
     )
 
 
+class SeleniumDownloadConfig(BaseModel):
+    """Configuration class for the selenium drivers download settings"""
+
+    prompt: bool = Field(
+        False,
+        description="If the download dialog should be shown or not",
+    )
+
+    path: Optional[Path] = Field(
+        None,
+        description="The download directory to use",
+    )
+
+    autosave: List[str] = Field(
+        [],
+        description="List of mime type to autosave (required for firefox prompt=False)",
+    )
+
+    @validator("path")
+    def validate_dir(cls, value: Path) -> Path:
+        if value.exists() and not value.is_dir():
+            raise PathNotADirectoryError(path=value)
+
+        return value
+
+
 class SeleniumConfig(BaseModel):
     """Configuration class for selenium drivers"""
 
@@ -195,6 +225,11 @@ class SeleniumConfig(BaseModel):
     proxy: SeleniumProxyConfig = Field(
         SeleniumProxyConfig(),
         description="The proxy configuration to use for the webdriver",
+    )
+
+    download: SeleniumDownloadConfig = Field(
+        SeleniumDownloadConfig(),
+        description="The file download configuration for the webdriver",
     )
 
     implicit_wait: float = Field(
@@ -331,16 +366,22 @@ def install_webdriver(config: SeleniumConfig) -> str:
     return manager.install()
 
 
+def chrome_enable_download_headless(driver: webdriver.Remote, download_dir: str):
+    driver.command_executor._commands["send_command"] = (
+        "POST",
+        "/session/$sessionId/chromium/send_command",
+    )
+    params = {
+        "cmd": "Page.setDownloadBehavior",
+        "params": {"behavior": "allow", "downloadPath": download_dir},
+    }
+    driver.execute("send_command", params)
+
+
 def get_webdriver(
     config: SeleniumConfig,
     driver_path: Optional[str] = None,
-) -> Union[
-    webdriver.Chrome,
-    webdriver.Firefox,
-    webdriver.Ie,
-    webdriver.Edge,
-    webdriver.Opera,
-]:
+) -> webdriver.Remote:
     """Gets and configures a Selenium webdriver instance based on the given configuration.
 
     Args:
@@ -350,6 +391,7 @@ def get_webdriver(
         The initialized and configured Selenium webdriver instance
     """
     driver_info = _MANAGER_MAP[config.type]
+    fox_profile = None
 
     # install webdriver and get path if not already given
     if driver_path is None:
@@ -398,11 +440,71 @@ def get_webdriver(
             # the proxy config object does not expose the setting
             options.capabilities["proxy"]["socksVersion"] = config.proxy.socks_version
 
-    # create driver
-    driver = driver_info["driver"](
-        executable_path=driver_path,
-        options=options,
+    download_path = (
+        # set download path if we have one
+        str(config.download.path.absolute())
+        # otherwise set empty string
+        if config.download.path is not None
+        else ""
     )
+    if not config.download.prompt:
+
+        # create download directory
+        os.makedirs(download_path, exist_ok=True)
+
+        if config.type == WebdriverType.CHROME or config.type == WebdriverType.CHROMIUM:
+            download_options = webdriver.ChromeOptions()
+            download_options
+            options.experimental_options.setdefault("prefs", {}).update(
+                {
+                    "download.default_directory": download_path,
+                    "download.prompt_for_download": False,
+                    "download.directory_upgrade": True,
+                    "download.download_restrictions": 0,
+                    "safebrowsing_for_trusted_sources_enabled": False,
+                    "safebrowsing.enabled": False,
+                }
+            )
+        elif config.type == WebdriverType.FIREFOX:
+            fox_profile = webdriver.FirefoxProfile()
+            fox_profile.set_preference(
+                "browser.download.folderList", 2
+            )  # custom location
+            fox_profile.set_preference(
+                "browser.download.manager.showWhenStarting", False
+            )
+            fox_profile.set_preference("browser.download.dir", download_path)
+            fox_profile.set_preference("browser.download.manager.alertOnEXEOpen", False)
+            fox_profile.set_preference("browser.download.manager.closeWhenDone", False)
+            fox_profile.set_preference(
+                "browser.download.manager.focusWhenStarting", False
+            )
+            # application/octet-stream,application/vnd.ms-excel
+            fox_profile.set_preference(
+                "browser.helperApps.neverAsk.saveToDisk",
+                ",".join(config.download.autosave),
+            )
+            # need to disable pdf viewer as well
+            fox_profile.set_preference("pdfjs.disabled", True)
+
+    # common arguments
+    args = {
+        "executable_path": driver_path,
+        "options": options,
+    }
+
+    if fox_profile is not None:
+        args["firefox_profile"] = fox_profile
+
+    # create driver
+    driver = driver_info["driver"](**args)
+
+    # for chrome we need to enable auto download
+    # after start
+    if not config.download.prompt and (
+        config.type == WebdriverType.CHROME or config.type == WebdriverType.CHROMIUM
+    ):
+        chrome_enable_download_headless(driver, download_path)
 
     # configure driver implicit wait time
     driver.implicitly_wait(config.implicit_wait)

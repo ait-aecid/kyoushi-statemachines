@@ -17,6 +17,7 @@ packages = [
 "ait.horde_user" = "cr_kyoushi.statemachines.horde_user:StatemachineFactory"
 "ait.wordpress_wpdiscuz" = "cr_kyoushi.statemachines.wordpress_wpdiscuz:StatemachineFactory"
 "ait.wordpress_editor" = "cr_kyoushi.statemachines.wordpress_editor:StatemachineFactory"
+"ait.owncloud_user" = "cr_kyoushi.statemachines.owncloud_user:StatemachineFactory"
 
 
 [[tool.poetry.source]]
@@ -26,7 +27,7 @@ secondary = true
 
 [tool.poetry.dependencies]
 python = "^3.7"
-cr-kyoushi-simulation = "^0.3.1"
+cr-kyoushi-simulation = "^0.3.3"
 selenium = "^3.141.0"
 webdriver-manager = "^3.2.2"
 Faker = "^5.6.5"
