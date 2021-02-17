@@ -104,6 +104,11 @@ class HostConfigBase(BaseModel):
         description="The user password to use for this host",
     )
 
+    max_sudo_tries: int = Field(
+        3,
+        description="The maximum allowed password tries for the sudo prompt",
+    )
+
     ssh_key: Optional[FilePath] = Field(
         None,
         description="The path to the SSH key file to use to connect to the host",
@@ -388,41 +393,37 @@ def get_hosts(config: SSHUserConfig) -> Dict[str, Host]:
         assert config.username is not None or host_cfg.username is not None
         assert config.password is not None or host_cfg.password is not None
 
-        if host_cfg.verify_host is None:
-            verify_host = config.verify_host
-        else:
-            verify_host = host_cfg.verify_host
+        host_dict = host_cfg.dict()
 
-        # create host config from host entry
-        host = Host(
-            host=host_cfg.host,
-            port=host_cfg.port,
-            username=host_cfg.username or config.username,
-            password=host_cfg.password or config.password,
-            commands=[convert_chain(chain) for chain in host_cfg.commands],
-            ssh_key=host_cfg.ssh_key,
-            force_password=host_cfg.force_password,
-            verify_host=verify_host,
-            proxy_host=host_cfg.proxy_host,
-            proxy_port=host_cfg.proxy_port,
-            proxy_username=host_cfg.proxy_username,
-            proxy_ssh_key=host_cfg.proxy_ssh_key,
-            proxy_verify_host=host_cfg.proxy_verify_host,
-        )
+        if host_cfg.verify_host is None:
+            host_dict["verify_host"] = config.verify_host
+        else:
+            host_dict["verify_host"] = host_cfg.verify_host
+
+        # convert config command chain to proper commands
+        host_dict["commands"] = [convert_chain(chain) for chain in host_cfg.commands]
 
         # apply default values where appropriate
-        if host_cfg.include_default_commands:
-            host.commands.extend(default_commands)
+        host_dict["username"] = host_cfg.username or config.username
+        host_dict["password"] = host_cfg.password or config.password
 
-        if host_cfg.use_default_key and host.ssh_key is None:
-            host.ssh_key = config.ssh_key
+        if host_cfg.include_default_commands:
+            host_dict["commands"].extend(default_commands)
+
+        if host_cfg.use_default_key and host_dict["ssh_key"] is None:
+            host_dict["ssh_key"] = config.ssh_key
 
         if host_cfg.use_default_proxy:
             # configure proxy settings which do not have a value yet
-            host.proxy_host = host.proxy_host or config.proxy_host
-            host.proxy_port = host.proxy_port or config.proxy_port
-            host.proxy_username = host.proxy_username or config.proxy_username
-            host.proxy_ssh_key = host.proxy_ssh_key or config.proxy_ssh_key
+            host_dict["proxy_host"] = host_cfg.proxy_host or config.proxy_host
+            host_dict["proxy_port"] = host_cfg.proxy_port or config.proxy_port
+            host_dict["proxy_username"] = (
+                host_cfg.proxy_username or config.proxy_username
+            )
+            host_dict["proxy_ssh_key"] = host_cfg.proxy_ssh_key or config.proxy_ssh_key
+
+        # create host config from host entry
+        host = Host(**host_dict)
 
         hosts[name] = host
 
