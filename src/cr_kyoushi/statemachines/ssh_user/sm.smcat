@@ -1,0 +1,29 @@
+"SSH User" {
+  initial,
+  selected_server,
+  connected,
+  ^sudo?,
+  sudo_dialog,
+  executing_chain,
+  executing_command,
+  final;
+
+  initial -> selected_server: select_server;
+
+  selected_server -> connected: ssh_connect;
+
+  connected -> final: disconnect;
+  connected -> executing_chain: select_chain;
+
+  executing_chain -> ^sudo?: execute_command;
+  executing_chain -> connected: finished;
+
+  ^sudo? -> sudo_dialog: [requires sudo];
+  ^sudo? -> executing_command;
+
+  sudo_dialog -> sudo_dialog: enter_wrong_password;
+  sudo_dialog -> executing_command: enter_password;
+  sudo_dialog -> executing_chain: fail_escalation;
+
+  executing_command -> executing_chain: stop_command;
+};

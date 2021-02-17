@@ -21,10 +21,7 @@ from cr_kyoushi.simulation.model import (
 )
 from cr_kyoushi.simulation.util import now
 
-from ..core.config import (
-    ProbabilisticStateConfig,
-    ProbVal,
-)
+from ..core.config import ProbabilisticStateConfig
 from ..core.selenium import SeleniumConfig
 
 
@@ -71,12 +68,12 @@ class UserConfig(BaseModel):
 class ActivitySelectionStateConfig(ProbabilisticStateConfig):
     """Transition probabilities configuration for the `selecting_activity` state"""
 
-    visit_website: ProbVal = Field(
+    visit_website: float = Field(
         0.7,
         description="The probability that the user will visit a website next",
     )
 
-    idle: ProbVal = Field(
+    idle: float = Field(
         0.3,
         description="The probability that the user will idle next",
     )
@@ -85,12 +82,12 @@ class ActivitySelectionStateConfig(ProbabilisticStateConfig):
 class WebsiteStateConfig(ProbabilisticStateConfig):
     """Transition probabilities configuration for the `on_website` state"""
 
-    visit_link: ProbVal = Field(
+    visit_link: float = Field(
         0.7,
         description="The probability that the user will click a link",
     )
 
-    leave_website: ProbVal = Field(
+    leave_website: float = Field(
         0.3,
         description="The probability that the user will leave the website",
     )
@@ -99,12 +96,12 @@ class WebsiteStateConfig(ProbabilisticStateConfig):
 class LeaveWebsiteStateConfig(ProbabilisticStateConfig):
     """Transition probabilities configuration for the `leaving_website` state"""
 
-    background: ProbVal = Field(
+    background: float = Field(
         0.5,
         description="The probability that the user will just leave the website open in the background",
     )
 
-    close: ProbVal = Field(
+    close: float = Field(
         0.5,
         description="The probability that the user will close the website",
     )
