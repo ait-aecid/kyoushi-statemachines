@@ -5,30 +5,27 @@ import pytest
 from pydantic import ValidationError
 
 from cr_kyoushi.simulation.model import ApproximateFloat
-from cr_kyoushi.statemachines.core.config import (
-    ProbabilisticStateConfig,
-    ProbVal,
-)
+from cr_kyoushi.statemachines.core.config import ProbabilisticStateConfig
 
 
 class ValidProbConfig(ProbabilisticStateConfig):
-    a: ProbVal
-    b: ProbVal
-    c: ProbVal
-    d: ProbVal
+    a: float
+    b: float
+    c: float
+    d: float
 
 
 class InvalidProbConfigComplex(ProbabilisticStateConfig):
-    a: ProbVal
-    b: ProbVal
-    c: ProbVal
+    a: float
+    b: float
+    c: float
     d: ApproximateFloat
 
 
 class InvalidProbConfigSimple(ProbabilisticStateConfig):
-    a: ProbVal
-    b: ProbVal
-    c: ProbVal
+    a: float
+    b: float
+    c: float
     d: str
 
 

@@ -3,6 +3,7 @@ This module contains configuration and context classes or elements,
 which might be useful for many state machines.
 """
 
+from enum import Enum
 from typing import (
     Any,
     Dict,
@@ -18,13 +19,10 @@ from pydantic import (
 
 from cr_kyoushi.simulation.model import ApproximateFloat
 
-from ..core.util import greater_equal_one
-
-
-ProbVal = Union[
-    float, int
-]  # float must be first or otherwise pydantic validation will do weird things
-"""Type alias for probability values"""
+from ..core.util import (
+    check_probabilities,
+    greater_equal_one,
+)
 
 
 class ActivityExtraConfig(BaseModel):
@@ -51,7 +49,7 @@ class ProbabilisticStateConfig(BaseModel):
     """
 
     @validator("*")
-    def check_value_range(cls, v: ProbVal) -> ProbVal:
+    def check_value_range(cls, v: float) -> float:
         """Validates the value range for all probability fields.
 
         Args:
@@ -87,39 +85,71 @@ class ProbabilisticStateConfig(BaseModel):
         for key, val in cls.__fields__.items():
             if key != "extra":
                 field_type = val.type_
-                if field_type not in [ProbVal, float, int]:
+                if not issubclass(field_type, float):
                     raise ValueError(
                         (
-                            "Probabilistic config fields must be int or float! "
+                            "Probabilistic config fields must be float! "
                             f"Found {key}: {field_type}"
                         )
                     )
         return values
 
     @root_validator
-    def check_probabilities(cls, values: Dict[str, ProbVal]) -> Dict[str, ProbVal]:
+    def check_probabilities(cls, values: Dict[str, float]) -> Dict[str, float]:
         """Validates the sum of all probabilities results in a clean probability distribution.
 
-        i.e., The sum of all probabilities is 100% (1.0 or 100)
+        i.e., The sum of all probabilities is 100% (i.e., 1.0)
 
         Args:
             values: Dictionary containing all fields
 
         Raises:
-            ValueError: If the distribution does not sum to 100%
+            ValueError: If the distribution does not sum to 1
 
         Returns:
             The fields dictionary
         """
-        fields = [val for key, val in values.items() if key != "extra"]
-        prob_sum = sum(fields, 0.0)
+        prob_fields = {key: val for key, val in values.items() if key != "extra"}
+        check_probabilities(prob_fields)
+        return values
 
-        if abs(1 - prob_sum) <= 1e-8:
-            return values
 
-        raise ValueError(
-            ("Sum of all transition probabilities must be 1.0, " f"but is {prob_sum}")
-        )
+class Idle(str, Enum):
+    BIG = "big"
+    MEDIUM = "medium"
+    SMALL = "small"
+    TINY = "tiny"
+
+    @classmethod
+    def lookup(cls):
+        return {v: k for v, k in cls.__members__.items()}
+
+    @classmethod
+    def __get_validators__(cls):
+        yield cls.validate
+
+    @classmethod
+    def validate(cls, val: Union[str, "Idle"]) -> "Idle":
+        """Parses and validates `Idle` input in either `str`, `Enum` encoding.
+
+        Args:
+            val: The encoded input Idle
+
+        Raises:
+            ValueError: if the given input is not a valid Idle
+
+        Returns:
+            Idle enum
+        """
+        # check enum input
+        if isinstance(val, Idle):
+            return val
+
+        # check str LogLevel input
+        try:
+            return cls.lookup()[val.upper()]
+        except KeyError as key_error:
+            raise ValueError("invalid string Idle") from key_error
 
 
 class IdleConfig(BaseModel):
@@ -153,3 +183,14 @@ class IdleConfig(BaseModel):
         ),
         description="The time in seconds to use for very short idles",
     )
+
+    def get(self, idle: Idle) -> Union[ApproximateFloat, float]:
+        """Retrieves the idle config for the given Idle type
+
+        Args:
+            idle: The idle type to retrieve
+
+        Returns:
+            Idle value
+        """
+        return self.__getattribute__(idle.value)
