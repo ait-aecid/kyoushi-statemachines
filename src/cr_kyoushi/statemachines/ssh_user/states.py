@@ -120,6 +120,15 @@ class Connected(ActivityState):
             1 if len(context.ssh_user.host.commands) > 0 else 0
         )
 
+    def adapt_after(
+        self,
+        log: BoundLogger,
+        context: Context,
+        selected,
+    ):
+        super().adapt_after(log, context, selected)
+        log.debug("Probs", probs=self.probabilities)
+
 
 class ExecutingCommandChain(states.ChoiceState):
     """Executing command chain state

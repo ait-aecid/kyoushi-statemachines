@@ -18,6 +18,7 @@ packages = [
 "ait.wordpress_wpdiscuz" = "cr_kyoushi.statemachines.wordpress_wpdiscuz:StatemachineFactory"
 "ait.wordpress_editor" = "cr_kyoushi.statemachines.wordpress_editor:StatemachineFactory"
 "ait.owncloud_user" = "cr_kyoushi.statemachines.owncloud_user:StatemachineFactory"
+"ait.ssh_user" = "cr_kyoushi.statemachines.ssh_user:StatemachineFactory"
 
 
 [[tool.poetry.source]]

@@ -18,22 +18,15 @@ from structlog.stdlib import BoundLogger
 
 from cr_kyoushi.simulation.util import sleep
 
-from .config import (
-    RECEIVE_PATTERN,
-    Host,
-)
+from .config import Host
 from .context import Context
-
-
-SUDO_REGEX = re.compile(r"\[sudo\] password for .*:\s+")
-SUDO_FAIL_REGEX = re.compile(r"sudo: \d* incorrect password attempts")
-SUDO_FAIL_BOTH_REGEX = re.compile(
-    r"(sudo: \d* incorrect password attempts)|(\[sudo\] password for .*:\s+)"
-)
-SSH_PASSWORD_REGEX = re.compile(r".*@.* password:\s+")
-SSH_CONNECTED_REGEX = re.compile(r"\$\s+")
-SSH_CONNECTION_REGEX = re.compile(
-    f"({SSH_PASSWORD_REGEX.pattern})|({SSH_CONNECTED_REGEX.pattern})"
+from .expect import (
+    RECEIVE_PATTERN,
+    SSH_CONNECTION_REGEX,
+    SSH_PASSWORD_REGEX,
+    SUDO_FAIL_BOTH_REGEX,
+    SUDO_FAIL_REGEX,
+    SUDO_REGEX,
 )
 
 

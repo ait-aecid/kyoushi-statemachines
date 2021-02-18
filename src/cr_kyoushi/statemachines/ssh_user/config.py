@@ -1,5 +1,4 @@
-import re
-
+from datetime import datetime
 from typing import (
     Dict,
     List,
@@ -15,11 +14,18 @@ from pydantic import (
     validator,
 )
 
-from ..core.config import Idle
-from ..core.util import check_probabilities
+from cr_kyoushi.simulation.model import WorkSchedule
 
-
-RECEIVE_PATTERN = re.compile(r".*@.*:.*\$\s+")
+from ..core.config import (
+    Idle,
+    IdleConfig,
+    ProbabilisticStateConfig,
+)
+from ..core.util import (
+    check_probabilities,
+    greater_equal_one,
+)
+from .expect import RECEIVE_PATTERN
 
 
 class CommandBase(BaseModel):
@@ -57,9 +63,12 @@ class CommandBase(BaseModel):
 class CommandConfig(CommandBase):
     """Command configuration class"""
 
-    expect: Pattern = Field(
-        RECEIVE_PATTERN,
-        descrition="The regex pattern to wait for after executing the command.",
+    expect: Optional[Pattern] = Field(
+        None,
+        descrition=(
+            "The regex pattern to wait for after executing the command. "
+            "This will default to the host prompt pattern."
+        ),
     )
 
 
@@ -78,7 +87,7 @@ class Command(CommandBase):
     )
 
 
-CommandChain = Union[str, List[Union[str, CommandConfig]]]
+CommandChain = Union[str, CommandConfig, List[Union[str, CommandConfig]]]
 
 
 class HostConfigBase(BaseModel):
@@ -185,6 +194,14 @@ class HostConfig(HostConfigBase):
         ),
     )
 
+    shell_prompt_pattern: Pattern = Field(
+        RECEIVE_PATTERN,
+        description=(
+            "The shell prompt pattern to expect for commands. "
+            "Default is the bash prompt."
+        ),
+    )
+
 
 class Host(HostConfigBase):
     """Host model
@@ -210,6 +227,14 @@ class Host(HostConfigBase):
     commands: List[List[Command]] = Field(
         [],
         description="List of command chains the user can execute on the host",
+    )
+
+    shell_prompt_pattern: str = Field(
+        ...,
+        description=(
+            "The shell prompt pattern to expect for commands. "
+            "Default is the bash prompt."
+        ),
     )
 
 
@@ -267,13 +292,21 @@ class SSHUserConfig(BaseModel):
     )
 
     hosts: Dict[str, float] = Field(
-        ...,
+        {},
         description="Mapping of host identifiers to the propabilities of them being selected.",
     )
 
     host_configs: Dict[str, HostConfig] = Field(
-        ...,
+        {},
         description="Mapping of host identifiers to their configurations.",
+    )
+
+    max_daily: int = Field(
+        10,
+        description=(
+            "The maximum amount of times the ssh user "
+            "activity will be entered per day"
+        ),
     )
 
     _validate_probabilities = validator("hosts", allow_reuse=True)(check_probabilities)
@@ -355,23 +388,30 @@ class SSHUserConfig(BaseModel):
         return v
 
 
-def convert_command(c: CommandConfig) -> Command:
+def convert_command(c: CommandConfig, expect_pattern: Pattern) -> Command:
     """Utility function to convert command config to command"""
 
     info = c.dict()
-    info.update({"expect": c.expect.pattern})
+    expect = c.expect or expect_pattern
+    info.update({"expect": expect.pattern})
     return Command(**info)
 
 
-def convert_chain(chain: CommandChain) -> List[Command]:
+def convert_chain(chain: CommandChain, host_cfg: HostConfig) -> List[Command]:
     """Converts a command chain int a list of commands.
 
     i.e., simple str commands are converted to Command objects.
     """
+    prompt = host_cfg.shell_prompt_pattern
+
     if isinstance(chain, str):
-        return [Command(cmd=chain)]
+        return [Command(cmd=chain, expect=prompt.pattern)]
+    if isinstance(chain, CommandConfig):
+        return [convert_command(chain, prompt)]
     return [
-        convert_command(c) if isinstance(c, CommandConfig) else Command(cmd=c)
+        convert_command(c, prompt)
+        if isinstance(c, CommandConfig)
+        else Command(cmd=c, expect=prompt.pattern)
         for c in chain
     ]
 
@@ -387,7 +427,6 @@ def get_hosts(config: SSHUserConfig) -> Dict[str, Host]:
     Returns:
         Concrete hosts dictionary.
     """
-    default_commands = [convert_chain(chain) for chain in config.commands]
     hosts = {}
     for name, host_cfg in config.host_configs.items():
         assert config.username is not None or host_cfg.username is not None
@@ -395,19 +434,32 @@ def get_hosts(config: SSHUserConfig) -> Dict[str, Host]:
 
         host_dict = host_cfg.dict()
 
+        # convert pattern to str
+        print(
+            f"{host_cfg.host}: {host_cfg.shell_prompt_pattern} -> {host_cfg.shell_prompt_pattern.pattern}"
+        )
+        host_dict["shell_prompt_pattern"] = host_cfg.shell_prompt_pattern.pattern
+
         if host_cfg.verify_host is None:
             host_dict["verify_host"] = config.verify_host
         else:
             host_dict["verify_host"] = host_cfg.verify_host
 
         # convert config command chain to proper commands
-        host_dict["commands"] = [convert_chain(chain) for chain in host_cfg.commands]
+        host_dict["commands"] = [
+            convert_chain(chain, host_cfg) for chain in host_cfg.commands
+        ]
 
         # apply default values where appropriate
         host_dict["username"] = host_cfg.username or config.username
         host_dict["password"] = host_cfg.password or config.password
 
         if host_cfg.include_default_commands:
+            # need to convert default commands for each host
+            # as the shell prompts might be different
+            default_commands = [
+                convert_chain(chain, host_cfg) for chain in config.commands
+            ]
             host_dict["commands"].extend(default_commands)
 
         if host_cfg.use_default_key and host_dict["ssh_key"] is None:
@@ -428,3 +480,163 @@ def get_hosts(config: SSHUserConfig) -> Dict[str, Host]:
         hosts[name] = host
 
     return hosts
+
+
+class ActivitySelectionConfig(ProbabilisticStateConfig):
+    """SSH user state machines selecting activity states configuration."""
+
+    ssh_user: float = Field(
+        0.6,
+        description="The base propability that ssh_user will be selected.",
+    )
+
+    idle: float = Field(
+        0.4,
+        description="The base propability that idle will be selected.",
+    )
+
+
+class ConnectedExtraConfig(BaseModel):
+    """Base class for extra configuration fields for the connected state config."""
+
+    disconnect_increase: float = Field(
+        3.0,
+        description=(
+            "The multiplicative factor the disconnect transitions weight "
+            "should be increased each time it is not selected."
+        ),
+    )
+
+    _validate_increase = validator("disconnect_increase", allow_reuse=True)(
+        greater_equal_one
+    )
+
+
+class ConnectedConfig(ProbabilisticStateConfig):
+    """The selecting menu states configuration"""
+
+    select_chain: float = Field(
+        0.9,
+        description="The base propability that select_chain will be selected.",
+    )
+
+    disconnect: float = Field(
+        0.1,
+        description="The base propability that disconnect will be selected.",
+    )
+
+    extra: ConnectedExtraConfig = Field(
+        ConnectedExtraConfig(),
+        description="Extra configuration for the state",
+    )
+
+
+class SudoDialogExtraConfig(BaseModel):
+    """Base class for extra configuration fields for the sudo dialog config."""
+
+    fail_increase: float = Field(
+        4.0,
+        description=(
+            "The multiplicative factor the fail transitions weight "
+            "should be increased each time it is not selected."
+        ),
+    )
+
+    _validate_increase = validator("fail_increase", allow_reuse=True)(greater_equal_one)
+
+
+class SudoDialogConfig(ProbabilisticStateConfig):
+    """The selecting menu states configuration"""
+
+    enter_password: float = Field(
+        0.95,
+        description="The base propability that enter_password will be selected.",
+    )
+
+    fail: float = Field(
+        0.05,
+        description="The base propability that fail will be selected.",
+    )
+
+    extra: SudoDialogExtraConfig = Field(
+        SudoDialogExtraConfig(),
+        description="Extra configuration for the state",
+    )
+
+
+class SSHActivityStates(BaseModel):
+    """Configuration class for all SSH user activity states."""
+
+    connected: ConnectedConfig = Field(
+        ConnectedConfig(),
+        description="The connected states config",
+    )
+
+    sudo_dialog: SudoDialogConfig = Field(
+        SudoDialogConfig(),
+        description="The sudo dialog states config",
+    )
+
+
+class SSHUserStates(SSHActivityStates):
+    """Configuration class for the ssh user state machine states"""
+
+    selecting_activity: ActivitySelectionConfig = Field(
+        ActivitySelectionConfig(),
+        description="The selecting activity states config",
+    )
+
+
+class StatemachineConfig(BaseModel):
+    """SSH user state machine configuration model
+
+    Example:
+        ```yaml
+        max_error: 0
+        start_time: 2021-01-23T9:00
+        end_time: 2021-01-29T00:01
+        schedule:
+        work_days:
+            monday:
+                start_time: 09:00
+                end_time: 17:30
+            friday:
+                start_time: 11:21
+                end_time: 19:43
+        ```
+    """
+
+    max_errors: int = Field(
+        0,
+        description="The maximum amount of times to try to recover from an error",
+    )
+
+    start_time: Optional[datetime] = Field(
+        None,
+        description="The state machines start time",
+    )
+
+    end_time: Optional[datetime] = Field(
+        None,
+        description="The state machines end time",
+    )
+
+    idle: IdleConfig = Field(
+        IdleConfig(),
+        description="The idle configuration for the state machine",
+    )
+
+    schedule: Optional[WorkSchedule] = Field(
+        None,
+        description="The work schedule for the web browser user",
+    )
+
+    ssh_user: SSHUserConfig = Field(
+        SSHUserConfig(),
+        description="The ssh user config",
+    )
+
+    states: SSHUserStates = Field(
+        SSHUserStates(),
+        description="The states configuration for the state machine",
+    )
