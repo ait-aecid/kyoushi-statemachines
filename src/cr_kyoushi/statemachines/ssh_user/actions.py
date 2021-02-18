@@ -243,7 +243,7 @@ def execute_command(
                 log.info("Changed directory")
 
             cmd = command.cmd
-            expect = re.compile(command.expect)
+            expect = command.expect
 
             if command.sudo:
                 # configure special expect for sudo
@@ -302,7 +302,7 @@ def enter_sudo_password(
             log.info("Entered sudo password")
 
             # wait for command results
-            user.output += _receive(log, user.shell, re.compile(command.expect))
+            user.output += _receive(log, user.shell, command.expect)
             _finish_command(log, current_state, context, target)
         else:
             log.info("Sudo password was not required")

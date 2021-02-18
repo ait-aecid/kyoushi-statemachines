@@ -28,7 +28,7 @@ from ..core.util import (
 from .expect import RECEIVE_PATTERN
 
 
-class CommandBase(BaseModel):
+class CommandConfig(BaseModel):
     """Shell command configuration model"""
 
     cmd: str = Field(
@@ -59,10 +59,6 @@ class CommandBase(BaseModel):
         description="The concrete or approximate time to to idle after executing the command.",
     )
 
-
-class CommandConfig(CommandBase):
-    """Command configuration class"""
-
     expect: Optional[Pattern] = Field(
         None,
         descrition=(
@@ -72,17 +68,11 @@ class CommandConfig(CommandBase):
     )
 
 
-class Command(CommandBase):
-    """Command class
+class Command(CommandConfig):
+    """Command model class"""
 
-    !!! Note
-        It is necessary to set expect as `str` as the Pydantic JSON encoder
-        cannot handle `Pattern` fields as of v1.7.3. The code exists already on
-        the master branch and should be part of the next release.
-    """
-
-    expect: str = Field(
-        RECEIVE_PATTERN.pattern,
+    expect: Pattern = Field(
+        RECEIVE_PATTERN,
         descrition="The regex pattern to wait for after executing the command.",
     )
 
@@ -128,6 +118,14 @@ class HostConfigBase(BaseModel):
         description="If password authentication should be forced. (Useful for hosts with many SSH Keys)",
     )
 
+    verify_host: Optional[bool] = Field(
+        None,
+        description=(
+            "If the user should verify the SSH servers host key "
+            "(if not set global config value is used)"
+        ),
+    )
+
     proxy_host: Optional[str] = Field(
         None,
         description="The host or IP of the SSH proxy server",
@@ -151,6 +149,14 @@ class HostConfigBase(BaseModel):
     proxy_verify_host: bool = Field(
         True,
         description="If the SSH host key should be verified or not",
+    )
+
+    shell_prompt_pattern: Pattern = Field(
+        RECEIVE_PATTERN,
+        description=(
+            "The shell prompt pattern to expect for commands. "
+            "Default is the bash prompt."
+        ),
     )
 
 
@@ -186,22 +192,6 @@ class HostConfig(HostConfigBase):
         ),
     )
 
-    verify_host: Optional[bool] = Field(
-        None,
-        description=(
-            "If the user should verify the SSH servers host key "
-            "(if not set global config value is used)"
-        ),
-    )
-
-    shell_prompt_pattern: Pattern = Field(
-        RECEIVE_PATTERN,
-        description=(
-            "The shell prompt pattern to expect for commands. "
-            "Default is the bash prompt."
-        ),
-    )
-
 
 class Host(HostConfigBase):
     """Host model
@@ -227,14 +217,6 @@ class Host(HostConfigBase):
     commands: List[List[Command]] = Field(
         [],
         description="List of command chains the user can execute on the host",
-    )
-
-    shell_prompt_pattern: str = Field(
-        ...,
-        description=(
-            "The shell prompt pattern to expect for commands. "
-            "Default is the bash prompt."
-        ),
     )
 
 
@@ -393,7 +375,7 @@ def convert_command(c: CommandConfig, expect_pattern: Pattern) -> Command:
 
     info = c.dict()
     expect = c.expect or expect_pattern
-    info.update({"expect": expect.pattern})
+    info.update({"expect": expect})
     return Command(**info)
 
 
@@ -405,13 +387,13 @@ def convert_chain(chain: CommandChain, host_cfg: HostConfig) -> List[Command]:
     prompt = host_cfg.shell_prompt_pattern
 
     if isinstance(chain, str):
-        return [Command(cmd=chain, expect=prompt.pattern)]
+        return [Command(cmd=chain, expect=prompt)]
     if isinstance(chain, CommandConfig):
         return [convert_command(chain, prompt)]
     return [
         convert_command(c, prompt)
         if isinstance(c, CommandConfig)
-        else Command(cmd=c, expect=prompt.pattern)
+        else Command(cmd=c, expect=prompt)
         for c in chain
     ]
 
@@ -433,12 +415,6 @@ def get_hosts(config: SSHUserConfig) -> Dict[str, Host]:
         assert config.password is not None or host_cfg.password is not None
 
         host_dict = host_cfg.dict()
-
-        # convert pattern to str
-        print(
-            f"{host_cfg.host}: {host_cfg.shell_prompt_pattern} -> {host_cfg.shell_prompt_pattern.pattern}"
-        )
-        host_dict["shell_prompt_pattern"] = host_cfg.shell_prompt_pattern.pattern
 
         if host_cfg.verify_host is None:
             host_dict["verify_host"] = config.verify_host
