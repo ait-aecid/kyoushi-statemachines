@@ -7,15 +7,18 @@ import sys
 import time
 
 from contextlib import contextmanager
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import (
     Any,
     Callable,
     Dict,
+    Generic,
     List,
     Optional,
     Tuple,
+    TypeVar,
     Union,
 )
 
@@ -58,10 +61,14 @@ from webdriver_manager.microsoft import (
 from webdriver_manager.opera import OperaDriverManager
 from webdriver_manager.utils import ChromeType
 
+from cr_kyoushi.simulation.config import get_seed
 from cr_kyoushi.simulation.model import (
     ApproximateFloat,
     LogLevel,
+    WorkSchedule,
 )
+from cr_kyoushi.simulation.sm import WorkHoursStatemachine
+from cr_kyoushi.simulation.states import State
 
 from .config import (
     BasicStatemachineConfig,
@@ -857,3 +864,73 @@ class SeleniumContextModel(FakerContextModel):
         ...,
         description="The main window of the webdriver",
     )
+
+
+C = TypeVar("C", bound=SeleniumContext)
+
+
+class SeleniumStatemachine(WorkHoursStatemachine, Generic[C]):
+    """Generic selenium state machine class"""
+
+    _selenium_config: SeleniumConfig
+    _webdriver_path: Optional[str]
+
+    def __init__(
+        self,
+        initial_state: str,
+        states: List[State],
+        selenium_config: SeleniumConfig,
+        start_time: Optional[datetime] = None,
+        end_time: Optional[datetime] = None,
+        work_schedule: Optional[WorkSchedule] = None,
+        max_errors: int = 0,
+    ):
+        super().__init__(
+            initial_state,
+            states,
+            start_time=start_time,
+            end_time=end_time,
+            work_schedule=work_schedule,
+            max_errors=max_errors,
+        )
+        self._selenium_config = selenium_config
+        self._webdriver_path = None
+        self.context: Optional[C] = None
+        # seed faker random with global seed
+        Faker.seed(get_seed())
+        self.fake: Faker = Faker()
+
+    def get_driver(self) -> webdriver.Remote:
+        # we assume we only install once at the start of the sm
+        if self._webdriver_path is None:
+            self._webdriver_path = install_webdriver(self._selenium_config)
+
+        return get_webdriver(
+            self._selenium_config,
+            self._webdriver_path,
+        )
+
+    def setup_context(self):
+        raise NotImplementedError()
+
+    def destroy_context(self):
+        if self.context is not None:
+            self.context.driver.quit()
+
+    def _resume_work(self):
+        self.current_state = self.initial_state
+        # reset context
+        self.destroy_context()
+        self.setup_context()
+
+
+class Statemachine(SeleniumStatemachine[SeleniumContextModel]):
+    """Basic selenium state machine class with a selenium context"""
+
+    def setup_context(self):
+        driver = self.get_driver()
+        self.context = SeleniumContextModel(
+            driver=driver,
+            main_window=driver.current_window_handle,
+            fake=self.fake,
+        )
