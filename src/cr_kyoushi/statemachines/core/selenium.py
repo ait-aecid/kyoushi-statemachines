@@ -14,7 +14,6 @@ from typing import (
     Any,
     Callable,
     Dict,
-    Generic,
     List,
     Optional,
     Tuple,
@@ -62,13 +61,11 @@ from webdriver_manager.microsoft import (
 from webdriver_manager.opera import OperaDriverManager
 from webdriver_manager.utils import ChromeType
 
-from cr_kyoushi.simulation.config import get_seed
 from cr_kyoushi.simulation.model import (
     ApproximateFloat,
     LogLevel,
     WorkSchedule,
 )
-from cr_kyoushi.simulation.sm import WorkHoursStatemachine
 from cr_kyoushi.simulation.states import State
 
 from .config import (
@@ -76,6 +73,7 @@ from .config import (
     FakerContext,
     FakerContextModel,
 )
+from .sm import FakerStatemachine
 from .util import filter_none_keys
 
 
@@ -877,11 +875,8 @@ class SeleniumContextModel(FakerContextModel):
 C = TypeVar("C", bound=SeleniumContext)
 
 
-class SeleniumStatemachine(WorkHoursStatemachine, Generic[C]):
+class SeleniumStatemachine(FakerStatemachine[C]):
     """Generic selenium state machine class"""
-
-    _selenium_config: SeleniumConfig
-    _webdriver_path: Optional[str]
 
     def __init__(
         self,
@@ -901,12 +896,8 @@ class SeleniumStatemachine(WorkHoursStatemachine, Generic[C]):
             work_schedule=work_schedule,
             max_errors=max_errors,
         )
-        self._selenium_config = selenium_config
-        self._webdriver_path = None
-        self.context: Optional[C] = None
-        # seed faker random with global seed
-        Faker.seed(get_seed())
-        self.fake: Faker = Faker()
+        self._selenium_config: SeleniumConfig = selenium_config
+        self._webdriver_path: Optional[str] = None
 
     def get_driver(self) -> webdriver.Remote:
         # we assume we only install once at the start of the sm
@@ -925,14 +916,8 @@ class SeleniumStatemachine(WorkHoursStatemachine, Generic[C]):
         if self.context is not None:
             self.context.driver.quit()
 
-    def _resume_work(self):
-        self.current_state = self.initial_state
-        # reset context
-        self.destroy_context()
-        self.setup_context()
 
-
-class Statemachine(SeleniumStatemachine[SeleniumContextModel]):
+class Statemachine(SeleniumStatemachine[SeleniumContext]):
     """Basic selenium state machine class with a selenium context"""
 
     def setup_context(self):

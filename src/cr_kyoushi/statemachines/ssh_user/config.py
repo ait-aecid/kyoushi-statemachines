@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import (
     Dict,
     List,
@@ -14,11 +13,9 @@ from pydantic import (
     validator,
 )
 
-from cr_kyoushi.simulation.model import WorkSchedule
-
 from ..core.config import (
+    BasicStatemachineConfig,
     Idle,
-    IdleConfig,
     ProbabilisticStateConfig,
 )
 from ..core.util import (
@@ -563,7 +560,7 @@ class SSHUserStates(SSHActivityStates):
     )
 
 
-class StatemachineConfig(BaseModel):
+class StatemachineConfig(BasicStatemachineConfig):
     """SSH user state machine configuration model
 
     Example:
@@ -581,31 +578,6 @@ class StatemachineConfig(BaseModel):
                 end_time: 19:43
         ```
     """
-
-    max_errors: int = Field(
-        0,
-        description="The maximum amount of times to try to recover from an error",
-    )
-
-    start_time: Optional[datetime] = Field(
-        None,
-        description="The state machines start time",
-    )
-
-    end_time: Optional[datetime] = Field(
-        None,
-        description="The state machines end time",
-    )
-
-    idle: IdleConfig = Field(
-        IdleConfig(),
-        description="The idle configuration for the state machine",
-    )
-
-    schedule: Optional[WorkSchedule] = Field(
-        None,
-        description="The work schedule for the web browser user",
-    )
 
     ssh_user: SSHUserConfig = Field(
         SSHUserConfig(),

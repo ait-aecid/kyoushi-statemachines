@@ -1,23 +1,33 @@
 """The ssh user activities context model classes"""
 
+import sys
 
 from typing import (
     List,
     Optional,
 )
 
-from faker import Faker
 from pwnlib.tubes.process import process
 from pydantic import (
     BaseModel,
     Field,
 )
 
-from ..core.config import IdleConfig
+from ..core.config import (
+    FakerContext,
+    FakerContextModel,
+    IdleConfig,
+)
 from .config import (
     Command,
     Host,
 )
+
+
+if sys.version_info >= (3, 8):
+    from typing import Protocol
+else:
+    from typing_extensions import Protocol
 
 
 class SSHUserContext(BaseModel):
@@ -48,16 +58,17 @@ class SSHUserContext(BaseModel):
         arbitrary_types_allowed = True
 
 
-class Context(BaseModel):
-    """SSH user state machine context class"""
+class Context(FakerContext, Protocol):
+    """SSH user state machine context protocol"""
 
-    fake: Faker
-    """Faker instance to use for generating various random content"""
+    ssh_user: SSHUserContext
+    """The owncloud user context"""
+
+
+class ContextModel(FakerContextModel):
+    """SSH user state machine context class"""
 
     ssh_user: SSHUserContext = Field(
         SSHUserContext(),
         description="The owncloud user context",
     )
-
-    class Config:
-        arbitrary_types_allowed = True
