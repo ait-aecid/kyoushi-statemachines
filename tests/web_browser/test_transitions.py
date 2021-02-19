@@ -1,9 +1,10 @@
+from faker import Faker
 from pytest_mock import MockFixture
 from selenium.webdriver import Remote
 from selenium.webdriver.remote.webelement import WebElement
 
 from cr_kyoushi.simulation.logging import get_logger
-from cr_kyoushi.statemachines.web_browser.config import Context
+from cr_kyoushi.statemachines.web_browser.config import ContextModel
 from cr_kyoushi.statemachines.web_browser.transitions import _get_available_links
 
 
@@ -33,8 +34,8 @@ def test_available_links(mocker: MockFixture):
     driver_mock = mocker.MagicMock(Remote)
     driver_mock.find_elements.return_value = web_elements
 
-    context = Context(driver=driver_mock)
+    context = ContextModel(driver=driver_mock, fake=Faker(), main_window="test")
 
     _get_available_links(log=get_logger(), context=context)
 
-    assert expected_links == context.available_links
+    assert expected_links == context.web_browser.available_links
