@@ -3,6 +3,7 @@ This module contains configuration and utility functions for using Selenium webd
 as part of simulations.
 """
 import os
+import sys
 import time
 
 from contextlib import contextmanager
@@ -18,6 +19,7 @@ from typing import (
     Union,
 )
 
+from faker import Faker
 from pydantic import (
     AnyUrl,
     BaseModel,
@@ -63,6 +65,11 @@ from cr_kyoushi.simulation.model import (
 
 from .util import filter_none_keys
 
+
+if sys.version_info >= (3, 8):
+    from typing import Protocol
+else:
+    from typing_extensions import Protocol
 
 TIMEOUT = 120
 
@@ -788,3 +795,34 @@ class WaitForScrollFinish:
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
         self.wait()
+
+
+class SeleniumContext(Protocol):
+    """Context model for selenium state machines"""
+
+    driver: webdriver.Remote
+    """The selenium web driver"""
+
+    main_window: str
+    """The main window of the webdriver"""
+
+    fake: Faker
+    """Faker instance to use for generating various random content"""
+
+
+class SeleniumContextModel(BaseModel):
+    """Context model for selenium state machines"""
+
+    driver: webdriver.Remote
+    """The selenium web driver"""
+
+    main_window: str = Field(
+        ...,
+        description="The main window of the webdriver",
+    )
+
+    fake: Faker
+    """Faker instance to use for generating various random content"""
+
+    class Config:
+        arbitrary_types_allowed = True
