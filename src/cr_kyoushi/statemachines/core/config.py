@@ -3,6 +3,8 @@ This module contains configuration and context classes or elements,
 which might be useful for many state machines.
 """
 
+import sys
+
 from enum import Enum
 from typing import (
     Any,
@@ -10,6 +12,7 @@ from typing import (
     Union,
 )
 
+from faker import Faker
 from pydantic import (
     BaseModel,
     Field,
@@ -23,6 +26,12 @@ from ..core.util import (
     check_probabilities,
     greater_equal_one,
 )
+
+
+if sys.version_info >= (3, 8):
+    from typing import Protocol
+else:
+    from typing_extensions import Protocol
 
 
 class ActivityExtraConfig(BaseModel):
@@ -194,3 +203,20 @@ class IdleConfig(BaseModel):
             Idle value
         """
         return self.__getattribute__(idle.value)
+
+
+class FakerContext(Protocol):
+    """Context model for state machines using faker"""
+
+    fake: Faker
+    """Faker instance to use for generating various random content"""
+
+
+class FakerContextModel(BaseModel):
+    """Context model for faker state machines"""
+
+    fake: Faker
+    """Faker instance to use for generating various random content"""
+
+    class Config:
+        arbitrary_types_allowed = True

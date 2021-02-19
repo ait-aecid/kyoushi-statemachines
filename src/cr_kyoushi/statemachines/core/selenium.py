@@ -63,6 +63,10 @@ from cr_kyoushi.simulation.model import (
     LogLevel,
 )
 
+from .config import (
+    FakerContext,
+    FakerContextModel,
+)
 from .util import filter_none_keys
 
 
@@ -797,7 +801,7 @@ class WaitForScrollFinish:
         self.wait()
 
 
-class SeleniumContext(Protocol):
+class SeleniumContext(FakerContext, Protocol):
     """Context model for selenium state machines"""
 
     driver: webdriver.Remote
@@ -810,7 +814,7 @@ class SeleniumContext(Protocol):
     """Faker instance to use for generating various random content"""
 
 
-class SeleniumContextModel(BaseModel):
+class SeleniumContextModel(FakerContextModel):
     """Context model for selenium state machines"""
 
     driver: webdriver.Remote
@@ -820,9 +824,3 @@ class SeleniumContextModel(BaseModel):
         ...,
         description="The main window of the webdriver",
     )
-
-    fake: Faker
-    """Faker instance to use for generating various random content"""
-
-    class Config:
-        arbitrary_types_allowed = True

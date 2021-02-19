@@ -1,3 +1,5 @@
+import sys
+
 from datetime import (
     date,
     datetime,
@@ -12,7 +14,6 @@ from pydantic import (
     BaseModel,
     Field,
 )
-from selenium import webdriver
 from selenium.webdriver.remote.webelement import WebElement
 
 from cr_kyoushi.simulation.model import (
@@ -22,8 +23,17 @@ from cr_kyoushi.simulation.model import (
 from cr_kyoushi.simulation.util import now
 
 from ..core.config import ProbabilisticStateConfig
-from ..core.selenium import SeleniumConfig
+from ..core.selenium import (
+    SeleniumConfig,
+    SeleniumContext,
+    SeleniumContextModel,
+)
 
+
+if sys.version_info >= (3, 8):
+    from typing import Protocol
+else:
+    from typing_extensions import Protocol
 
 __all__ = [
     "UserConfig",
@@ -211,10 +221,7 @@ class StatemachineConfig(BaseModel):
     )
 
 
-class Context(BaseModel):
-    driver: webdriver.Remote
-    """The selenium web driver"""
-
+class WebBrowserContextModel(BaseModel):
     current_website: Optional[AnyUrl] = Field(
         None,
         description="The website currently being visited",
@@ -242,3 +249,16 @@ class Context(BaseModel):
 
     class Config:
         arbitrary_types_allowed = True
+
+
+class Context(SeleniumContext, Protocol):
+
+    web_browser: WebBrowserContextModel
+    """The web browser user context"""
+
+
+class ContextModel(SeleniumContextModel):
+    web_browser: WebBrowserContextModel = Field(
+        WebBrowserContextModel(),
+        description="The web browser user context",
+    )

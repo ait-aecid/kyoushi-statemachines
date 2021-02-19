@@ -28,21 +28,21 @@ class ActivitySelectionState(states.ProbabilisticState):
             name,
             [website_transition, idle_transition],
             [website_weight, idle_weight],
-            allow_uneven_probabilites=False,
         )
         self._max_websites_day: int = max_websites_day
 
     def next(
         self, log: BoundLogger, context: Context
     ) -> Optional[transitions.Transition]:
+        browser = context.web_browser
         # update website daylie visit count
         current_day = now().date()
-        if context.current_day != current_day:
-            context.current_day = current_day
-            context.website_count = 0
+        if browser.current_day != current_day:
+            browser.current_day = current_day
+            browser.website_count = 0
 
         # if we reached the maximum visits we always idle
-        if context.website_count >= self._max_websites_day:
+        if browser.website_count >= self._max_websites_day:
             return self.transitions[1]
 
         return super().next(log, context)
@@ -62,16 +62,16 @@ class WebsiteState(states.ProbabilisticState):
             name,
             [website_transition, leave_transition],
             [website_weight, leave_weight],
-            allow_uneven_probabilites=False,
         )
         self._max_depth: int = max_depth
 
     def next(
         self, log: BoundLogger, context: Context
     ) -> Optional[transitions.Transition]:
+        browser = context.web_browser
         if (
-            len(context.available_links) == 0
-            or context.website_depth >= self._max_depth
+            len(browser.available_links) == 0
+            or browser.website_depth >= self._max_depth
         ):
             # if the websites have not links to navigate to
             # or we have reached max depth then we always leave the website
