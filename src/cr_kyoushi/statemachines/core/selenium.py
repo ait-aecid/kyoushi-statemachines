@@ -29,6 +29,7 @@ from pydantic import (
     Field,
     PositiveInt,
     SecretStr,
+    root_validator,
     validator,
 )
 from pydantic.errors import (
@@ -196,7 +197,7 @@ class SeleniumDownloadConfig(BaseModel):
     """Configuration class for the selenium drivers download settings"""
 
     prompt: bool = Field(
-        False,
+        True,
         description="If the download dialog should be shown or not",
     )
 
@@ -216,6 +217,13 @@ class SeleniumDownloadConfig(BaseModel):
             raise PathNotADirectoryError(path=value)
 
         return value
+
+    @root_validator()
+    def validate_download_path(cls, values):
+        assert (
+            values.get("prompt", True) or values.get("path", None) is not None
+        ), "Download path must be set if prompt is `False`"
+        return values
 
 
 class SeleniumConfig(BaseModel):
