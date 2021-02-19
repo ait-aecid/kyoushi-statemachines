@@ -139,7 +139,7 @@ def get_post_activity(
     comment: str = "new_comment",
     reply: str = "reply_to_comment",
     write_comment: str = "write_comment",
-):
+) -> Tuple[states.PostPage, states.CommentCompose]:
     """Creates the post activity and its underlying states and transitions.
 
     It is possible to assign different names to the states and transitions via the
