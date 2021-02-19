@@ -1,10 +1,6 @@
 """Configuration classes for the horde user activity and state machine"""
 
-from datetime import datetime
-from typing import (
-    Dict,
-    Optional,
-)
+from typing import Dict
 
 from pydantic import (
     BaseModel,
@@ -15,14 +11,11 @@ from pydantic import (
     validator,
 )
 
-from cr_kyoushi.simulation.model import WorkSchedule
-
 from ..core.config import (
     ActivityExtraConfig,
-    IdleConfig,
     ProbabilisticStateConfig,
 )
-from ..core.selenium import SeleniumConfig
+from ..core.selenium import SeleniumStatemachineConfig
 from ..core.util import positive_smaller_one
 
 
@@ -634,7 +627,7 @@ class HordeConfig(BaseModel):
     )
 
 
-class StatemachineConfig(BaseModel):
+class StatemachineConfig(SeleniumStatemachineConfig):
     """Web browser state machine configuration model
 
     Example:
@@ -659,36 +652,6 @@ class StatemachineConfig(BaseModel):
             accept_insecure_ssl: yes
         ```
     """
-
-    max_errors: int = Field(
-        0,
-        description="The maximum amount of times to try to recover from an error",
-    )
-
-    start_time: Optional[datetime] = Field(
-        None,
-        description="The state machines start time",
-    )
-
-    end_time: Optional[datetime] = Field(
-        None,
-        description="The state machines end time",
-    )
-
-    idle: IdleConfig = Field(
-        IdleConfig(),
-        description="The idle configuration for the state machine",
-    )
-
-    schedule: Optional[WorkSchedule] = Field(
-        None,
-        description="The work schedule for the web browser user",
-    )
-
-    selenium: SeleniumConfig = Field(
-        SeleniumConfig(),
-        description="Selenium configuration for the web browser user",
-    )
 
     states: HordeUserStates = Field(
         HordeUserStates(),

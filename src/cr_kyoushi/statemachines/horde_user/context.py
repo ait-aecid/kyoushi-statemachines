@@ -1,4 +1,5 @@
 """The horde activities context model classes"""
+import sys
 
 from datetime import datetime
 from enum import Enum
@@ -8,17 +9,25 @@ from typing import (
     Union,
 )
 
-from faker import Faker
 from pydantic import (
     BaseModel,
     Field,
     FilePath,
 )
-from selenium import webdriver
 
 from cr_kyoushi.simulation.model import ApproximateFloat
 
 from ..core.model import BaseInfo
+from ..core.selenium import (
+    SeleniumContext,
+    SeleniumContextModel,
+)
+
+
+if sys.version_info >= (3, 8):
+    from typing import Protocol
+else:
+    from typing_extensions import Protocol
 
 
 __all__ = [
@@ -254,24 +263,17 @@ class HordeContext(BaseModel):
     )
 
 
-class Context(BaseModel):
+class Context(SeleniumContext, Protocol):
+    """Horde state machine context protocol"""
+
+    horde: HordeContext
+    """The horde specific context variables"""
+
+
+class ContextModel(SeleniumContextModel):
     """Horde state machine context class"""
-
-    driver: webdriver.Remote
-    """The selenium web driver"""
-
-    main_window: str = Field(
-        ...,
-        description="The main window of the webdriver",
-    )
-
-    fake: Faker
-    """Faker instance to use for generating various random content"""
 
     horde: HordeContext = Field(
         HordeContext(),
         description="The horde specific context variables",
     )
-
-    class Config:
-        arbitrary_types_allowed = True
