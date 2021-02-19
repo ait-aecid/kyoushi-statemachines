@@ -1,9 +1,6 @@
 import sys
 
-from datetime import (
-    date,
-    datetime,
-)
+from datetime import date
 from typing import (
     List,
     Optional,
@@ -16,17 +13,13 @@ from pydantic import (
 )
 from selenium.webdriver.remote.webelement import WebElement
 
-from cr_kyoushi.simulation.model import (
-    ApproximateFloat,
-    WorkSchedule,
-)
 from cr_kyoushi.simulation.util import now
 
 from ..core.config import ProbabilisticStateConfig
 from ..core.selenium import (
-    SeleniumConfig,
     SeleniumContext,
     SeleniumContextModel,
+    SeleniumStatemachineConfig,
 )
 
 
@@ -62,16 +55,6 @@ class UserConfig(BaseModel):
     max_depth: int = Field(
         2,
         description="The maximum link depth the user will browse to on a website",
-    )
-
-    wait_time: ApproximateFloat = Field(
-        ApproximateFloat(min=0.5, max=3.0),
-        description="The approximate time the user waits before clicking a link on a website",
-    )
-
-    idle_time: ApproximateFloat = Field(
-        ApproximateFloat(min=60, max=60 * 60 * 2),
-        description="The time to wait in between website visits",
     )
 
 
@@ -136,7 +119,7 @@ class StatesConfig(BaseModel):
     )
 
 
-class StatemachineConfig(BaseModel):
+class StatemachineConfig(SeleniumStatemachineConfig):
     """Web browser state machine configuration model
 
     Example:
@@ -184,31 +167,6 @@ class StatemachineConfig(BaseModel):
                 close: 0.5
         ```
     """
-
-    max_errors: int = Field(
-        0,
-        description="The maximum amount of times to try to recover from an error",
-    )
-
-    start_time: Optional[datetime] = Field(
-        None,
-        description="The state machines start time",
-    )
-
-    end_time: Optional[datetime] = Field(
-        None,
-        description="The state machines end time",
-    )
-
-    schedule: Optional[WorkSchedule] = Field(
-        None,
-        description="The work schedule for the web browser user",
-    )
-
-    selenium: SeleniumConfig = Field(
-        SeleniumConfig(),
-        description="Selenium configuration for the web browser user",
-    )
 
     user: UserConfig = Field(
         UserConfig(),

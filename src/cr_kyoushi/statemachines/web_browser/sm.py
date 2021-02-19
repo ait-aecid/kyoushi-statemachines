@@ -109,7 +109,7 @@ class StatemachineFactory(sm.StatemachineFactory):
         # setup transitions
 
         idle_transition = IdleTransition(
-            idle_amount=config.user.idle_time,
+            idle_amount=config.idle.big,
             end_time=config.end_time,
             name="idle",
             target="selecting_activity",
@@ -122,14 +122,14 @@ class StatemachineFactory(sm.StatemachineFactory):
             ),
             name="visit_website",
             target="on_website",
-            delay_after=config.user.wait_time,
+            delay_after=config.idle.medium,
         )
 
         link_transition = transitions.DelayedTransition(
             transition_function=OpenLink("selecting_activity"),
             name="visit_link",
             target="on_website",
-            delay_after=config.user.wait_time,
+            delay_after=config.idle.medium,
         )
 
         # setup states

@@ -64,6 +64,7 @@ from cr_kyoushi.simulation.model import (
 )
 
 from .config import (
+    BasicStatemachineConfig,
     FakerContext,
     FakerContextModel,
 )
@@ -799,6 +800,38 @@ class WaitForScrollFinish:
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
         self.wait()
+
+
+class SeleniumStatemachineConfig(BasicStatemachineConfig):
+    """Web browser state machine configuration model
+
+    Example:
+        ```yaml
+        max_error: 0
+        start_time: 2021-01-23T9:00
+        end_time: 2021-01-29T00:01
+        schedule:
+        work_days:
+            monday:
+                start_time: 09:00
+                end_time: 17:30
+            friday:
+                start_time: 11:21
+                end_time: 19:43
+        selenium:
+            driver_manager:
+                cache_valid_range: 5 # days
+            type: firefox
+            window_width: 800
+            window_height: 600
+            accept_insecure_ssl: yes
+        ```
+    """
+
+    selenium: SeleniumConfig = Field(
+        SeleniumConfig(),
+        description="Selenium configuration for the web browser user",
+    )
 
 
 class SeleniumContext(FakerContext, Protocol):
