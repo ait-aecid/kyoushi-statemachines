@@ -1,27 +1,14 @@
-from cr_kyoushi.simulation import (
-    sm,
-    states,
-    transitions,
-)
+from cr_kyoushi.simulation import sm
 
 from ..core.selenium import SeleniumStatemachine
 from ..core.transitions import IdleTransition
+from .activities import get_browser_activity
 from .config import (
     Context,
     ContextModel,
     StatemachineConfig,
 )
-from .states import (
-    ActivitySelectionState,
-    WebsiteState,
-)
-from .transitions import (
-    OpenLink,
-    VisitWebsite,
-    background_website,
-    close_website,
-    leave_website,
-)
+from .states import ActivitySelectionState
 
 
 __all__ = ["Statemachine", "StatemachineFactory"]
@@ -56,21 +43,8 @@ class StatemachineFactory(sm.StatemachineFactory):
             target="selecting_activity",
         )
 
-        website_transition = transitions.DelayedTransition(
-            transition_function=VisitWebsite(
-                config.user.websites,
-                "selecting_activity",
-            ),
-            name="visit_website",
-            target="on_website",
-            delay_after=config.idle.medium,
-        )
-
-        link_transition = transitions.DelayedTransition(
-            transition_function=OpenLink("selecting_activity"),
-            name="visit_link",
-            target="on_website",
-            delay_after=config.idle.medium,
+        (website_transition, on_website, leaving_website) = get_browser_activity(
+            config.idle, config.user, config.states
         )
 
         # setup states
@@ -81,24 +55,6 @@ class StatemachineFactory(sm.StatemachineFactory):
             website_weight=config.states.selecting_activity.visit_website,
             idle_transition=idle_transition,
             idle_weight=config.states.selecting_activity.idle,
-        )
-
-        on_website = WebsiteState(
-            name="on_website",
-            website_transition=link_transition,
-            website_weight=config.states.on_website.visit_link,
-            leave_transition=leave_website,
-            leave_weight=config.states.on_website.leave_website,
-            max_depth=config.user.max_depth,
-        )
-
-        leaving_website = states.ProbabilisticState(
-            name="leaving_website",
-            transitions=[background_website, close_website],
-            weights=[
-                config.states.leaving_website.background,
-                config.states.leaving_website.close,
-            ],
         )
 
         return Statemachine(

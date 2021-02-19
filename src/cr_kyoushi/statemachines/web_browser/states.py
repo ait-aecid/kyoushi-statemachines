@@ -78,3 +78,6 @@ class WebsiteState(states.ProbabilisticState):
             return self.transitions[1]
 
         return super().next(log, context)
+
+
+LeavingWebsite = states.ProbabilisticState

@@ -116,7 +116,6 @@ class OpenLink:
             )
 
 
-@transitions.transition(target="leaving_website")
 def leave_website(
     log: BoundLogger,
     current_state: str,
