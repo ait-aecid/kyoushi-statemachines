@@ -537,7 +537,7 @@ class SudoDialogConfig(ProbabilisticStateConfig):
     )
 
 
-class SSHActivityStates(BaseModel):
+class SSHStates(BaseModel):
     """Configuration class for all SSH user activity states."""
 
     connected: ConnectedConfig = Field(
@@ -551,7 +551,7 @@ class SSHActivityStates(BaseModel):
     )
 
 
-class SSHUserStates(SSHActivityStates):
+class SSHUserStates(SSHStates):
     """Configuration class for the ssh user state machine states"""
 
     selecting_activity: ActivitySelectionConfig = Field(

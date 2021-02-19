@@ -100,13 +100,8 @@ class LeaveWebsiteStateConfig(ProbabilisticStateConfig):
     )
 
 
-class StatesConfig(BaseModel):
-    """State transition configuration for the web browser state machine"""
-
-    selecting_activity: ActivitySelectionStateConfig = Field(
-        ActivitySelectionStateConfig(),
-        description="The transition probabilities configuration for the `selecting_activity` state",
-    )
+class WebBrowserStates(BaseModel):
+    """State transition configuration for the web browser states"""
 
     on_website: WebsiteStateConfig = Field(
         WebsiteStateConfig(),
@@ -116,6 +111,15 @@ class StatesConfig(BaseModel):
     leaving_website: LeaveWebsiteStateConfig = Field(
         LeaveWebsiteStateConfig(),
         description="The transition probabilities configuration for the `leaving_website` state",
+    )
+
+
+class StatesConfig(WebBrowserStates):
+    """State transition configuration for the web browser state machine"""
+
+    selecting_activity: ActivitySelectionStateConfig = Field(
+        ActivitySelectionStateConfig(),
+        description="The transition probabilities configuration for the `selecting_activity` state",
     )
 
 
