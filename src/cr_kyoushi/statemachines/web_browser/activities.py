@@ -20,7 +20,7 @@ from . import (
 def get_browser_activity(
     idle: IdleConfig,
     user_config: config.UserConfig,
-    states_config: config.StatesConfig,
+    states_config: config.WebBrowserStates,
     root: str = "selecting_activity",
     # transitions
     web_browser_transition: str = "visit_website",

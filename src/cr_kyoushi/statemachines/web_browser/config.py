@@ -47,7 +47,7 @@ class UserConfig(BaseModel):
         description="The web site URLs the user can visit",
     )
 
-    max_websites_day: int = Field(
+    max_daily: int = Field(
         5,
         description="The maximum websites to visit per day",
     )
@@ -147,7 +147,7 @@ class StatemachineConfig(SeleniumStatemachineConfig):
             window_height: 600
             accept_insecure_ssl: yes
         user:
-            max_websites_day: 5
+            max_daily: 5
             max_depth: 2
             wait_time:
                 min: 3.5 # seconds

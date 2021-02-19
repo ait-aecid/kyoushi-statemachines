@@ -50,7 +50,7 @@ class StatemachineFactory(sm.StatemachineFactory):
         # setup states
         selecting_activity = ActivitySelectionState(
             name="selecting_activity",
-            max_websites_day=config.user.max_websites_day,
+            max_daily=config.user.max_daily,
             website_transition=website_transition,
             website_weight=config.states.selecting_activity.visit_website,
             idle_transition=idle_transition,

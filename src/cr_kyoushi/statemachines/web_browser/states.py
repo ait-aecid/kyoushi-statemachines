@@ -18,7 +18,7 @@ class ActivitySelectionState(states.ProbabilisticState):
     def __init__(
         self,
         name: str,
-        max_websites_day: int,
+        max_daily: int,
         website_transition: transitions.Transition,
         website_weight: float,
         idle_transition: transitions.Transition,
@@ -29,7 +29,7 @@ class ActivitySelectionState(states.ProbabilisticState):
             [website_transition, idle_transition],
             [website_weight, idle_weight],
         )
-        self._max_websites_day: int = max_websites_day
+        self._max_daily: int = max_daily
 
     def next(
         self, log: BoundLogger, context: Context
@@ -42,7 +42,7 @@ class ActivitySelectionState(states.ProbabilisticState):
             browser.website_count = 0
 
         # if we reached the maximum visits we always idle
-        if browser.website_count >= self._max_websites_day:
+        if browser.website_count >= self._max_daily:
             return self.transitions[1]
 
         return super().next(log, context)
