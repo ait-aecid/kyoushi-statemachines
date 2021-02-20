@@ -2,7 +2,10 @@
 A collection of helper functions used to create the various sub activities of the OwnCloud user activity.
 """
 
-from typing import Tuple
+from typing import (
+    Optional,
+    Tuple,
+)
 
 from cr_kyoushi.simulation.transitions import (
     DelayedTransition,
@@ -37,6 +40,7 @@ def get_base_activity(
     pause_owncloud: str = "pause_owncloud",
     owncloud_logout: str = "owncloud_logout",
     return_select: str = "return_select",
+    name_prefix: Optional[str] = None,
 ) -> Tuple[
     # transitions
     Transition,
@@ -56,10 +60,22 @@ def get_base_activity(
         login and logout states.
     """
 
+    if name_prefix:
+        target_selecting_menu = f"{name_prefix}_{selecting_menu}"
+        target_login_check = f"{name_prefix}_{login_check}"
+        target_login_page = f"{name_prefix}_{login_page}"
+        target_logout_choice = f"{name_prefix}_{logout_choice}"
+    else:
+        target_selecting_menu = selecting_menu
+        target_login_check = login_check
+        target_login_page = login_page
+        target_logout_choice = logout_choice
+
     t_owncloud_transition = Transition(
         transition_function=nav.GoToOwncloud(owncloud.url),
         name=owncloud_transition,
-        target=login_check,
+        target=target_login_check,
+        name_prefix=name_prefix,
     )
 
     t_login = DelayedTransition(
@@ -68,8 +84,9 @@ def get_base_activity(
             password=owncloud.password,
         ),
         name=login,
-        target=selecting_menu,
+        target=target_selecting_menu,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     t_fail_login = DelayedTransition(
@@ -78,15 +95,17 @@ def get_base_activity(
             password=owncloud.password,
         ),
         name=fail_login,
-        target=login_page,
+        target=target_login_page,
         delay_after=idle.tiny,
+        name_prefix=name_prefix,
     )
 
     t_pause_owncloud = DelayedTransition(
         transition_function=noop,
         name=pause_owncloud,
-        target=logout_choice,
+        target=target_logout_choice,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     t_owncloud_logout = DelayedTransition(
@@ -94,12 +113,14 @@ def get_base_activity(
         name=owncloud_logout,
         target=root,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     s_login_check = states.LoggedInCheck(
         name=login_check,
-        login_state=login_page,
-        selecting_menu_state=selecting_menu,
+        login_state=target_login_page,
+        selecting_menu_state=target_selecting_menu,
+        name_prefix=name_prefix,
     )
 
     s_login_page = states.LoginPage(
@@ -108,12 +129,14 @@ def get_base_activity(
         fail_login=t_fail_login,
         fail_weight=login_config.fail_chance,
         fail_decrease_factor=login_config.fail_decrease,
+        name_prefix=name_prefix,
     )
 
     s_logout_choice = states.LogoutChoice(
         name=logout_choice,
         logout=t_owncloud_logout,
         logout_prob=logout_config.logout_chance,
+        name_prefix=name_prefix,
     )
 
     return (
@@ -173,6 +196,7 @@ def get_file_view_activity(
     keep_both: str = "keep_both",
     keep_old: str = "keep_old",
     new_file: str = "new_file",
+    name_prefix: Optional[str] = None,
 ) -> Tuple[
     states.SelectingMenu,
     states.AllFilesView,
@@ -200,42 +224,63 @@ def get_file_view_activity(
             upload_menu,
         )
     """
+    if name_prefix:
+        target_selecting_menu = f"{name_prefix}_{selecting_menu}"
+        target_all_files = f"{name_prefix}_{all_files}"
+        target_favorites = f"{name_prefix}_{favorites}"
+        target_sharing_in = f"{name_prefix}_{sharing_in}"
+        target_sharing_out = f"{name_prefix}_{sharing_out}"
+        target_file_details = f"{name_prefix}_{file_details}"
+        target_upload_menu = f"{name_prefix}_{upload_menu}"
+    else:
+        target_selecting_menu = selecting_menu
+        target_all_files = all_files
+        target_favorites = favorites
+        target_sharing_in = sharing_in
+        target_sharing_out = sharing_out
+        target_file_details = file_details
+        target_upload_menu = upload_menu
 
     # nav transitions
 
     t_do_nothing = DelayedTransition(
         noop,
         name=do_nothing,
-        target=selecting_menu,
+        target=target_selecting_menu,
         delay_after=idle.medium,
+        name_prefix=name_prefix,
     )
 
     t_nav_all_files = DelayedTransition(
         nav.nav_all_files,
         name=nav_all_files,
-        target=all_files,
+        target=target_all_files,
         delay_after=idle.medium,
+        name_prefix=name_prefix,
     )
 
     t_nav_favorites = DelayedTransition(
         nav.nav_favorites,
         name=nav_favorites,
-        target=favorites,
+        target=target_favorites,
         delay_after=idle.medium,
+        name_prefix=name_prefix,
     )
 
     t_nav_sharing_in = DelayedTransition(
         nav.nav_sharing_in,
         name=nav_sharing_in,
-        target=sharing_in,
+        target=target_sharing_in,
         delay_after=idle.medium,
+        name_prefix=name_prefix,
     )
 
     t_nav_sharing_out = DelayedTransition(
         nav.nav_sharing_out,
         name=nav_sharing_out,
-        target=sharing_out,
+        target=target_sharing_out,
         delay_after=idle.medium,
+        name_prefix=name_prefix,
     )
 
     # all files transitions
@@ -243,71 +288,81 @@ def get_file_view_activity(
     t_files_scroll_down = DelayedTransition(
         actions.Scroll(),
         name=scroll_down,
-        target=all_files,
+        target=target_all_files,
         delay_after=idle.tiny,
+        name_prefix=name_prefix,
     )
 
     t_files_favorite = DelayedTransition(
         actions.favorite,
         name=favorite,
-        target=all_files,
+        target=target_all_files,
         delay_after=idle.tiny,
+        name_prefix=name_prefix,
     )
 
     t_files_remove_favorite = DelayedTransition(
         actions.unfavorite,
         name=remove_favorite,
-        target=all_files,
+        target=target_all_files,
         delay_after=idle.tiny,
+        name_prefix=name_prefix,
     )
 
     t_files_nav_root = DelayedTransition(
         nav.nav_root_dir,
         name=nav_root,
-        target=all_files,
+        target=target_all_files,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     t_files_download_file = DelayedTransition(
         actions.DownloadFile(download_config.path),
         name=download_file,
-        target=all_files,
+        target=target_all_files,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     t_files_delete_file = DelayedTransition(
         actions.delete_file,
         name=delete_file,
-        target=all_files,
+        target=target_all_files,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     t_files_upload_file = DelayedTransition(
         actions.UploadFile(owncloud.upload_files),
         name=upload_file,
-        target=upload_menu,
+        target=target_upload_menu,
         delay_after=idle.tiny,
+        name_prefix=name_prefix,
     )
 
     t_files_download_directory = DelayedTransition(
         actions.DownloadDir(download_config.path),
         name=download_directory,
-        target=all_files,
+        target=target_all_files,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     t_files_delete_directory = DelayedTransition(
         actions.delete_directory,
         name=delete_directory,
-        target=all_files,
+        target=target_all_files,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     t_files_create_directory = DelayedTransition(
         actions.create_directory,
         name=create_directory,
-        target=all_files,
+        target=target_all_files,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     # favorites transitions
@@ -315,50 +370,57 @@ def get_file_view_activity(
     t_fav_scroll_down = DelayedTransition(
         actions.Scroll(),
         name=scroll_down,
-        target=favorites,
+        target=target_favorites,
         delay_after=idle.tiny,
+        name_prefix=name_prefix,
     )
 
     t_fav_favorite = DelayedTransition(
         actions.favorite,
         name=favorite,
-        target=favorites,
+        target=target_favorites,
         delay_after=idle.tiny,
+        name_prefix=name_prefix,
     )
 
     t_fav_remove_favorite = DelayedTransition(
         actions.unfavorite,
         name=remove_favorite,
-        target=favorites,
+        target=target_favorites,
         delay_after=idle.tiny,
+        name_prefix=name_prefix,
     )
 
     t_fav_download_file = DelayedTransition(
         actions.DownloadFile(download_config.path),
         name=download_file,
-        target=favorites,
+        target=target_favorites,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     t_fav_delete_file = DelayedTransition(
         actions.delete_file,
         name=delete_file,
-        target=favorites,
+        target=target_favorites,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     t_fav_download_directory = DelayedTransition(
         actions.DownloadDir(download_config.path),
         name=download_directory,
-        target=favorites,
+        target=target_favorites,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     t_fav_delete_directory = DelayedTransition(
         actions.delete_directory,
         name=delete_directory,
-        target=favorites,
+        target=target_favorites,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     # sharing in transitions
@@ -366,22 +428,25 @@ def get_file_view_activity(
     t_in_scroll_down = DelayedTransition(
         actions.Scroll(),
         name=scroll_down,
-        target=sharing_in,
+        target=target_sharing_in,
         delay_after=idle.tiny,
+        name_prefix=name_prefix,
     )
 
     t_in_accept_share = DelayedTransition(
         actions.accept_share,
         name=accept_share,
-        target=sharing_in,
+        target=target_sharing_in,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     t_in_decline_share = DelayedTransition(
         actions.decline_share,
         name=decline_share,
-        target=sharing_in,
+        target=target_sharing_in,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     # sharing out transitions
@@ -389,50 +454,57 @@ def get_file_view_activity(
     t_out_scroll_down = DelayedTransition(
         actions.Scroll(),
         name=scroll_down,
-        target=sharing_out,
+        target=target_sharing_out,
         delay_after=idle.tiny,
+        name_prefix=name_prefix,
     )
 
     t_out_favorite = DelayedTransition(
         actions.favorite,
         name=favorite,
-        target=sharing_out,
+        target=target_sharing_out,
         delay_after=idle.tiny,
+        name_prefix=name_prefix,
     )
 
     t_out_remove_favorite = DelayedTransition(
         actions.unfavorite,
         name=remove_favorite,
-        target=sharing_out,
+        target=target_sharing_out,
         delay_after=idle.tiny,
+        name_prefix=name_prefix,
     )
 
     t_out_download_file = DelayedTransition(
         actions.DownloadFile(download_config.path),
         name=download_file,
-        target=sharing_out,
+        target=target_sharing_out,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     t_out_delete_file = DelayedTransition(
         actions.delete_file,
         name=delete_file,
-        target=sharing_out,
+        target=target_sharing_out,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     t_out_download_directory = DelayedTransition(
         actions.DownloadDir(download_config.path),
         name=download_directory,
-        target=sharing_out,
+        target=target_sharing_out,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     t_out_delete_directory = DelayedTransition(
         actions.delete_directory,
         name=delete_directory,
-        target=sharing_out,
+        target=target_sharing_out,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     # shared file view transitions
@@ -440,15 +512,17 @@ def get_file_view_activity(
     t_open_directory = DelayedTransition(
         actions.open_directory,
         name=open_directory,
-        target=all_files,
+        target=target_all_files,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     t_view_details = DelayedTransition(
         actions.show_details,
         name=view_details,
-        target=file_details,
+        target=target_file_details,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     # upload menu transitions
@@ -456,22 +530,25 @@ def get_file_view_activity(
     t_keep_old = DelayedTransition(
         actions.upload_keep_old,
         name=keep_old,
-        target=all_files,
+        target=target_all_files,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     t_keep_both = DelayedTransition(
         actions.upload_keep_both,
         name=keep_both,
-        target=all_files,
+        target=target_all_files,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     t_keep_new = DelayedTransition(
         actions.upload_keep_new,
         name=keep_new,
-        target=all_files,
+        target=target_all_files,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     # states
@@ -489,6 +566,7 @@ def get_file_view_activity(
         nav_sharing_out_weight=menu_config.nav_sharing_out,
         ret_weight=menu_config.return_,
         ret_increase=menu_config.extra.return_increase,
+        name_prefix=name_prefix,
     )
 
     s_all_files = states.AllFilesView(
@@ -526,6 +604,7 @@ def get_file_view_activity(
         max_directory_count=owncloud.max_directory_count,
         favor_weight_factor=owncloud.favor_factor,
         min_scroll_space=owncloud.min_scroll_space,
+        name_prefix=name_prefix,
     )
 
     s_favorites = states.FavoritesView(
@@ -554,6 +633,7 @@ def get_file_view_activity(
         modify_directories=owncloud.modify_directories,
         favor_weight_factor=owncloud.favor_factor,
         min_scroll_space=owncloud.min_scroll_space,
+        name_prefix=name_prefix,
     )
 
     s_sharing_in = states.SharingInView(
@@ -568,6 +648,7 @@ def get_file_view_activity(
         ret_weight=sharing_in_config.return_,
         ret_increase=sharing_in_config.extra.return_increase,
         min_scroll_space=owncloud.min_scroll_space,
+        name_prefix=name_prefix,
     )
 
     s_sharing_out = states.SharingOutView(
@@ -596,6 +677,7 @@ def get_file_view_activity(
         modify_directories=owncloud.modify_directories,
         favor_weight_factor=owncloud.favor_factor,
         min_scroll_space=owncloud.min_scroll_space,
+        name_prefix=name_prefix,
     )
 
     s_upload_menu = states.UploadMenu(
@@ -607,6 +689,7 @@ def get_file_view_activity(
         keep_both_weight=upload_menu_config.keep_both,
         keep_old_weight=upload_menu_config.keep_old,
         new_file=new_file,
+        name_prefix=name_prefix,
     )
 
     return (
@@ -640,6 +723,7 @@ def get_file_details_activity(
     unshare_file: str = "unshare_file",
     close: str = "close_details",
     close_check_prefix: str = "on",
+    name_prefix: Optional[str] = None,
 ) -> Tuple[states.FileDetailsView, states.SharingDetails, states.CloseCheckState]:
     """Creates the owncloud user file details activity
 
@@ -657,34 +741,55 @@ def get_file_details_activity(
         )
     """
 
+    if name_prefix:
+        target_selecting_menu = f"{name_prefix}_{selecting_menu}"
+        target_all_files = f"{name_prefix}_{all_files}"
+        target_favorites = f"{name_prefix}_{favorites}"
+        target_sharing_out = f"{name_prefix}_{sharing_out}"
+        target_file_details = f"{name_prefix}_{file_details}"
+        target_sharing_details = f"{name_prefix}_{sharing_details}"
+        target_close_check = f"{name_prefix}_{close_check}"
+    else:
+        target_selecting_menu = selecting_menu
+        target_all_files = all_files
+        target_favorites = favorites
+        target_sharing_out = sharing_out
+        target_file_details = file_details
+        target_sharing_details = sharing_details
+        target_close_check = close_check
+
     # file details transitions
 
     t_view_comments = DelayedTransition(
         actions.open_details_comments,
         name=view_comments,
-        target=file_details,
+        target=target_file_details,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     t_view_sharing = DelayedTransition(
         actions.open_details_share,
         name=view_sharing,
-        target=sharing_details,
+        target=target_sharing_details,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     t_view_versions = DelayedTransition(
         actions.open_details_versions,
         name=view_versions,
-        target=file_details,
+        target=target_file_details,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     t_close = DelayedTransition(
         actions.close_details,
         name=close,
-        target=close_check,
+        target=target_close_check,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     # sharing details transitions
@@ -692,22 +797,25 @@ def get_file_details_activity(
     t_share_file = DelayedTransition(
         actions.ShareFile(sharing_config.extra.share_users),
         name=share_file,
-        target=sharing_details,
+        target=target_sharing_details,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     t_unshare_file = DelayedTransition(
         actions.unshare_file,
         name=unshare_file,
-        target=sharing_details,
+        target=target_sharing_details,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     t_do_nothing = DelayedTransition(
         noop,
         name=do_nothing,
-        target=file_details,
+        target=target_file_details,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     # states
@@ -723,6 +831,7 @@ def get_file_details_activity(
         view_versions_weight=details_config.view_versions,
         close_weight=details_config.return_,
         close_increase=details_config.extra.return_increase,
+        name_prefix=name_prefix,
     )
 
     s_sharing_details = states.SharingDetails(
@@ -736,15 +845,17 @@ def get_file_details_activity(
         ret_increase=sharing_config.extra.return_increase,
         share_users=sharing_config.extra.share_users,
         max_shares=sharing_config.extra.max_shares,
+        name_prefix=name_prefix,
     )
 
     s_close_check = states.CloseCheckState(
         close_check,
-        all_files=all_files,
-        favorites=favorites,
-        sharing_out=sharing_out,
-        fallback=selecting_menu,
+        all_files=target_all_files,
+        favorites=target_favorites,
+        sharing_out=target_sharing_out,
+        fallback=target_selecting_menu,
         transition_prefix=close_check_prefix,
+        name_prefix=name_prefix,
     )
 
     return (s_file_details, s_sharing_details, s_close_check)

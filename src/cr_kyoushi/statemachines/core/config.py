@@ -215,7 +215,7 @@ class BasicStatemachineConfig(BaseModel):
 
     Example:
         ```yaml
-        max_error: 0
+        max_errors: 0
         start_time: 2021-01-23T9:00
         end_time: 2021-01-29T00:01
         schedule:

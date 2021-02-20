@@ -2,7 +2,10 @@
 A collection of helper functions used to create the various sub activities of the Web Browser user activity.
 """
 
-from typing import Tuple
+from typing import (
+    Optional,
+    Tuple,
+)
 
 from cr_kyoushi.simulation.transitions import (
     DelayedTransition,
@@ -31,6 +34,7 @@ def get_browser_activity(
     # states
     on_website: str = "on_website",
     leaving_website: str = "leaving_website",
+    name_prefix: Optional[str] = None,
 ) -> Tuple[
     # transitions
     Transition,
@@ -52,21 +56,30 @@ def get_browser_activity(
         )
     """
 
+    if name_prefix:
+        target_on_website = f"{name_prefix}_{on_website}"
+        target_leaving_website = f"{name_prefix}_{leaving_website}"
+    else:
+        target_on_website = on_website
+        target_leaving_website = leaving_website
+
     t_visit_website = DelayedTransition(
         transition_function=transitions.VisitWebsite(
             user_config.websites,
             root,
         ),
         name=web_browser_transition,
-        target=on_website,
+        target=target_on_website,
         delay_after=idle.medium,
+        name_prefix=name_prefix,
     )
 
     t_visit_link = DelayedTransition(
         transition_function=transitions.OpenLink(root),
         name=visit_link,
-        target=on_website,
+        target=target_on_website,
         delay_after=idle.medium,
+        name_prefix=name_prefix,
     )
 
     t_background_website = DelayedTransition(
@@ -74,6 +87,7 @@ def get_browser_activity(
         name=background_website,
         target=root,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     t_close_website = DelayedTransition(
@@ -81,12 +95,14 @@ def get_browser_activity(
         name=close_website,
         target=root,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     t_leave_website = Transition(
         transition_function=transitions.leave_website,
         name=leave_website,
-        target=leaving_website,
+        target=target_leaving_website,
+        name_prefix=name_prefix,
     )
 
     s_on_website = states.WebsiteState(
@@ -96,6 +112,7 @@ def get_browser_activity(
         leave_transition=t_leave_website,
         leave_weight=states_config.on_website.leave_website,
         max_depth=user_config.max_depth,
+        name_prefix=name_prefix,
     )
 
     s_leaving_website = states.LeavingWebsite(
@@ -105,6 +122,7 @@ def get_browser_activity(
             states_config.leaving_website.background,
             states_config.leaving_website.close,
         ],
+        name_prefix=name_prefix,
     )
 
     return (

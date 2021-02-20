@@ -2,7 +2,10 @@
 A collection of helper functions used to create the various sub activities of the wordpress editor user activity.
 """
 
-from typing import Tuple
+from typing import (
+    Optional,
+    Tuple,
+)
 
 from cr_kyoushi.simulation.transitions import (
     DelayedTransition,
@@ -44,7 +47,8 @@ def get_base_activity(
     fail_login: str = "fail_login",
     pause_wordpress: str = "pause_wordpress",
     logout: str = "logout",
-    close: str = "close_wp_admin",
+    close: str = "close",
+    name_prefix: Optional[str] = None,
 ) -> Tuple[
     Transition,
     Transition,
@@ -61,29 +65,45 @@ def get_base_activity(
         The goto wp admin and pause transitions and the login/logout states as tuple of form:
         (goto_wp_admin, pause_wordpress, logged_in_check, login_page, logout_choice)
     """
+
+    if name_prefix:
+        target_login_check = f"{name_prefix}_{login_check}"
+        target_login_page = f"{name_prefix}_{login_page}"
+        target_selecting_menu = f"{name_prefix}_{selecting_menu}"
+        target_logout_choice = f"{name_prefix}_{logout_choice}"
+    else:
+        target_login_check = login_check
+        target_login_page = login_page
+        target_selecting_menu = selecting_menu
+        target_logout_choice = logout_choice
+
     t_goto_wp_admin = Transition(
         nav.GoToWordpressAdmin(user_config.url),
         name=wordpress_editor,
-        target=login_check,
+        target=target_login_check,
+        name_prefix=name_prefix,
     )
 
     t_fail_login = DelayedTransition(
         actions.fail_login_to_wordpress,
         name=fail_login,
-        target=login_page,
+        target=target_login_page,
         delay_after=idle.tiny,
+        name_prefix=name_prefix,
     )
 
     t_login = DelayedTransition(
         actions.login_to_wordpress,
         name=login,
-        target=selecting_menu,
+        target=target_selecting_menu,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     t_pause = NoopTransition(
         name=pause_wordpress,
-        target=logout_choice,
+        target=target_logout_choice,
+        name_prefix=name_prefix,
     )
 
     t_logout = DelayedTransition(
@@ -91,12 +111,14 @@ def get_base_activity(
         name=logout,
         target=root,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     s_login_check = states.LoggedInCheck(
         name=login_check,
-        login_page=login_page,
-        selecting_menu=selecting_menu,
+        login_page=target_login_page,
+        selecting_menu=target_selecting_menu,
+        name_prefix=name_prefix,
     )
 
     s_login_page = states.LoginPage(
@@ -105,6 +127,7 @@ def get_base_activity(
         fail_login=t_fail_login,
         fail_weight=login_config.fail_chance,
         fail_decrease_factor=login_config.fail_decrease,
+        name_prefix=name_prefix,
     )
 
     s_logout_choice = states.LogoutChoice(
@@ -112,6 +135,7 @@ def get_base_activity(
         logout=t_logout,
         close=close,
         logout_prob=logout_config.logout_chance,
+        name_prefix=name_prefix,
     )
 
     return (t_goto_wp_admin, t_pause, s_login_check, s_login_page, s_logout_choice)
@@ -144,6 +168,7 @@ def get_editor_activity(
     write_post: str = "write_post",
     publish_post: str = "publish_post",
     nav_posts_home: str = "nav_posts_home",
+    name_prefix: Optional[str] = None,
 ) -> Tuple[
     states.SelectingMenu,
     states.CommentsPage,
@@ -171,81 +196,109 @@ def get_editor_activity(
             post_published,
         )
     """
+    if name_prefix:
+        target_selecting_menu = f"{name_prefix}_{selecting_menu}"
+        target_comments_page = f"{name_prefix}_{comments_page}"
+        target_reply_editor = f"{name_prefix}_{reply_editor}"
+        target_posts_page = f"{name_prefix}_{posts_page}"
+        target_post_editor = f"{name_prefix}_{post_editor}"
+        target_post_publishing = f"{name_prefix}_{post_publishing}"
+        target_post_published = f"{name_prefix}_{post_published}"
+    else:
+        target_selecting_menu = selecting_menu
+        target_comments_page = comments_page
+        target_reply_editor = reply_editor
+        target_posts_page = posts_page
+        target_post_editor = post_editor
+        target_post_publishing = post_publishing
+        target_post_published = post_published
+
     t_do_nothing = DelayedTransition(
         noop,
         name=do_nothing,
-        target=selecting_menu,
+        target=target_selecting_menu,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     t_nav_dashboard = DelayedTransition(
         nav.nav_dashboard,
         name=nav_dashboard,
-        target=selecting_menu,
+        target=target_selecting_menu,
         delay_after=idle.medium,
+        name_prefix=name_prefix,
     )
 
     t_nav_comments = DelayedTransition(
         nav.nav_comments,
         name=nav_comments,
-        target=comments_page,
+        target=target_comments_page,
         delay_after=idle.medium,
+        name_prefix=name_prefix,
     )
 
     t_new_reply = DelayedTransition(
         actions.ReplyToComment(comments_config.extra.reply_only_guests),
         name=new_reply,
-        target=reply_editor,
+        target=target_reply_editor,
         delay_after=idle.tiny,
+        name_prefix=name_prefix,
     )
 
     t_write_reply = DelayedTransition(
         actions.write_comment_reply,
         name=write_reply,
-        target=comments_page,
+        target=target_comments_page,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     t_nav_media = DelayedTransition(
         nav.nav_media,
         name=nav_media,
-        target=selecting_menu,
+        target=target_selecting_menu,
         delay_after=idle.medium,
+        name_prefix=name_prefix,
     )
 
     t_nav_posts = DelayedTransition(
         nav.nav_posts,
         name=nav_posts,
-        target=posts_page,
+        target=target_posts_page,
         delay_after=idle.medium,
+        name_prefix=name_prefix,
     )
 
     t_new_post = DelayedTransition(
         actions.new_post,
         name=new_post,
-        target=post_editor,
+        target=target_post_editor,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     t_write_post = DelayedTransition(
         actions.write_post,
         name=write_post,
-        target=post_publishing,
+        target=target_post_publishing,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     t_publish_post = DelayedTransition(
         actions.publish_post,
         name=publish_post,
-        target=post_published,
+        target=target_post_published,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     t_nav_posts_home = DelayedTransition(
         nav.nav_posts_home,
         name=nav_posts_home,
-        target=selecting_menu,
+        target=target_selecting_menu,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     # states
@@ -263,6 +316,7 @@ def get_editor_activity(
         nav_posts_weight=menu_config.nav_posts,
         ret_weight=menu_config.return_,
         ret_increase=menu_config.extra.return_increase,
+        name_prefix=name_prefix,
     )
 
     s_comments_page = states.CommentsPage(
@@ -274,11 +328,13 @@ def get_editor_activity(
         ret_weight=comments_config.return_,
         ret_increase=comments_config.extra.return_increase,
         reply_only_guests=comments_config.extra.reply_only_guests,
+        name_prefix=name_prefix,
     )
 
     s_reply_editor = states.ReplyEditor(
         name=reply_editor,
         transition=t_write_reply,
+        name_prefix=name_prefix,
     )
 
     s_posts_page = states.PostsPage(
@@ -289,21 +345,25 @@ def get_editor_activity(
         ret_weight=posts_config.return_,
         ret_increase=posts_config.extra.return_increase,
         max_posts_daily=posts_config.extra.max_posts_daily,
+        name_prefix=name_prefix,
     )
 
     s_post_editor = states.PostEditor(
         name=post_editor,
         transition=t_write_post,
+        name_prefix=name_prefix,
     )
 
     s_post_publishing = states.PostPublishing(
         name=post_publishing,
         transition=t_publish_post,
+        name_prefix=name_prefix,
     )
 
     s_post_published = states.PostPublished(
         name=post_published,
         transition=t_nav_posts_home,
+        name_prefix=name_prefix,
     )
 
     return (

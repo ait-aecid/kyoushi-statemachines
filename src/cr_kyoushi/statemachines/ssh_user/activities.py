@@ -2,7 +2,10 @@
 A collection of helper functions used to create the various sub activities of the OwnCloud user activity.
 """
 
-from typing import Tuple
+from typing import (
+    Optional,
+    Tuple,
+)
 
 from cr_kyoushi.simulation.transitions import (
     DelayedTransition,
@@ -39,6 +42,7 @@ def get_ssh_activity(
     enter_sudo_password: str = "enter_sudo_password",
     fail_sudo_password: str = "fail_sudo_password",
     fail_sudo: str = "fail_sudo",
+    name_prefix: Optional[str] = None,
 ) -> Tuple[
     # transitions
     Transition,
@@ -65,20 +69,34 @@ def get_ssh_activity(
             sudo_dialog,
         )
     """
+    if name_prefix:
+        target_selected_server = f"{name_prefix}_{selected_server}"
+        target_connected = f"{name_prefix}_{connected}"
+        target_executing_chain = f"{name_prefix}_{executing_chain}"
+        target_sudo_check = f"{name_prefix}_{sudo_check}"
+        target_sudo_dialog = f"{name_prefix}_{sudo_dialog}"
+    else:
+        target_selected_server = selected_server
+        target_connected = connected
+        target_executing_chain = executing_chain
+        target_sudo_check = sudo_check
+        target_sudo_dialog = sudo_dialog
 
     host_cfgs = config.get_hosts(user)
 
     t_select_server = Transition(
         transition_function=actions.SelectHost(user.hosts, host_cfgs),
         name=select_server,
-        target=selected_server,
+        target=target_selected_server,
+        name_prefix=name_prefix,
     )
 
     t_connect = DelayedTransition(
         transition_function=actions.connect,
         name=ssh_connect,
-        target=connected,
+        target=target_connected,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     t_disconnect = DelayedTransition(
@@ -86,25 +104,29 @@ def get_ssh_activity(
         name=ssh_disconnect,
         target=root,
         delay_after=idle.medium,
+        name_prefix=name_prefix,
     )
 
     t_select_chain = Transition(
         transition_function=actions.select_chain,
         name=select_chain,
-        target=executing_chain,
+        target=target_executing_chain,
+        name_prefix=name_prefix,
     )
 
     t_exec_cmd = Transition(
         transition_function=actions.execute_command,
         name=exec_command,
-        target=sudo_check,
+        target=target_sudo_check,
+        name_prefix=name_prefix,
     )
 
     t_finished = DelayedTransition(
         transition_function=noop,
         name=command_finished,
-        target=connected,
+        target=target_connected,
         delay_after=idle.small,
+        name_prefix=name_prefix,
     )
 
     # each command has their own idle time configured
@@ -112,21 +134,24 @@ def get_ssh_activity(
     t_enter_password = Transition(
         transition_function=actions.enter_sudo_password,
         name=enter_sudo_password,
-        target=executing_chain,
+        target=target_executing_chain,
+        name_prefix=name_prefix,
     )
 
     t_fail_password = DelayedTransition(
         transition_function=actions.fail_sudo,
         name=fail_sudo_password,
-        target=sudo_check,
+        target=target_sudo_check,
         delay_after=idle.tiny,
+        name_prefix=name_prefix,
     )
 
     t_fail_sudo = DelayedTransition(
         transition_function=actions.fail_sudo,
         name=fail_sudo,
-        target=executing_chain,
+        target=target_executing_chain,
         delay_after=idle.tiny,
+        name_prefix=name_prefix,
     )
 
     # states
@@ -134,6 +159,7 @@ def get_ssh_activity(
     s_selected_server = states.SelectedServer(
         name=selected_server,
         transition=t_connect,
+        name_prefix=name_prefix,
     )
 
     s_connected = states.Connected(
@@ -143,18 +169,21 @@ def get_ssh_activity(
         select_chain_weight=connected_config.select_chain,
         disconnect_weight=connected_config.disconnect,
         disconnect_increase=connected_config.extra.disconnect_increase,
+        name_prefix=name_prefix,
     )
 
     s_executing_chain = states.ExecutingCommandChain(
         name=executing_chain,
         execute_command=t_exec_cmd,
         finished=t_finished,
+        name_prefix=name_prefix,
     )
 
     s_sudo_check = states.SudoDialogCheck(
         name=sudo_check,
-        exec_cmd_chain=executing_chain,
-        sudo_dialog=sudo_dialog,
+        exec_cmd_chain=target_executing_chain,
+        sudo_dialog=target_sudo_dialog,
+        name_prefix=name_prefix,
     )
 
     s_sudo_dialog = states.SudoDialog(
@@ -165,6 +194,7 @@ def get_ssh_activity(
         enter_password_weight=sudo_config.enter_password,
         fail_password_weight=sudo_config.fail,
         fail_increase=sudo_config.extra.fail_increase,
+        name_prefix=name_prefix,
     )
 
     return (

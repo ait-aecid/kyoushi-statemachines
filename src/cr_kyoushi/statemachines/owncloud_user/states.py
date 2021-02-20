@@ -61,6 +61,7 @@ class ActivitySelectionState(states.AdaptiveProbabilisticState):
         owncloud_max_daily: int = 10,
         owncloud_weight: float = 0.6,
         idle_weight: float = 0.4,
+        name_prefix: Optional[str] = None,
     ):
         """
         Args:
@@ -75,6 +76,7 @@ class ActivitySelectionState(states.AdaptiveProbabilisticState):
             name=name,
             transitions=[owncloud_transition, idle_transition],
             weights=[owncloud_weight, idle_weight],
+            name_prefix=name_prefix,
         )
         self.__owncloud = owncloud_transition
         self.__owncloud_count = 0
@@ -113,12 +115,22 @@ class LoggedInCheck(states.ChoiceState):
         name: str,
         login_state: str,
         selecting_menu_state: str,
+        name_prefix: Optional[str] = None,
     ):
         super().__init__(
             name,
             self.check_logged_in,
-            yes=NoopTransition(name="logged_in_yes", target=selecting_menu_state),
-            no=NoopTransition(name="logged_in_no", target=login_state),
+            yes=NoopTransition(
+                name="logged_in_yes",
+                target=selecting_menu_state,
+                name_prefix=name_prefix,
+            ),
+            no=NoopTransition(
+                name="logged_in_no",
+                target=login_state,
+                name_prefix=name_prefix,
+            ),
+            name_prefix=name_prefix,
         )
 
     def check_logged_in(self, log: BoundLogger, context: Context) -> bool:
@@ -137,11 +149,13 @@ class LoginPage(states.AdaptiveProbabilisticState):
         fail_login: Transition,
         fail_weight: float = 0.05,
         fail_decrease_factor: float = 0.9,
+        name_prefix: Optional[str] = None,
     ):
         super().__init__(
             name=name,
             transitions=[login, fail_login],
             weights=[1 - fail_weight, fail_weight],
+            name_prefix=name_prefix,
         )
         self.__fail = fail_login
         self.__fail_decrease = fail_decrease_factor
@@ -177,6 +191,7 @@ class SelectingMenu(ActivityState):
         nav_sharing_out_weight: float = 0.2,
         ret_weight: float = 0.1,
         ret_increase=1.25,
+        name_prefix: Optional[str] = None,
     ):
         """
         Args:
@@ -213,6 +228,7 @@ class SelectingMenu(ActivityState):
             ],
             modifiers=None,
             ret_increase=ret_increase,
+            name_prefix=name_prefix,
         )
 
 
@@ -229,6 +245,7 @@ class LogoutChoice(states.ProbabilisticState):
         logout: Transition,
         logout_prob: float = 0.05,
         background: str = "background_owncloud",
+        name_prefix: Optional[str] = None,
     ):
         """
         Args:
@@ -242,9 +259,14 @@ class LogoutChoice(states.ProbabilisticState):
             [
                 logout,
                 # if we do not log out we do nothing
-                NoopTransition(name=background, target=logout.target),
+                NoopTransition(
+                    name=background,
+                    target=logout.target,
+                    name_prefix=name_prefix,
+                ),
             ],
             [logout_prob, 1 - logout_prob],
+            name_prefix=name_prefix,
         )
 
 
@@ -311,7 +333,6 @@ def _update_read_actions(
     """
     data = get_data(context.driver)
     data_infos = [get_file_info(d) for d in data]
-    print(data_infos)
 
     if len(data) > 0:
         # need at least 1 data object to view details
@@ -424,6 +445,7 @@ class AllFilesView(ActivityState):
         max_directory_count: Optional[int] = None,
         favor_weight_factor: float = 1.0,
         min_scroll_space: float = 200.0,
+        name_prefix: Optional[str] = None,
     ):
         """
         Args:
@@ -501,6 +523,7 @@ class AllFilesView(ActivityState):
             ],
             modifiers=None,
             ret_increase=ret_increase,
+            name_prefix=name_prefix,
         )
         self.upload_files: Dict[str, float] = upload_files
         self.modify_dir: List[Pattern] = modify_directories
@@ -648,6 +671,7 @@ class FilesView(ActivityState):
         modify_directories: List[Pattern] = [re.compile(r"\/.+")],
         favor_weight_factor: float = 1.0,
         min_scroll_space: float = 200.0,
+        name_prefix: Optional[str] = None,
     ):
         """
         Args:
@@ -716,6 +740,7 @@ class FilesView(ActivityState):
             ],
             modifiers=None,
             ret_increase=ret_increase,
+            name_prefix=name_prefix,
         )
         self.modify_dir: List[Pattern] = modify_directories
         self.favor_factor: float = favor_weight_factor
@@ -793,6 +818,7 @@ class SharingInView(ActivityState):
         ret_weight: float = 0.1,
         ret_increase=1.2,
         min_scroll_space: float = 200.0,
+        name_prefix: Optional[str] = None,
     ):
         """
         Args:
@@ -826,6 +852,7 @@ class SharingInView(ActivityState):
             ],
             modifiers=None,
             ret_increase=ret_increase,
+            name_prefix=name_prefix,
         )
         self.min_scroll_space: float = min_scroll_space
 
@@ -875,6 +902,7 @@ class FileDetailsView(ActivityState):
         view_versions_weight: float = 0.25,
         close_weight: float = 0.1,
         close_increase=1.2,
+        name_prefix: Optional[str] = None,
     ):
         """
         Args:
@@ -907,6 +935,7 @@ class FileDetailsView(ActivityState):
             ],
             modifiers=None,
             ret_increase=close_increase,
+            name_prefix=name_prefix,
         )
         self._comments: Transition = view_comments
         self._sharing: Transition = view_sharing
@@ -942,6 +971,7 @@ class SharingDetails(ActivityState):
         ret_increase=1.2,
         share_users: Dict[str, float] = {},
         max_shares: Optional[int] = None,
+        name_prefix: Optional[str] = None,
     ):
         """
         Args:
@@ -973,6 +1003,7 @@ class SharingDetails(ActivityState):
             ],
             modifiers=None,
             ret_increase=ret_increase,
+            name_prefix=name_prefix,
         )
         self._share: Transition = share
         self._unshare: Transition = unshare
@@ -1016,6 +1047,7 @@ class CloseCheckState(states.State):
         sharing_out: str,
         fallback: str = "selecting_menu",
         transition_prefix="on",
+        name_prefix: Optional[str] = None,
     ):
         """
         Args:
@@ -1030,19 +1062,30 @@ class CloseCheckState(states.State):
         # create noop transitions
         self.views: Dict[str, Transition] = {
             "app-content-files": NoopTransition(
-                f"{transition_prefix}_{all_files}", all_files
+                f"{transition_prefix}_{all_files}",
+                all_files,
+                name_prefix=name_prefix,
             ),
             "app-content-favorites": NoopTransition(
-                f"{transition_prefix}_{favorites}", favorites
+                f"{transition_prefix}_{favorites}",
+                favorites,
+                name_prefix=name_prefix,
             ),
             "app-content-sharingout": NoopTransition(
-                f"{transition_prefix}_{sharing_out}", sharing_out
+                f"{transition_prefix}_{sharing_out}",
+                sharing_out,
+                name_prefix=name_prefix,
             ),
         }
-        self.fallback = NoopTransition(f"{transition_prefix}_unknown_view", fallback)
+        self.fallback = NoopTransition(
+            f"{transition_prefix}_unknown_view",
+            fallback,
+            name_prefix=name_prefix,
+        )
         super().__init__(
             name,
             list(self.views.values()) + [self.fallback],
+            name_prefix=name_prefix,
         )
 
     def next(self, log: BoundLogger, context: Context):
@@ -1080,6 +1123,7 @@ class UploadMenu(states.ProbabilisticState):
         keep_both_weight: float = 0.3,
         keep_old_weight: float = 0.1,
         new_file: str = "new_file",
+        name_prefix: Optional[str] = None,
     ):
         """
         Args:
@@ -1093,7 +1137,9 @@ class UploadMenu(states.ProbabilisticState):
             new_file: The name to use for the noop transition for a complitely new file.
                       The target will automatically read form the `keep_new` transition.
         """
-        self.new_file: Transition = NoopTransition(new_file, keep_new.target)
+        self.new_file: Transition = NoopTransition(
+            new_file, keep_new.target, name_prefix=name_prefix
+        )
         super().__init__(
             name,
             [
@@ -1108,6 +1154,7 @@ class UploadMenu(states.ProbabilisticState):
                 keep_both_weight,
                 keep_old_weight,
             ],
+            name_prefix=name_prefix,
         )
 
     def next(self, log: BoundLogger, context: Context):

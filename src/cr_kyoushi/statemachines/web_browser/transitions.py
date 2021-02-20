@@ -12,7 +12,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from structlog import BoundLogger
 
-from cr_kyoushi.simulation import transitions
 from cr_kyoushi.simulation.errors import TransitionExecutionError
 
 from .config import Context
@@ -127,7 +126,6 @@ def leave_website(
     context.web_browser.available_links = []
 
 
-@transitions.transition(target="selecting_activity")
 def background_website(
     log: BoundLogger,
     current_state: str,
@@ -137,7 +135,6 @@ def background_website(
     """Do nothing"""
 
 
-@transitions.transition(target="selecting_activity")
 def close_website(
     log: BoundLogger,
     current_state: str,

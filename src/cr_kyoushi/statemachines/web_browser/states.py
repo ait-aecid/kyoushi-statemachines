@@ -11,7 +11,7 @@ from cr_kyoushi.simulation.util import now
 from .config import Context
 
 
-__all__ = ["ActivitySelectionState", "WebsiteState"]
+__all__ = ["ActivitySelectionState", "WebsiteState", "LeavingWebsite"]
 
 
 class ActivitySelectionState(states.ProbabilisticState):
@@ -23,11 +23,13 @@ class ActivitySelectionState(states.ProbabilisticState):
         website_weight: float,
         idle_transition: transitions.Transition,
         idle_weight: float,
+        name_prefix: Optional[str] = None,
     ):
         super().__init__(
             name,
             [website_transition, idle_transition],
             [website_weight, idle_weight],
+            name_prefix=name_prefix,
         )
         self._max_daily: int = max_daily
 
@@ -57,11 +59,13 @@ class WebsiteState(states.ProbabilisticState):
         leave_transition: transitions.Transition,
         leave_weight: float,
         max_depth: int,
+        name_prefix: Optional[str] = None,
     ):
         super().__init__(
             name,
             [website_transition, leave_transition],
             [website_weight, leave_weight],
+            name_prefix=name_prefix,
         )
         self._max_depth: int = max_depth
 

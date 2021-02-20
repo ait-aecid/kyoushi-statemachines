@@ -48,8 +48,7 @@ class CheckNthPostsPage:
                 )
             else:
                 return False
-        except NoSuchElementException as e:
-            print(e)
+        except NoSuchElementException:
             # if there is only one page then the nav does not exist
             # then we are always on page 1
             return True if self.page_number == 1 else False
@@ -147,8 +146,7 @@ class CheckVoteRegistered:
                     )
                 )(driver)
             )
-        except NoSuchElementException as e:
-            print(e)
+        except NoSuchElementException:
             return False
 
 
