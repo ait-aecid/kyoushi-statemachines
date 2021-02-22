@@ -3,6 +3,7 @@ import re
 import subprocess
 
 from multiprocessing import Process
+from time import sleep
 from typing import (
     List,
     Optional,
@@ -22,15 +23,15 @@ def wait_process_output(
 ):
     line = ""
     while (
-        # the vpn process is alive
-        process.poll() is None
-        # and we have output
-        and process.stdout is not None
+        # we have output
+        process.stdout is not None
         # and connected print was not yet reached
         and not wait_regex.match(line)
     ):
         line = process.stdout.readline().decode("utf-8")
-        log.info("VPN init", stdout=line)
+        if len(line) > 0:
+            log.info("VPN init", stdout=line)
+        sleep(0.1)
 
 
 class VPNConnect:
@@ -43,6 +44,7 @@ class VPNConnect:
         self.vpn_cmd: List[str] = [
             "sudo",
             "openvpn",
+            "--auth-nocache",
             "--config",
             str(config.absolute()),
         ]
@@ -61,13 +63,16 @@ class VPNConnect:
             log = log.bind(vpn_cmd=self.vpn_cmd)
 
             log.info("Connecting to VPN")
-            context.vpn_process = subprocess.Popen(self.vpn_cmd, stdout=subprocess.PIPE)
+            context.vpn_process = subprocess.Popen(
+                self.vpn_cmd, stdout=subprocess.PIPE, preexec_fn=os.setpgrp
+            )
 
             wait_process = Process(
                 target=wait_process_output,
                 name="wait_connected",
-                args=(context.vpn_process, self.wait_regex),
+                args=(log, context.vpn_process, self.wait_regex),
             )
+            wait_process.start()
 
             timed_out = False
             try:
@@ -100,9 +105,10 @@ def vpn_disconnect(
 
         wait_process = Process(
             target=wait_process_output,
-            name="wait_connected",
-            args=(log, context.vpn_process, re.compile("process exiting")),
+            name="wait_disconnected",
+            args=(log, context.vpn_process, re.compile(".*process exiting.*")),
         )
+        wait_process.start()
 
         timed_out = False
         try:
