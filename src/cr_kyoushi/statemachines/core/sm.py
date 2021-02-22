@@ -50,10 +50,12 @@ class FakerStatemachine(WorkHoursStatemachine, Generic[C]):
     def setup_context(self):
         raise NotImplementedError()
 
-    def _resume_work(self):
+    def _pause_work(self):
         self.current_state = self.initial_state
-        # reset context
         self.destroy_context()
+
+    def _resume_work(self):
+        # recreate context
         self.setup_context()
 
 
