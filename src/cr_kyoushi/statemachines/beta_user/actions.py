@@ -101,7 +101,7 @@ def vpn_disconnect(
         pgid = os.getpgid(vpn_process.pid)
         log.info("Disconnecting from VPN")
         # cant use send signal since we started with sudo
-        subprocess.check_output(f"sudo kill {pgid}")
+        subprocess.check_output(["sudo", "kill", str(pgid)])
 
         wait_process = Process(
             target=wait_process_output,
