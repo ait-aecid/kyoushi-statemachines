@@ -705,9 +705,32 @@ def driver_wait(
     WebDriverWait(driver, timeout, poll_frequency, ignored_exceptions).until(check_func)
 
 
-def scroll_to(driver: webdriver.Remote, elem: WebElement, wait: bool = True):
-    driver.execute_script("arguments[0].scrollIntoView();", elem)
-    driver_wait(driver, check_element_in_viewport(elem))
+def scroll_to(
+    driver: webdriver.Remote,
+    elem: WebElement,
+    wait: bool = True,
+    options_behavior: Optional[str] = None,
+    options_block: Optional[str] = "center",
+    options_inline: Optional[str] = None,
+):
+    # only scroll if the element is not already in the view port
+    if not element_in_viewport(driver, elem):
+        options = {}
+        if options_behavior:
+            options["behavior"] = options_behavior
+        if options_block:
+            options["block"] = options_block
+        if options_inline:
+            options["inline"] = options_inline
+
+        args = ""
+        if len(options) > 0:
+            args = ", ".join([f'{key}: "{val}"' for key, val in options.items()])
+            args = "{" + args + "}"
+
+        with WaitForScrollFinish(driver):
+            driver.execute_script(f"arguments[0].scrollIntoView({args});", elem)
+        driver_wait(driver, check_element_in_viewport(elem))
 
 
 def element_in_viewport(driver: webdriver.Remote, elem: WebElement) -> bool:
@@ -731,8 +754,12 @@ def element_in_viewport(driver: webdriver.Remote, elem: WebElement) -> bool:
 
     win_upper_bound = driver.execute_script("return window.pageYOffset")
     win_left_bound = driver.execute_script("return window.pageXOffset")
-    win_width = driver.execute_script("return document.documentElement.clientWidth")
-    win_height = driver.execute_script("return document.documentElement.clientHeight")
+    win_width = driver.execute_script(
+        "return window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;"
+    )
+    win_height = driver.execute_script(
+        "return window.innerHeight || document.documentElement.clientHeight|| document.body.clientHeight;"
+    )
     win_right_bound = win_left_bound + win_width
     win_lower_bound = win_upper_bound + win_height
 

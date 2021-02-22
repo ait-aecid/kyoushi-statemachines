@@ -255,3 +255,15 @@ def check_posts_can_previous(driver: webdriver.Remote) -> Optional[Any]:
         )(driver)
     except NoSuchElementException:
         return False
+
+
+def check_is_logged_in(driver: webdriver.Remote) -> Optional[Any]:
+    try:
+        return ec.visibility_of_element_located(
+            (
+                By.ID,
+                "wpadminbar",
+            )
+        )(driver)
+    except NoSuchElementException:
+        return False

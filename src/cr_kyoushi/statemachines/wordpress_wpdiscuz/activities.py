@@ -159,7 +159,7 @@ def get_post_activity(
     comment_compose: str = "comment_compose",
     # transitions
     rate_post: str = "rate_post",
-    down_vote: str = "down_vote_commnet",
+    down_vote: str = "down_vote_comment",
     up_vote: str = "up_vote_comment",
     comment: str = "new_comment",
     reply: str = "reply_to_comment",
