@@ -2,6 +2,9 @@
 
 import sys
 
+from subprocess import Popen
+from typing import Optional
+
 from ..horde_user.context import Context as HordeContext
 from ..horde_user.context import ContextModel as HordeContextModel
 from ..owncloud_user.context import Context as OwncloudContext
@@ -33,6 +36,9 @@ class Context(
 ):
     """Beta user state machine context protocol"""
 
+    vpn_process: Optional[Popen[bytes]]
+    """The VPN process for remote users"""
+
 
 class ContextModel(
     HordeContextModel,
@@ -43,3 +49,6 @@ class ContextModel(
     WPDiscuzContextModel,
 ):
     """Beta user state machine context class"""
+
+    vpn_process: Optional[Popen[bytes]]
+    """The VPN process for remote users"""
