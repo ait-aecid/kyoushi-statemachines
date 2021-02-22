@@ -120,8 +120,6 @@ class Statemachine(SeleniumStatemachine[Context]):
             self.context is not None
             # and a vpn process
             and self.context.vpn_process is not None
-            # that has not exited
-            and self.context.vpn_process.poll() is not None
         ):
             vpn_disconnect(self.log, self.current_state, self.context, None)
 
