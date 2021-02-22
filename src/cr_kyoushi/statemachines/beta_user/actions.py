@@ -17,7 +17,7 @@ from .context import Context
 
 def wait_process_output(
     log: BoundLogger,
-    process: subprocess.Popen[bytes],
+    process: subprocess.Popen,
     wait_regex: Pattern,
 ):
     line = ""

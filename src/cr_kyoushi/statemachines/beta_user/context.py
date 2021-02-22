@@ -36,7 +36,7 @@ class Context(
 ):
     """Beta user state machine context protocol"""
 
-    vpn_process: Optional[Popen[bytes]]
+    vpn_process: Optional[Popen]
     """The VPN process for remote users"""
 
 
@@ -50,5 +50,5 @@ class ContextModel(
 ):
     """Beta user state machine context class"""
 
-    vpn_process: Optional[Popen[bytes]]
+    vpn_process: Optional[Popen]
     """The VPN process for remote users"""
