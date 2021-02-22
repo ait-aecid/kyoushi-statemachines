@@ -78,7 +78,7 @@ class VPNConnect:
         context: Context,
         target: Optional[str],
     ):
-        if context.vpn_process is None or context.vpn_process.poll() is not None:
+        if context.vpn_process is None:
             # bind cmd to log context
             log = log.bind(vpn_cmd=self.vpn_cmd)
 
@@ -101,9 +101,8 @@ class VPNConnect:
                 timed_out = True
 
             # need to check if process is still running here
-            if context.vpn_process.poll() is None and not timed_out:
+            if not timed_out:
                 log.info("Connected to VPN")
-                context.vpn_process = None
             else:
                 log.error("Failed to connect to VPN")
                 context.vpn_process = None
@@ -127,7 +126,7 @@ def vpn_disconnect(
         target: The target state
     """
     vpn_process = context.vpn_process
-    if vpn_process is not None and vpn_process.poll() is None:
+    if vpn_process is not None:
         pgid = os.getpgid(vpn_process.pid)
         log.info("Disconnecting from VPN")
         # cant use send signal since we started with sudo
