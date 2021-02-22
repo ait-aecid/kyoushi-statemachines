@@ -176,13 +176,13 @@ class StatemachineConfig(SeleniumStatemachineConfig):
         start_time: 2021-01-23T9:00
         end_time: 2021-01-29T00:01
         schedule:
-        work_days:
-            monday:
-                start_time: 09:00
-                end_time: 17:30
-            friday:
-                start_time: 11:21
-                end_time: 19:43
+            work_days:
+                monday:
+                    start_time: 09:00
+                    end_time: 17:30
+                friday:
+                    start_time: 11:21
+                    end_time: 19:43
         selenium:
             driver_manager:
                 cache_valid_range: 5 # days
