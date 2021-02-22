@@ -113,7 +113,6 @@ class Statemachine(SeleniumStatemachine[Context]):
         )
 
     def destroy_context(self):
-        super().destroy_context()
         # disconnect from the VPN
         if (
             # when we have a context
@@ -122,6 +121,9 @@ class Statemachine(SeleniumStatemachine[Context]):
             and self.context.vpn_process is not None
         ):
             vpn_disconnect(self.log, self.current_state, self.context, None)
+
+        # need to destroy after our code as we still need the context
+        super().destroy_context()
 
 
 class StatemachineFactory(sm.StatemachineFactory):
