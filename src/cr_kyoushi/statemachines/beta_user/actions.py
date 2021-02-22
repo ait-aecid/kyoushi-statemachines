@@ -21,6 +21,13 @@ def wait_process_output(
     process: subprocess.Popen,
     wait_regex: Pattern,
 ):
+    """Waits for the process to output a line matching the given regex.
+
+    Args:
+        log: The logger instance
+        process: The process to check on
+        wait_regex: The regex to check
+    """
     line = ""
     while (
         # we have output
@@ -35,12 +42,25 @@ def wait_process_output(
 
 
 class VPNConnect:
+    """Connects to an OpenVPN server using an OpenVPN config.
+
+    !!! Warning
+        This transition function assumes that the user execute the openvpn
+        command with sudo without password prompt!
+    """
+
     def __init__(
         self,
         config: FilePath,
         wait_regex: Pattern = re.compile("^.* Initialization Sequence Completed$"),
         timeout: float = 120,
     ):
+        """
+        Args:
+            config: The OpenVPN config file to use
+            wait_regex: Regex matching the OpenVPN connected output line
+            timeout: The maximum time to wait for the VPN to connect
+        """
         self.vpn_cmd: List[str] = [
             "sudo",
             "openvpn",
@@ -83,8 +103,10 @@ class VPNConnect:
             # need to check if process is still running here
             if context.vpn_process.poll() is None and not timed_out:
                 log.info("Connected to VPN")
+                context.vpn_process = None
             else:
                 log.error("Failed to connect to VPN")
+                context.vpn_process = None
                 raise Exception("VPN Connection error")
         else:
             log.info("Already connected to VPN")
@@ -96,6 +118,14 @@ def vpn_disconnect(
     context: Context,
     target: Optional[str],
 ):
+    """Shutsdown the OpenVPN connection
+
+    Args:
+        log: The logger instance
+        current_state: The current state
+        context: The sm context
+        target: The target state
+    """
     vpn_process = context.vpn_process
     if vpn_process is not None and vpn_process.poll() is None:
         pgid = os.getpgid(vpn_process.pid)

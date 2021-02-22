@@ -1,9 +1,11 @@
 """Configuration classes for the horde user activity and state machine"""
 
+from typing import Optional
 
 from pydantic import (
     BaseModel,
     Field,
+    FilePath,
     validator,
 )
 
@@ -112,6 +114,59 @@ class StatesConfig(BaseModel):
     )
 
 
+class VPNConfig(BaseModel):
+    enabled: bool = Field(
+        False,
+        description="If the users uses the VPN or not",
+    )
+
+    config: Optional[FilePath] = Field(
+        None,
+        description="The OpenVPN configuration to use.",
+    )
+
+    eager: bool = Field(
+        True,
+        description="If the user should connect to the VPN as soon as they execute any activity.",
+    )
+
+    horde: bool = Field(
+        False,
+        description="If the horde activity requires the VPN",
+    )
+
+    owncloud: bool = Field(
+        False,
+        description="If the owncloud activity requires the VPN",
+    )
+
+    ssh_user: bool = Field(
+        False,
+        description="If the ssh_user activity requires the VPN",
+    )
+
+    web_browser: bool = Field(
+        False,
+        description="If the web_browser activity requires the VPN",
+    )
+
+    wp_editor: bool = Field(
+        False,
+        description="If the wp_editor activity requires the VPN",
+    )
+
+    wpdiscuz: bool = Field(
+        False,
+        description="If the wpdiscuz activity requires the VPN",
+    )
+
+    @validator("config", always=True)
+    def validate_config(cls, value: Optional[FilePath], values) -> Optional[FilePath]:
+        if "enabled" in values and values["enabled"] is True:
+            assert value is not None, "A VPN config is required if the VPN is enabled!"
+        return value
+
+
 class StatemachineConfig(SeleniumStatemachineConfig):
     """Web browser state machine configuration model
 
@@ -137,6 +192,11 @@ class StatemachineConfig(SeleniumStatemachineConfig):
             accept_insecure_ssl: yes
         ```
     """
+
+    vpn: VPNConfig = Field(
+        VPNConfig(),
+        description="The VPN configuration for the simulation user",
+    )
 
     states: StatesConfig = Field(
         StatesConfig(),

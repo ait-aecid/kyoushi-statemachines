@@ -9,7 +9,10 @@ from typing import (
 
 from cr_kyoushi.simulation import sm
 from cr_kyoushi.simulation.model import WorkSchedule
-from cr_kyoushi.simulation.states import State
+from cr_kyoushi.simulation.states import (
+    SequentialState,
+    State,
+)
 from cr_kyoushi.simulation.transitions import Transition
 
 from ..core.config import IdleConfig
@@ -48,7 +51,14 @@ from ..wordpress_wpdiscuz.config import (
     WpDiscuzStates,
 )
 from ..wordpress_wpdiscuz.context import WpDiscuzContext
-from .config import StatemachineConfig
+from .actions import (
+    VPNConnect,
+    vpn_disconnect,
+)
+from .config import (
+    StatemachineConfig,
+    VPNConfig,
+)
 from .context import (
     Context,
     ContextModel,
@@ -101,6 +111,19 @@ class Statemachine(SeleniumStatemachine[Context]):
                 email=self._wpdiscuz.email,
             ),
         )
+
+    def destroy_context(self):
+        super().destroy_context()
+        # disconnect from the VPN
+        if (
+            # when we have a context
+            self.context is not None
+            # and a vpn process
+            and self.context.vpn_process is not None
+            # that has not exited
+            and self.context.vpn_process.poll() is not None
+        ):
+            vpn_disconnect(self.log, self.current_state, self.context, None)
 
 
 class StatemachineFactory(sm.StatemachineFactory):
@@ -562,6 +585,75 @@ class StatemachineFactory(sm.StatemachineFactory):
 
         return goto_wordpress
 
+    def __pre_vpn(self, name: str, original: Transition, vpn_connect: Transition):
+        connected = SequentialState("vpn_connected", original, name_prefix=name)
+        self.states.append(connected)
+        return Transition(
+            vpn_connect,
+            name="vpn_connect",
+            target=connected.name,
+            name_prefix=name,
+        )
+
+    def configure_vpn(
+        self,
+        vpn: VPNConfig,
+        goto_horde: Transition,
+        goto_owncloud: Transition,
+        start_ssh: Transition,
+        goto_website: Transition,
+        goto_wp_admin: Transition,
+        goto_wordpress: Transition,
+    ):
+        # can't be None if enabled
+        assert vpn.config is not None
+        vpn_connect = VPNConnect(vpn.config)
+
+        horde_transition = (
+            self.__pre_vpn("horde", goto_horde, vpn_connect)
+            if vpn.eager or vpn.horde
+            else goto_horde
+        )
+
+        owncloud_transition = (
+            self.__pre_vpn("owncloud", goto_owncloud, vpn_connect)
+            if vpn.eager or vpn.owncloud
+            else goto_owncloud
+        )
+
+        ssh_user_transition = (
+            self.__pre_vpn("ssh_user", start_ssh, vpn_connect)
+            if vpn.eager or vpn.ssh_user
+            else start_ssh
+        )
+
+        web_browser_transition = (
+            self.__pre_vpn("web_browser", goto_website, vpn_connect)
+            if vpn.eager or vpn.web_browser
+            else goto_website
+        )
+
+        wp_editor_transition = (
+            self.__pre_vpn("wp_editor", goto_wp_admin, vpn_connect)
+            if vpn.eager or vpn.wp_editor
+            else goto_wp_admin
+        )
+
+        wpdiscuz_transition = (
+            self.__pre_vpn("wpdiscuz", goto_wordpress, vpn_connect)
+            if vpn.eager or vpn.wpdiscuz
+            else goto_wordpress
+        )
+
+        return (
+            horde_transition,
+            owncloud_transition,
+            ssh_user_transition,
+            web_browser_transition,
+            wp_editor_transition,
+            wpdiscuz_transition,
+        )
+
     def build(self, config: StatemachineConfig):
         idle = config.idle
         states_config = config.states
@@ -593,14 +685,41 @@ class StatemachineFactory(sm.StatemachineFactory):
             target="selecting_activity",
         )
 
+        if config.vpn.enabled:
+            # configure activity entry transitions with VPN pre transitions
+            (
+                horde_transition,
+                owncloud_transition,
+                ssh_user_transition,
+                web_browser_transition,
+                wp_editor_transition,
+                wpdiscuz_transition,
+            ) = self.configure_vpn(
+                config.vpn,
+                goto_horde,
+                goto_owncloud,
+                start_ssh,
+                goto_website,
+                goto_wp_admin,
+                goto_wordpress,
+            )
+
+        else:
+            horde_transition = goto_horde
+            owncloud_transition = goto_owncloud
+            ssh_user_transition = start_ssh
+            web_browser_transition = goto_website
+            wp_editor_transition = goto_wp_admin
+            wpdiscuz_transition = goto_wordpress
+
         initial = ActivitySelectionState(
             name="selecting_activity",
-            horde=goto_horde,
-            owncloud=goto_owncloud,
-            ssh_user=start_ssh,
-            web_browser=goto_website,
-            wp_editor=goto_wp_admin,
-            wpdiscuz=goto_wordpress,
+            horde=horde_transition,
+            owncloud=owncloud_transition,
+            ssh_user=ssh_user_transition,
+            web_browser=web_browser_transition,
+            wp_editor=wp_editor_transition,
+            wpdiscuz=wpdiscuz_transition,
             idle=idle_transition,
             horde_weight=states_config.activities.horde,
             owncloud_weight=states_config.activities.owncloud,
