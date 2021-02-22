@@ -1,0 +1,27 @@
+"Testbed User" {
+  //initial,
+  selecting_activity,
+  idle,
+  "Wordpress Editor",
+  "Wordpress Reader",
+  "Webmail User",
+  "SSH User",
+  "Web Browser";
+
+  //initial -> selecting_activity;
+
+  selecting_activity -> "Wordpress Editor";
+  selecting_activity -> "Wordpress Reader";
+  selecting_activity -> "Webmail User";
+  selecting_activity -> "SSH User";
+  selecting_activity -> "Web Browser";
+  selecting_activity -> idle;
+
+  idle -> selecting_activity;
+  "Wordpress Editor" -> selecting_activity;
+  "Wordpress Reader" -> selecting_activity;
+  "Webmail User" -> selecting_activity;
+  "SSH User" -> selecting_activity;
+  "Web Browser" -> selecting_activity;
+
+};
