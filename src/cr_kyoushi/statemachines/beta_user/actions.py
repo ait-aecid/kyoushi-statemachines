@@ -30,7 +30,7 @@ def wait_process_output(
     ):
         line = process.stdout.readline().decode("utf-8")
         if len(line) > 0:
-            log.info("VPN init", stdout=line)
+            log.info("VPN output", stdout=line)
         sleep(0.1)
 
 
