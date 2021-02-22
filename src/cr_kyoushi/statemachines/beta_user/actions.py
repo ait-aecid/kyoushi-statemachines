@@ -1,8 +1,8 @@
+import os
 import re
 import subprocess
 
 from multiprocessing import Process
-from signal import SIGINT
 from typing import (
     List,
     Optional,
@@ -13,24 +13,6 @@ from pydantic import FilePath
 from structlog.stdlib import BoundLogger
 
 from .context import Context
-
-
-#     path = '/home/user/Download/trustedzone.ovpn'
-#     with open("/home/user/Download/trustedzone.ovpn", "a") as myfile:
-#         myfile.write('\nscript-security 2\nup /etc/openvpn/update-resolv-conf\ndown /etc/openvpn/update-resolv-conf')
-#         myfile.close()
-# x = subprocess.Popen(['sudo', 'openvpn', '--auth-nocache', '--config', path])
-#     try:
-#         while True:
-#             time.sleep(600)
-#     # termination with Ctrl+C
-#     except:
-#         try:
-#             x.kill()
-#         except:
-#             pass
-#         while x.poll() != 0:
-#             time.sleep(1)
 
 
 def wait_process_output(
@@ -74,30 +56,33 @@ class VPNConnect:
         context: Context,
         target: Optional[str],
     ):
-        # bind cmd to log context
-        log = log.bind(vpn_cmd=self.vpn_cmd)
+        if context.vpn_process is None or context.vpn_process.poll() is not None:
+            # bind cmd to log context
+            log = log.bind(vpn_cmd=self.vpn_cmd)
 
-        log.info("Connecting to VPN")
-        context.vpn_process = subprocess.Popen(self.vpn_cmd, stdout=subprocess.PIPE)
+            log.info("Connecting to VPN")
+            context.vpn_process = subprocess.Popen(self.vpn_cmd, stdout=subprocess.PIPE)
 
-        wait_process = Process(
-            target=wait_process_output,
-            name="wait_connected",
-            args=(context.vpn_process, self.wait_regex),
-        )
+            wait_process = Process(
+                target=wait_process_output,
+                name="wait_connected",
+                args=(context.vpn_process, self.wait_regex),
+            )
 
-        timed_out = False
-        try:
-            wait_process.join(self.timeout)
-        except TimeoutError:
-            timed_out = True
+            timed_out = False
+            try:
+                wait_process.join(self.timeout)
+            except TimeoutError:
+                timed_out = True
 
-        # need to check if process is still running here
-        if context.vpn_process.poll is None and not timed_out:
-            log.info("Connected to VPN")
+            # need to check if process is still running here
+            if context.vpn_process.poll() is None and not timed_out:
+                log.info("Connected to VPN")
+            else:
+                log.error("Failed to connect to VPN")
+                raise Exception("VPN Connection error")
         else:
-            log.error("Failed to connect to VPN")
-            raise Exception("VPN Connection error")
+            log.info("Already connected to VPN")
 
 
 def vpn_disconnect(
@@ -108,9 +93,26 @@ def vpn_disconnect(
 ):
     vpn_process = context.vpn_process
     if vpn_process is not None and vpn_process.poll() is None:
+        pgid = os.getpgid(vpn_process.pid)
         log.info("Disconnecting from VPN")
-        vpn_process.send_signal(SIGINT)
-        wait_process_output(log, vpn_process, re.compile("process exiting"))
-        log.info("Disconnected from VPN")
+        # cant use send signal since we started with sudo
+        subprocess.check_output(f"sudo kill {pgid}")
+
+        wait_process = Process(
+            target=wait_process_output,
+            name="wait_connected",
+            args=(log, context.vpn_process, re.compile("process exiting")),
+        )
+
+        timed_out = False
+        try:
+            wait_process.join(120)
+        except TimeoutError:
+            timed_out = True
+
+        if not timed_out:
+            log.info("Disconnected from VPN")
+        else:
+            log.error("Failed to disconnect from VPN")
     else:
         log.info("VPN process not running")
