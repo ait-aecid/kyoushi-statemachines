@@ -19,7 +19,7 @@ packages = [
 "ait.wordpress_editor" = "cr_kyoushi.statemachines.wordpress_editor:StatemachineFactory"
 "ait.owncloud_user" = "cr_kyoushi.statemachines.owncloud_user:StatemachineFactory"
 "ait.ssh_user" = "cr_kyoushi.statemachines.ssh_user:StatemachineFactory"
-
+"ait.beta_user" = "cr_kyoushi.statemachines.beta_user:StatemachineFactory"
 
 [[tool.poetry.source]]
 name = "simulation"
@@ -27,7 +27,7 @@ url = "https://git-service.ait.ac.at/api/v4/projects/1822/packages/pypi/simple"
 
 [tool.poetry.dependencies]
 python = "^3.7"
-cr-kyoushi-simulation = "^0.3.4"
+cr-kyoushi-simulation = "^0.3.6"
 selenium = "^3.141.0"
 webdriver-manager = "^3.2.2"
 Faker = "^5.6.5"

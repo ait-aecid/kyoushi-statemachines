@@ -156,8 +156,7 @@ class CheckMailExtendedView:
                 and ec.visibility_of_element_located((By.ID, "messageBody"))
             )
             # messageBody
-        except NoSuchElementException as e:
-            print(e)
+        except NoSuchElementException:
             return False
 
 

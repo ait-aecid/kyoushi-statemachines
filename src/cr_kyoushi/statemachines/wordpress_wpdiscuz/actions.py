@@ -27,6 +27,7 @@ from .wait import (
     CheckVoted,
     check_comment_action_failed,
     check_comment_submitted,
+    check_is_logged_in,
     check_post_page,
     check_post_rated,
 )
@@ -60,12 +61,18 @@ class RatePost:
                 rating_star = rating_div.find_element_by_xpath(
                     f".//div[@class='wpd-rating-stars']/*[name()='svg' and position()={post_info.rating}]"
                 )
+                rating_starts = rating_div.find_element_by_xpath(
+                    f".//div[@class='wpd-rate-starts']/*[name()='svg' and position()={post_info.rating}]"
+                )
+
                 log.info("Rating post")
                 with wait_for_page_load(driver):
                     # scroll to rating star so we can click it
-                    scroll_to(driver, rating_star)
+                    scroll_to(driver, rating_div, options_block="center")
 
-                    ActionChains(driver).move_to_element(rating_star).click().perform()
+                    ActionChains(driver).move_to_element(rating_star).click(
+                        rating_starts
+                    ).perform()
 
                 driver_wait(driver, check_post_page)
                 log.info("Rated post")
@@ -218,9 +225,8 @@ class VoteComment:
 
                 log.info("Voting on comment")
                 # ensure vote icon is in view
-                scroll_to(driver, vote_icon)
-
-                ActionChains(driver).move_to_element(vote_icon).click().perform()
+                scroll_to(driver, vote_icon, options_block="center")
+                vote_icon.click()
 
                 # wait for vote to register
                 driver_wait(
@@ -263,7 +269,7 @@ def new_comment(
         log.info("Starting new comment")
 
         # scroll to comment area
-        scroll_to(driver, new_div)
+        scroll_to(driver, new_div, options_block="center")
 
         # click into text field to make submit button & co appear
         new_div.find_element_by_class_name("ql-editor").click()
@@ -319,7 +325,8 @@ class ReplyComment:
 
                 log.info("Starting reply comment")
                 # scroll to reply button for comment
-                scroll_to(driver, reply_button)
+                scroll_to(driver, reply_button, options_block="center")
+
                 reply_button.click()
                 # wait for edit form to appear
                 driver_wait(
@@ -381,19 +388,34 @@ def write_comment(
         comment_info.text = " ".join(context.fake.sentences(random.randint(1, 2)))
 
         input_text = editor_div.find_element_by_class_name("ql-editor")
-        input_name = driver.find_element_by_id(f"wc_name-{cid}_{parent_cid}")
-        input_email = driver.find_element_by_id(f"wc_email-{cid}_{parent_cid}")
+
+        if check_is_logged_in(driver):
+            # when the user is logged in set the author name
+            # to the logged in user just in case
+            comment_info.author = driver.find_element_by_xpath(
+                "//div[@id='wpdcom']//div[contains(@class,'wpd-login')]/a[contains(@href,'/author/')]"
+            ).text
+            # also when logged in we don't submit an email address
+            comment_info.email = None
+        else:
+            # when we are not logged in we will have to supply name + email
+            input_name = driver.find_element_by_id(f"wc_name-{cid}_{parent_cid}")
+            input_email = driver.find_element_by_id(f"wc_email-{cid}_{parent_cid}")
 
         log.info("Writing comment")
 
         input_text.clear()
         slow_type(input_text, comment_info.text)
 
-        input_name.clear()
-        slow_type(input_name, comment_info.author)
+        if not check_is_logged_in(driver):
+            assert comment_info.author is not None
+            assert comment_info.email is not None
 
-        input_email.clear()
-        slow_type(input_email, comment_info.email)
+            input_name.clear()
+            slow_type(input_name, comment_info.author)
+
+            input_email.clear()
+            slow_type(input_email, comment_info.email)
 
         log.info("Submitting comment")
 

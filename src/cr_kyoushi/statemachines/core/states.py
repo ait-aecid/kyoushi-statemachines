@@ -23,12 +23,14 @@ class ActivityState(AdaptiveProbabilisticState):
         weights: Sequence[float],
         modifiers: Optional[Sequence[float]] = None,
         ret_increase: float = 1.03125,
+        name_prefix: Optional[str] = None,
     ):
         super().__init__(
             name,
             transitions,
             weights,
             modifiers,
+            name_prefix=name_prefix,
         )
         self.__ret: Transition = ret_transition
         self.__ret_increase: float = ret_increase

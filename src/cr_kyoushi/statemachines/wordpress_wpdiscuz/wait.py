@@ -48,8 +48,7 @@ class CheckNthPostsPage:
                 )
             else:
                 return False
-        except NoSuchElementException as e:
-            print(e)
+        except NoSuchElementException:
             # if there is only one page then the nav does not exist
             # then we are always on page 1
             return True if self.page_number == 1 else False
@@ -147,8 +146,7 @@ class CheckVoteRegistered:
                     )
                 )(driver)
             )
-        except NoSuchElementException as e:
-            print(e)
+        except NoSuchElementException:
             return False
 
 
@@ -253,6 +251,18 @@ def check_posts_can_previous(driver: webdriver.Remote) -> Optional[Any]:
             (
                 By.XPATH,
                 "//a[contains(@class, 'prev') and span[contains(@class, 'nav-prev-text')]]",
+            )
+        )(driver)
+    except NoSuchElementException:
+        return False
+
+
+def check_is_logged_in(driver: webdriver.Remote) -> Optional[Any]:
+    try:
+        return ec.visibility_of_element_located(
+            (
+                By.ID,
+                "wpadminbar",
             )
         )(driver)
     except NoSuchElementException:

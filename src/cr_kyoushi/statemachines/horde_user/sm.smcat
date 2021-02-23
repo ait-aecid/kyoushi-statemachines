@@ -146,8 +146,6 @@
   admin_sql_shell_page -> admin_page: return;
   admin_cli_page -> admin_page: return;
 
-  // ToDo admin config pages return transitions
-
   // admin groups transitions
   admin_groups_page -> admin_groups_page: group_add;
   admin_groups_page -> admin_group_deleting: group_delete;

@@ -1,3 +1,5 @@
+from typing import Optional
+
 from structlog.stdlib import BoundLogger
 
 from cr_kyoushi.simulation import states
@@ -26,6 +28,7 @@ class ActivitySelectionState(states.AdaptiveProbabilisticState):
         ssh_max_daily: int = 10,
         ssh_weight: float = 0.6,
         idle_weight: float = 0.4,
+        name_prefix: Optional[str] = None,
     ):
         """
         Args:
@@ -40,6 +43,7 @@ class ActivitySelectionState(states.AdaptiveProbabilisticState):
             name=name,
             transitions=[ssh_transition, idle_transition],
             weights=[ssh_weight, idle_weight],
+            name_prefix=name_prefix,
         )
         self.__ssh = ssh_transition
         self.__ssh_count = 0
@@ -88,6 +92,7 @@ class Connected(ActivityState):
         select_chain_weight: float = 0.9,
         disconnect_weight: float = 0.1,
         disconnect_increase=3,
+        name_prefix: Optional[str] = None,
     ):
         """
         Args:
@@ -106,6 +111,7 @@ class Connected(ActivityState):
             [select_chain_weight, disconnect_weight],
             modifiers=[1, 1],
             ret_increase=disconnect_increase,
+            name_prefix=name_prefix,
         )
         self._select: Transition = select_chain
 
@@ -136,7 +142,13 @@ class ExecutingCommandChain(states.ChoiceState):
     i.e., the user is executing a chain of shell commands.
     """
 
-    def __init__(self, name: str, execute_command: Transition, finished: Transition):
+    def __init__(
+        self,
+        name: str,
+        execute_command: Transition,
+        finished: Transition,
+        name_prefix: Optional[str] = None,
+    ):
         """
         Args:
             name: The name to assign to the state
@@ -144,7 +156,13 @@ class ExecutingCommandChain(states.ChoiceState):
             finished: The transition to execute once all
                       commands in the chain have been executed.
         """
-        super().__init__(name, self._have_command, execute_command, finished)
+        super().__init__(
+            name,
+            self._have_command,
+            execute_command,
+            finished,
+            name_prefix=name_prefix,
+        )
 
     def _have_command(self, log: BoundLogger, context: Context) -> bool:
         """
@@ -159,16 +177,36 @@ class ExecutingCommandChain(states.ChoiceState):
 class SudoDialogCheck(states.ChoiceState):
     """Pseudo check state for checking if we must enter the sudo password"""
 
-    def __init__(self, name: str, exec_cmd_chain: str, sudo_dialog: str):
+    def __init__(
+        self,
+        name: str,
+        exec_cmd_chain: str,
+        sudo_dialog: str,
+        name_prefix: Optional[str] = None,
+    ):
         """
         Args:
             name: The name to assign to the state
             exec_cmd_chain: The executing command chain states name
             sudo_dialog: The sudo dialog states name
         """
-        executed = NoopTransition("no_sudo_password_required", exec_cmd_chain)
-        require_password = NoopTransition("require_sudo_password", sudo_dialog)
-        super().__init__(name, self._is_sudo_prompt, require_password, executed)
+        executed = NoopTransition(
+            "no_sudo_password_required",
+            exec_cmd_chain,
+            name_prefix=name_prefix,
+        )
+        require_password = NoopTransition(
+            "require_sudo_password",
+            sudo_dialog,
+            name_prefix=name_prefix,
+        )
+        super().__init__(
+            name,
+            self._is_sudo_prompt,
+            require_password,
+            executed,
+            name_prefix=name_prefix,
+        )
 
     def _is_sudo_prompt(self, log: BoundLogger, context: Context) -> bool:
         """Check function for checking if we have sudo password prompt
@@ -194,6 +232,7 @@ class SudoDialog(states.AdaptiveProbabilisticState):
         enter_password_weight: float = 0.95,
         fail_password_weight: float = 0.05,
         fail_increase: float = 4.0,
+        name_prefix: Optional[str] = None,
     ):
         """
         Args:
@@ -211,6 +250,7 @@ class SudoDialog(states.AdaptiveProbabilisticState):
             [enter_password, fail_password],
             [enter_password_weight, fail_password_weight],
             modifiers=[1, 1],
+            name_prefix=name_prefix,
         )
         self._fail_password = fail_password
         self._fail_escalation = fail_escalation

@@ -3,9 +3,11 @@ This module contains configuration and utility functions for using Selenium webd
 as part of simulations.
 """
 import os
+import sys
 import time
 
 from contextlib import contextmanager
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import (
@@ -15,15 +17,18 @@ from typing import (
     List,
     Optional,
     Tuple,
+    TypeVar,
     Union,
 )
 
+from faker import Faker
 from pydantic import (
     AnyUrl,
     BaseModel,
     Field,
     PositiveInt,
     SecretStr,
+    root_validator,
     validator,
 )
 from pydantic.errors import (
@@ -59,10 +64,23 @@ from webdriver_manager.utils import ChromeType
 from cr_kyoushi.simulation.model import (
     ApproximateFloat,
     LogLevel,
+    WorkSchedule,
 )
+from cr_kyoushi.simulation.states import State
 
+from .config import (
+    BasicStatemachineConfig,
+    FakerContext,
+    FakerContextModel,
+)
+from .sm import FakerStatemachine
 from .util import filter_none_keys
 
+
+if sys.version_info >= (3, 8):
+    from typing import Protocol
+else:
+    from typing_extensions import Protocol
 
 TIMEOUT = 120
 
@@ -177,7 +195,7 @@ class SeleniumDownloadConfig(BaseModel):
     """Configuration class for the selenium drivers download settings"""
 
     prompt: bool = Field(
-        False,
+        True,
         description="If the download dialog should be shown or not",
     )
 
@@ -197,6 +215,13 @@ class SeleniumDownloadConfig(BaseModel):
             raise PathNotADirectoryError(path=value)
 
         return value
+
+    @root_validator()
+    def validate_download_path(cls, values):
+        assert (
+            values.get("prompt", True) or values.get("path", None) is not None
+        ), "Download path must be set if prompt is `False`"
+        return values
 
 
 class SeleniumConfig(BaseModel):
@@ -680,9 +705,32 @@ def driver_wait(
     WebDriverWait(driver, timeout, poll_frequency, ignored_exceptions).until(check_func)
 
 
-def scroll_to(driver: webdriver.Remote, elem: WebElement, wait: bool = True):
-    driver.execute_script("arguments[0].scrollIntoView();", elem)
-    driver_wait(driver, check_element_in_viewport(elem))
+def scroll_to(
+    driver: webdriver.Remote,
+    elem: WebElement,
+    wait: bool = True,
+    options_behavior: Optional[str] = None,
+    options_block: Optional[str] = "center",
+    options_inline: Optional[str] = None,
+):
+    # only scroll if the element is not already in the view port
+    if not element_in_viewport(driver, elem):
+        options = {}
+        if options_behavior:
+            options["behavior"] = options_behavior
+        if options_block:
+            options["block"] = options_block
+        if options_inline:
+            options["inline"] = options_inline
+
+        args = ""
+        if len(options) > 0:
+            args = ", ".join([f'{key}: "{val}"' for key, val in options.items()])
+            args = "{" + args + "}"
+
+        with WaitForScrollFinish(driver):
+            driver.execute_script(f"arguments[0].scrollIntoView({args});", elem)
+        driver_wait(driver, check_element_in_viewport(elem))
 
 
 def element_in_viewport(driver: webdriver.Remote, elem: WebElement) -> bool:
@@ -706,8 +754,12 @@ def element_in_viewport(driver: webdriver.Remote, elem: WebElement) -> bool:
 
     win_upper_bound = driver.execute_script("return window.pageYOffset")
     win_left_bound = driver.execute_script("return window.pageXOffset")
-    win_width = driver.execute_script("return document.documentElement.clientWidth")
-    win_height = driver.execute_script("return document.documentElement.clientHeight")
+    win_width = driver.execute_script(
+        "return window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;"
+    )
+    win_height = driver.execute_script(
+        "return window.innerHeight || document.documentElement.clientHeight|| document.body.clientHeight;"
+    )
     win_right_bound = win_left_bound + win_width
     win_lower_bound = win_upper_bound + win_height
 
@@ -788,3 +840,117 @@ class WaitForScrollFinish:
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
         self.wait()
+
+
+class SeleniumStatemachineConfig(BasicStatemachineConfig):
+    """Web browser state machine configuration model
+
+    Example:
+        ```yaml
+        max_errors: 0
+        start_time: 2021-01-23T9:00
+        end_time: 2021-01-29T00:01
+        schedule:
+        work_days:
+            monday:
+                start_time: 09:00
+                end_time: 17:30
+            friday:
+                start_time: 11:21
+                end_time: 19:43
+        selenium:
+            driver_manager:
+                cache_valid_range: 5 # days
+            type: firefox
+            window_width: 800
+            window_height: 600
+            accept_insecure_ssl: yes
+        ```
+    """
+
+    selenium: SeleniumConfig = Field(
+        SeleniumConfig(),
+        description="Selenium configuration for the web browser user",
+    )
+
+
+class SeleniumContext(FakerContext, Protocol):
+    """Context model for selenium state machines"""
+
+    driver: webdriver.Remote
+    """The selenium web driver"""
+
+    main_window: str
+    """The main window of the webdriver"""
+
+    fake: Faker
+    """Faker instance to use for generating various random content"""
+
+
+class SeleniumContextModel(FakerContextModel):
+    """Context model for selenium state machines"""
+
+    driver: webdriver.Remote
+    """The selenium web driver"""
+
+    main_window: str = Field(
+        ...,
+        description="The main window of the webdriver",
+    )
+
+
+C = TypeVar("C", bound=SeleniumContext)
+
+
+class SeleniumStatemachine(FakerStatemachine[C]):
+    """Generic selenium state machine class"""
+
+    def __init__(
+        self,
+        initial_state: str,
+        states: List[State],
+        selenium_config: SeleniumConfig,
+        start_time: Optional[datetime] = None,
+        end_time: Optional[datetime] = None,
+        work_schedule: Optional[WorkSchedule] = None,
+        max_errors: int = 0,
+    ):
+        super().__init__(
+            initial_state,
+            states,
+            start_time=start_time,
+            end_time=end_time,
+            work_schedule=work_schedule,
+            max_errors=max_errors,
+        )
+        self._selenium_config: SeleniumConfig = selenium_config
+        self._webdriver_path: Optional[str] = None
+
+    def get_driver(self) -> webdriver.Remote:
+        # we assume we only install once at the start of the sm
+        if self._webdriver_path is None:
+            self._webdriver_path = install_webdriver(self._selenium_config)
+
+        return get_webdriver(
+            self._selenium_config,
+            self._webdriver_path,
+        )
+
+    def setup_context(self):
+        raise NotImplementedError()
+
+    def destroy_context(self):
+        if self.context is not None:
+            self.context.driver.quit()
+
+
+class Statemachine(SeleniumStatemachine[SeleniumContext]):
+    """Basic selenium state machine class with a selenium context"""
+
+    def setup_context(self):
+        driver = self.get_driver()
+        self.context = SeleniumContextModel(
+            driver=driver,
+            main_window=driver.current_window_handle,
+            fake=self.fake,
+        )

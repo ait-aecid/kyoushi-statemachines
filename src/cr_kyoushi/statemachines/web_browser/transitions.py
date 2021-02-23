@@ -12,7 +12,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from structlog import BoundLogger
 
-from cr_kyoushi.simulation import transitions
 from cr_kyoushi.simulation.errors import TransitionExecutionError
 
 from .config import Context
@@ -31,7 +30,7 @@ def _get_available_links(log: BoundLogger, context: Context):
     available_links = context.driver.find_elements(by=By.TAG_NAME, value="a")
 
     # only consider http links
-    context.available_links = [
+    context.web_browser.available_links = [
         link
         for link in available_links
         if urlparse(link.get_attribute("href")).scheme in ["http", "https"]
@@ -54,22 +53,22 @@ class VisitWebsite:
     ):
         try:
             # increase website visit count
-            context.website_count += 1
+            context.web_browser.website_count += 1
 
-            context.current_website = random.choice(self.websites)
+            context.web_browser.current_website = random.choice(self.websites)
             log.info(
                 "Visiting website",
-                website=context.current_website,
-                link=context.current_website,
-                visit_count=context.website_count,
+                website=context.web_browser.current_website,
+                link=context.web_browser.current_website,
+                visit_count=context.web_browser.website_count,
             )
-            context.driver.get(context.current_website)
+            context.driver.get(context.web_browser.current_website)
 
             # check new available links
             _get_available_links(log, context)
         except WebDriverException as webdriver_exception:
             # don't count unreachable sites to website count
-            context.website_count -= 1
+            context.web_browser.website_count -= 1
 
             raise TransitionExecutionError(
                 "Selenium error",
@@ -90,21 +89,23 @@ class OpenLink:
         target: Optional[str],
     ):
         # update website depth
-        context.website_depth += 1
+        context.web_browser.website_depth += 1
 
         try:
-            selected_link: WebElement = random.choice(context.available_links)
+            selected_link: WebElement = random.choice(
+                context.web_browser.available_links
+            )
             log.info(
                 "Visiting link on website",
-                website=context.current_website,
+                website=context.web_browser.current_website,
                 link=selected_link.get_attribute("href"),
-                visit_count=context.website_count,
-                link_depth=context.website_depth,
+                visit_count=context.web_browser.website_count,
+                link_depth=context.web_browser.website_depth,
             )
             context.driver.get(selected_link.get_attribute("href"))
 
             # update context
-            context.current_website = context.driver.current_url
+            context.web_browser.current_website = context.driver.current_url
             _get_available_links(log, context)
         except WebDriverException as webdriver_exception:
             raise TransitionExecutionError(
@@ -114,19 +115,17 @@ class OpenLink:
             )
 
 
-@transitions.transition(target="leaving_website")
 def leave_website(
     log: BoundLogger,
     current_state: str,
     context: Context,
     target: Optional[str],
 ):
-    context.website_depth = 0
-    context.current_website = None
-    context.available_links = []
+    context.web_browser.website_depth = 0
+    context.web_browser.current_website = None
+    context.web_browser.available_links = []
 
 
-@transitions.transition(target="selecting_activity")
 def background_website(
     log: BoundLogger,
     current_state: str,
@@ -136,7 +135,6 @@ def background_website(
     """Do nothing"""
 
 
-@transitions.transition(target="selecting_activity")
 def close_website(
     log: BoundLogger,
     current_state: str,

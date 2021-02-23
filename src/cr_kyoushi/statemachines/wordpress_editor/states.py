@@ -1,4 +1,7 @@
-from typing import List
+from typing import (
+    List,
+    Optional,
+)
 
 from selenium.webdriver.remote.webelement import WebElement
 from structlog.stdlib import BoundLogger
@@ -30,6 +33,7 @@ class ActivitySelectionState(states.AdaptiveProbabilisticState):
         wp_editor_max_daily: int = 10,
         wp_editor_weight: float = 0.6,
         idle_weight: float = 0.4,
+        name_prefix: Optional[str] = None,
     ):
         """
         Args:
@@ -44,6 +48,7 @@ class ActivitySelectionState(states.AdaptiveProbabilisticState):
             name=name,
             transitions=[wp_editor_transition, idle_transition],
             weights=[wp_editor_weight, idle_weight],
+            name_prefix=name_prefix,
         )
         self.__wp_editor = wp_editor_transition
         self.__wp_editor_count = 0
@@ -82,6 +87,7 @@ class LoggedInCheck(states.ChoiceState):
         name: str,
         login_page: str,
         selecting_menu: str,
+        name_prefix: Optional[str] = None,
     ):
         """
         Args:
@@ -92,8 +98,17 @@ class LoggedInCheck(states.ChoiceState):
         super().__init__(
             name,
             self.check_logged_in,
-            yes=NoopTransition(name="logged_in_yes", target=selecting_menu),
-            no=NoopTransition(name="logged_in_no", target=login_page),
+            yes=NoopTransition(
+                name="logged_in_yes",
+                target=selecting_menu,
+                name_prefix=name_prefix,
+            ),
+            no=NoopTransition(
+                name="logged_in_no",
+                target=login_page,
+                name_prefix=name_prefix,
+            ),
+            name_prefix=name_prefix,
         )
 
     def check_logged_in(self, log: BoundLogger, context: Context) -> bool:
@@ -112,6 +127,7 @@ class LoginPage(states.AdaptiveProbabilisticState):
         fail_login: Transition,
         fail_weight: float = 0.05,
         fail_decrease_factor: float = 0.9,
+        name_prefix: Optional[str] = None,
     ):
         """
         Args:
@@ -125,6 +141,7 @@ class LoginPage(states.AdaptiveProbabilisticState):
             name=name,
             transitions=[login, fail_login],
             weights=[1 - fail_weight, fail_weight],
+            name_prefix=name_prefix,
         )
         self.__fail = fail_login
         self.__fail_decrease = fail_decrease_factor
@@ -150,8 +167,9 @@ class LogoutChoice(states.ProbabilisticState):
         self,
         name: str,
         logout: Transition,
-        close: str = "close_wp_admin",
+        close: str = "close",
         logout_prob: float = 0.05,
+        name_prefix: Optional[str] = None,
     ):
         """
         Args:
@@ -165,9 +183,14 @@ class LogoutChoice(states.ProbabilisticState):
             [
                 logout,
                 # if we do not log out we do nothing
-                NoopTransition(name=close, target=logout.target),
+                NoopTransition(
+                    name=close,
+                    target=logout.target,
+                    name_prefix=name_prefix,
+                ),
             ],
             [logout_prob, 1 - logout_prob],
+            name_prefix=name_prefix,
         )
 
 
@@ -192,6 +215,7 @@ class SelectingMenu(ActivityState):
         nav_posts_weight: float = 0.3,
         ret_weight: float = 0.15,
         ret_increase=1.25,
+        name_prefix: Optional[str] = None,
     ):
         """
         Args:
@@ -228,6 +252,7 @@ class SelectingMenu(ActivityState):
             ],
             modifiers=None,
             ret_increase=ret_increase,
+            name_prefix=name_prefix,
         )
 
 
@@ -244,6 +269,7 @@ class CommentsPage(ActivityState):
         ret_weight: float = 0.55,
         ret_increase=1.25,
         reply_only_guests: bool = True,
+        name_prefix: Optional[str] = None,
     ):
         """
         Args:
@@ -270,6 +296,7 @@ class CommentsPage(ActivityState):
             ],
             modifiers=None,
             ret_increase=ret_increase,
+            name_prefix=name_prefix,
         )
         self._reply: Transition = new_reply
         self.only_guests: bool = reply_only_guests
@@ -302,6 +329,7 @@ class PostsPage(ActivityState):
         ret_weight: float = 0.5,
         ret_increase=1.25,
         max_posts_daily: int = 1,
+        name_prefix: Optional[str] = None,
     ):
         """
         Args:
@@ -327,6 +355,7 @@ class PostsPage(ActivityState):
             ],
             modifiers=None,
             ret_increase=ret_increase,
+            name_prefix=name_prefix,
         )
         self._post: Transition = new_post
         self.__post_count: int = 0

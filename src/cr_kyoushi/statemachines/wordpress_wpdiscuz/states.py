@@ -1,3 +1,5 @@
+from typing import Optional
+
 from structlog.stdlib import BoundLogger
 
 from cr_kyoushi.simulation import states
@@ -28,6 +30,7 @@ class ActivitySelectionState(states.AdaptiveProbabilisticState):
         wpdiscuz_max_daily: int = 10,
         wpdiscuz_weight: float = 0.6,
         idle_weight: float = 0.4,
+        name_prefix: Optional[str] = None,
     ):
         """
         Args:
@@ -42,6 +45,7 @@ class ActivitySelectionState(states.AdaptiveProbabilisticState):
             name=name,
             transitions=[wpdiscuz_transition, idle_transition],
             weights=[wpdiscuz_weight, idle_weight],
+            name_prefix=name_prefix,
         )
         self.__wpdiscuz = wpdiscuz_transition
         self.__wpdiscuz_count = 0
@@ -88,6 +92,7 @@ class PostsPage(ActivityState):
         ret_weight: float = 0.25,
         ret_increase: float = 1.5,
         max_page: int = 3,
+        name_prefix: Optional[str] = None,
     ):
         super().__init__(
             name,
@@ -96,6 +101,7 @@ class PostsPage(ActivityState):
             weights=[nav_older_weight, nav_newer_weight, nav_post_weight, ret_weight],
             modifiers=None,
             ret_increase=ret_increase,
+            name_prefix=name_prefix,
         )
         self._next: Transition = nav_older
         self._previous: Transition = nav_newer
@@ -146,8 +152,14 @@ class CloseChoice(states.ProbabilisticState):
         close: Transition,
         leave_open_weight: float = 0.6,
         close_weight: float = 0.4,
+        name_prefix: Optional[str] = None,
     ):
-        super().__init__(name, [leave_open, close], [leave_open_weight, close_weight])
+        super().__init__(
+            name,
+            [leave_open, close],
+            [leave_open_weight, close_weight],
+            name_prefix=name_prefix,
+        )
 
 
 class PostPage(ActivityState):
@@ -173,6 +185,7 @@ class PostPage(ActivityState):
         ret_weight: float = 0.2,
         ret_increase: float = 1.5,
         comment_max_level: int = 3,
+        name_prefix: Optional[str] = None,
     ):
         super().__init__(
             name,
@@ -195,6 +208,7 @@ class PostPage(ActivityState):
             ],
             modifiers=None,
             ret_increase=ret_increase,
+            name_prefix=name_prefix,
         )
         self._up_vote: Transition = up_vote
         self._down_vote: Transition = down_vote

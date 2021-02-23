@@ -1,16 +1,26 @@
 """The wordpress wpdiscuz activities context model classes"""
 
+import sys
+
 from datetime import datetime
 from typing import Optional
 
-from faker import Faker
 from pydantic import (
     BaseModel,
     Field,
 )
-from selenium import webdriver
 
 from ..core.model import BaseInfo
+from ..core.selenium import (
+    SeleniumContext,
+    SeleniumContextModel,
+)
+
+
+if sys.version_info >= (3, 8):
+    from typing import Protocol
+else:
+    from typing_extensions import Protocol
 
 
 class PostInfo(BaseInfo):
@@ -104,24 +114,17 @@ class WpDiscuzContext(BaseModel):
     )
 
 
-class Context(BaseModel):
+class Context(SeleniumContext, Protocol):
+    """Wordpress wpDisuz state machine context protocol"""
+
+    wpdiscuz: WpDiscuzContext
+    """The wpdiscuz activity context"""
+
+
+class ContextModel(SeleniumContextModel):
     """Wordpress wpDisuz state machine context class"""
-
-    driver: webdriver.Remote
-    """The selenium web driver"""
-
-    main_window: str = Field(
-        ...,
-        description="The main window of the webdriver",
-    )
-
-    fake: Faker
-    """Faker instance to use for generating various random content"""
 
     wpdiscuz: WpDiscuzContext = Field(
         WpDiscuzContext(),
         description="The wpdiscuz activity context",
     )
-
-    class Config:
-        arbitrary_types_allowed = True

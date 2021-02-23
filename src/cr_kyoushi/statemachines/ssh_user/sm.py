@@ -1,63 +1,29 @@
 """Statemachine that only idles or executes the ssh user activity."""
 
-from datetime import datetime
-from typing import (
-    List,
-    Optional,
-)
-
-from faker import Faker
 
 from cr_kyoushi.simulation import sm
-from cr_kyoushi.simulation.config import get_seed
-from cr_kyoushi.simulation.model import WorkSchedule
-from cr_kyoushi.simulation.states import State
 
+from ..core.sm import FakerStatemachine
 from ..core.transitions import IdleTransition
 from .activities import get_ssh_activity
 from .config import StatemachineConfig
-from .context import Context
+from .context import (
+    Context,
+    ContextModel,
+)
 from .states import ActivitySelectionState
 
 
 __all__ = ["Statemachine", "StatemachineFactory"]
 
 
-class Statemachine(sm.WorkHoursStatemachine):
+class Statemachine(FakerStatemachine[Context]):
     """SSH user activity state machine"""
 
-    def __init__(
-        self,
-        initial_state: str,
-        states: List[State],
-        start_time: Optional[datetime] = None,
-        end_time: Optional[datetime] = None,
-        work_schedule: Optional[WorkSchedule] = None,
-        max_errors: int = 0,
-    ):
-        super().__init__(
-            initial_state,
-            states,
-            start_time=start_time,
-            end_time=end_time,
-            work_schedule=work_schedule,
-            max_errors=max_errors,
-        )
-        self.context: Optional[Context] = None
-        # seed faker random with global seed
-        Faker.seed(get_seed())
-        self.fake: Faker = Faker()
-
     def setup_context(self):
-        self.context = Context(
+        self.context = ContextModel(
             fake=self.fake,
         )
-
-    def _resume_work(self):
-        self.current_state = self.initial_state
-        # reset context
-        self.destroy_context()
-        self.setup_context()
 
 
 class StatemachineFactory(sm.StatemachineFactory):

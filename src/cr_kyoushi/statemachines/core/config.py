@@ -3,13 +3,18 @@ This module contains configuration and context classes or elements,
 which might be useful for many state machines.
 """
 
+import sys
+
+from datetime import datetime
 from enum import Enum
 from typing import (
     Any,
     Dict,
+    Optional,
     Union,
 )
 
+from faker import Faker
 from pydantic import (
     BaseModel,
     Field,
@@ -17,12 +22,21 @@ from pydantic import (
     validator,
 )
 
-from cr_kyoushi.simulation.model import ApproximateFloat
+from cr_kyoushi.simulation.model import (
+    ApproximateFloat,
+    WorkSchedule,
+)
 
 from ..core.util import (
     check_probabilities,
     greater_equal_one,
 )
+
+
+if sys.version_info >= (3, 8):
+    from typing import Protocol
+else:
+    from typing_extensions import Protocol
 
 
 class ActivityExtraConfig(BaseModel):
@@ -194,3 +208,65 @@ class IdleConfig(BaseModel):
             Idle value
         """
         return self.__getattribute__(idle.value)
+
+
+class BasicStatemachineConfig(BaseModel):
+    """Basic state machine configuration model
+
+    Example:
+        ```yaml
+        max_errors: 0
+        start_time: 2021-01-23T9:00
+        end_time: 2021-01-29T00:01
+        schedule:
+        work_days:
+            monday:
+                start_time: 09:00
+                end_time: 17:30
+            friday:
+                start_time: 11:21
+                end_time: 19:43
+        ```
+    """
+
+    max_errors: int = Field(
+        0,
+        description="The maximum amount of times to try to recover from an error",
+    )
+
+    start_time: Optional[datetime] = Field(
+        None,
+        description="The state machines start time",
+    )
+
+    end_time: Optional[datetime] = Field(
+        None,
+        description="The state machines end time",
+    )
+
+    idle: IdleConfig = Field(
+        IdleConfig(),
+        description="The idle configuration for the state machine",
+    )
+
+    schedule: Optional[WorkSchedule] = Field(
+        None,
+        description="The work schedule for the web browser user",
+    )
+
+
+class FakerContext(Protocol):
+    """Context model for state machines using faker"""
+
+    fake: Faker
+    """Faker instance to use for generating various random content"""
+
+
+class FakerContextModel(BaseModel):
+    """Context model for faker state machines"""
+
+    fake: Faker
+    """Faker instance to use for generating various random content"""
+
+    class Config:
+        arbitrary_types_allowed = True

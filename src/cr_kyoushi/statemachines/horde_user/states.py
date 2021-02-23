@@ -1,3 +1,5 @@
+from typing import Optional
+
 from structlog.stdlib import BoundLogger
 
 from cr_kyoushi.simulation import states
@@ -66,6 +68,7 @@ class ActivitySelectionState(states.AdaptiveProbabilisticState):
         horde_max_daily: int = 10,
         horde_weight: float = 0.6,
         idle_weight: float = 0.4,
+        name_prefix: Optional[str] = None,
     ):
         """
         Args:
@@ -80,6 +83,7 @@ class ActivitySelectionState(states.AdaptiveProbabilisticState):
             name=name,
             transitions=[horde_transition, idle_transition],
             weights=[horde_weight, idle_weight],
+            name_prefix=name_prefix,
         )
         self.__horde = horde_transition
         self.__horde_count = 0
@@ -118,12 +122,20 @@ class LoggedInCheck(states.ChoiceState):
         name: str,
         login_state: str,
         selecting_menu_state: str,
+        name_prefix: Optional[str] = None,
     ):
         super().__init__(
             name,
             self.check_logged_in,
-            yes=NoopTransition(name="logged_in_yes", target=selecting_menu_state),
-            no=NoopTransition(name="logged_in_no", target=login_state),
+            yes=NoopTransition(
+                name="logged_in_yes",
+                target=selecting_menu_state,
+                name_prefix=name_prefix,
+            ),
+            no=NoopTransition(
+                name="logged_in_no", target=login_state, name_prefix=name_prefix
+            ),
+            name_prefix=name_prefix,
         )
 
     def check_logged_in(self, log: BoundLogger, context: Context) -> bool:
@@ -142,11 +154,13 @@ class LoginPage(states.AdaptiveProbabilisticState):
         fail_login: Transition,
         fail_weight: float = 0.05,
         fail_decrease_factor: float = 0.9,
+        name_prefix: Optional[str] = None,
     ):
         super().__init__(
             name=name,
             transitions=[login, fail_login],
             weights=[1 - fail_weight, fail_weight],
+            name_prefix=name_prefix,
         )
         self.__fail = fail_login
         self.__fail_decrease = fail_decrease_factor
@@ -188,6 +202,7 @@ class SelectingMenu(ActivityState):
         nav_calendar_weight: float = 0.15,
         ret_weight: float = 0.075,
         ret_increase=1.25,
+        name_prefix: Optional[str] = None,
     ):
         """
         Args:
@@ -222,6 +237,7 @@ class SelectingMenu(ActivityState):
             ],
             modifiers=None,
             ret_increase=ret_increase,
+            name_prefix=name_prefix,
         )
         self.__preferences = nav_preferences
         self.__set_preferences = False
@@ -245,15 +261,27 @@ class LogoutChoice(states.ProbabilisticState):
     of horde or simply leave it open in background when pausing the activity.
     """
 
-    def __init__(self, name: str, logout: Transition, logout_prob: float = 0.05):
+    def __init__(
+        self,
+        name: str,
+        logout: Transition,
+        logout_prob: float = 0.05,
+        background: str = "background",
+        name_prefix: Optional[str] = None,
+    ):
         super().__init__(
             name,
             [
                 logout,
                 # if we do not log out we do nothing
-                NoopTransition(name="background_horde", target=logout.target),
+                NoopTransition(
+                    name=background,
+                    target=logout.target,
+                    name_prefix=name_prefix,
+                ),
             ],
             [logout_prob, 1 - logout_prob],
+            name_prefix=name_prefix,
         )
 
 
@@ -272,6 +300,7 @@ class MailsPage(ActivityState):
         refresh_mail_weight: float = 0.1,
         ret_weight: float = 0.1,
         ret_increase=1.2,
+        name_prefix: Optional[str] = None,
     ):
         """
         Args:
@@ -292,6 +321,7 @@ class MailsPage(ActivityState):
             [view_mail_weight, new_mail_weight, refresh_mail_weight, ret_weight],
             modifiers=None,
             ret_increase=ret_increase,
+            name_prefix=name_prefix,
         )
         self.__view_mail = view_mail
         self.__new_mail = new_mail
@@ -330,6 +360,7 @@ class MailView(states.ProbabilisticState):
         delete_mail_weight: float = 0.3,
         open_mail_weight: float = 0.4,
         do_nothing_weight: float = 0.3,
+        name_prefix: Optional[str] = None,
     ):
 
         super().__init__(
@@ -344,6 +375,7 @@ class MailView(states.ProbabilisticState):
                 open_mail_weight,
                 do_nothing_weight,
             ],
+            name_prefix=name_prefix,
         )
 
 
@@ -357,11 +389,13 @@ class MailInfo(states.ProbabilisticState):
         reply_mail: Transition,
         delete_mail_weight: float = 0.3,
         reply_mail_weight: float = 0.7,
+        name_prefix: Optional[str] = None,
     ):
         super().__init__(
             name=name,
             transitions=[delete_mail, reply_mail],
             weights=[delete_mail_weight, reply_mail_weight],
+            name_prefix=name_prefix,
         )
 
 
@@ -409,6 +443,7 @@ class AdminPage(ActivityState):
         nav_cli_shell_weight: float = 0.05,
         ret_weight: float = 0.1,
         ret_increase=2,
+        name_prefix: Optional[str] = None,
     ):
         super().__init__(
             name=name,
@@ -441,6 +476,7 @@ class AdminPage(ActivityState):
             ],
             modifiers=None,
             ret_increase=ret_increase,
+            name_prefix=name_prefix,
         )
 
 
@@ -460,6 +496,7 @@ class AdminGroupsPage(ActivityState):
         group_delete_weight: float = 0.35,
         ret_weight: float = 0.2,
         ret_increase=2,
+        name_prefix: Optional[str] = None,
     ):
         super().__init__(
             name,
@@ -476,6 +513,7 @@ class AdminGroupsPage(ActivityState):
             ],
             modifiers=None,
             ret_increase=ret_increase,
+            name_prefix=name_prefix,
         )
         self.__group_delete = group_delete
 
@@ -520,6 +558,7 @@ class NotesPage(ActivityState):
         edit_note_weight: float = 0.4,
         ret_weight: float = 0.1,
         ret_increase=2,
+        name_prefix: Optional[str] = None,
     ):
         super().__init__(
             name=name,
@@ -528,6 +567,7 @@ class NotesPage(ActivityState):
             weights=[new_note_weight, edit_note_weight, ret_weight],
             modifiers=None,
             ret_increase=ret_increase,
+            name_prefix=name_prefix,
         )
         self.__edit_note = edit_note
 
@@ -556,11 +596,13 @@ class NoteEditor(states.ProbabilisticState):
         delete_note: Transition,
         write_note_weight: float = 0.6,
         delete_note_weight: float = 0.4,
+        name_prefix: Optional[str] = None,
     ):
         super().__init__(
             name,
             [write_note, delete_note],
             [write_note_weight, delete_note_weight],
+            name_prefix=name_prefix,
         )
 
 
@@ -577,6 +619,7 @@ class TasksPage(ActivityState):
         edit_task_weight: float = 0.4,
         ret_weight: float = 0.1,
         ret_increase=1.4,
+        name_prefix: Optional[str] = None,
     ):
         super().__init__(
             name=name,
@@ -585,6 +628,7 @@ class TasksPage(ActivityState):
             weights=[new_task_weight, edit_task_weight, ret_weight],
             modifiers=None,
             ret_increase=ret_increase,
+            name_prefix=name_prefix,
         )
         self.__edit_task = edit_task
 
@@ -619,6 +663,7 @@ class AddressBookPage(ActivityState):
         browse_contacts_weight: float = 0.675,
         ret_transition_weight: float = 0.125,
         ret_increase=1.4,
+        name_prefix: Optional[str] = None,
     ):
         super().__init__(
             name=name,
@@ -635,6 +680,7 @@ class AddressBookPage(ActivityState):
             ],
             modifiers=None,
             ret_increase=ret_increase,
+            name_prefix=name_prefix,
         )
 
 
@@ -648,11 +694,13 @@ class ContactsBrowser(states.AdaptiveProbabilisticState):
         view_contact: Transition,
         new_contact_weight: float = 0.35,
         view_contact_weight: float = 0.65,
+        name_prefix: Optional[str] = None,
     ):
         super().__init__(
             name=name,
             transitions=[new_contact, view_contact],
             weights=[new_contact_weight, view_contact_weight],
+            name_prefix=name_prefix,
         )
         self.__view_contact = view_contact
 
@@ -681,11 +729,13 @@ class ContactInfo(states.ProbabilisticState):
         do_nothing: Transition,
         delete_contact_weight: float = 0.4,
         do_nothing_weight: float = 0.6,
+        name_prefix: Optional[str] = None,
     ):
         super().__init__(
             name=name,
             transitions=[delete_contact, do_nothing],
             weights=[delete_contact_weight, do_nothing_weight],
+            name_prefix=name_prefix,
         )
 
 
@@ -706,6 +756,7 @@ class CalendarPage(ActivityState):
         edit_event_weight: float = 0.35,
         ret_weight: float = 0.25,
         ret_increase=2,
+        name_prefix: Optional[str] = None,
     ):
         super().__init__(
             name=name,
@@ -714,6 +765,7 @@ class CalendarPage(ActivityState):
             weights=[new_event_weight, edit_event_weight, ret_weight],
             modifiers=None,
             ret_increase=ret_increase,
+            name_prefix=name_prefix,
         )
         self.__edit_event = edit_event
 
@@ -742,9 +794,11 @@ class EventEdit(states.ProbabilisticState):
         delete_event: Transition,
         write_event_weight: float = 0.6,
         delete_event_weight: float = 0.4,
+        name_prefix: Optional[str] = None,
     ):
         super().__init__(
             name,
             [write_event, delete_event],
             [write_event_weight, delete_event_weight],
+            name_prefix=name_prefix,
         )

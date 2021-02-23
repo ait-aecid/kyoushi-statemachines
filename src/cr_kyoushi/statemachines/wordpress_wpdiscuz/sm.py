@@ -5,17 +5,13 @@ from typing import (
     Optional,
 )
 
-from faker import Faker
-
 from cr_kyoushi.simulation import sm
-from cr_kyoushi.simulation.config import get_seed
 from cr_kyoushi.simulation.model import WorkSchedule
 from cr_kyoushi.simulation.states import State
 
 from ..core.selenium import (
     SeleniumConfig,
-    get_webdriver,
-    install_webdriver,
+    SeleniumStatemachine,
 )
 from ..core.transitions import IdleTransition
 from .activities import (
@@ -25,6 +21,7 @@ from .activities import (
 from .config import StatemachineConfig
 from .context import (
     Context,
+    ContextModel,
     WpDiscuzContext,
 )
 from .states import ActivitySelectionState
@@ -33,11 +30,8 @@ from .states import ActivitySelectionState
 __all__ = ["Statemachine", "StatemachineFactory"]
 
 
-class Statemachine(sm.WorkHoursStatemachine):
+class Statemachine(SeleniumStatemachine[Context]):
     """Wordpress wpDiscuz activity state machine"""
-
-    _selenium_config: SeleniumConfig
-    _webdriver_path: Optional[str]
 
     def __init__(
         self,
@@ -54,6 +48,7 @@ class Statemachine(sm.WorkHoursStatemachine):
         super().__init__(
             initial_state,
             states,
+            selenium_config=selenium_config,
             start_time=start_time,
             end_time=end_time,
             work_schedule=work_schedule,
@@ -61,24 +56,10 @@ class Statemachine(sm.WorkHoursStatemachine):
         )
         self.author: str = author
         self.email: str = email
-        self._selenium_config = selenium_config
-        self._webdriver_path = None
-        self.context: Optional[Context] = None
-        # seed faker random with global seed
-        Faker.seed(get_seed())
-        self.fake: Faker = Faker()
 
     def setup_context(self):
-        # we assume we only install once at the start of the sm
-        if self._webdriver_path is None:
-            self._webdriver_path = install_webdriver(self._selenium_config)
-
-        driver = get_webdriver(
-            self._selenium_config,
-            self._webdriver_path,
-        )
-
-        self.context = Context(
+        driver = self.get_driver()
+        self.context = ContextModel(
             driver=driver,
             main_window=driver.current_window_handle,
             fake=self.fake,
@@ -87,16 +68,6 @@ class Statemachine(sm.WorkHoursStatemachine):
                 email=self.email,
             ),
         )
-
-    def destroy_context(self):
-        if self.context is not None:
-            self.context.driver.quit()
-
-    def _resume_work(self):
-        self.current_state = self.initial_state
-        # reset context
-        self.destroy_context()
-        self.setup_context()
 
 
 class StatemachineFactory(sm.StatemachineFactory):

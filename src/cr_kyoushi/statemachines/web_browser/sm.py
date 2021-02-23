@@ -1,89 +1,27 @@
-from datetime import datetime
-from typing import (
-    List,
-    Optional,
-)
+from cr_kyoushi.simulation import sm
 
-from cr_kyoushi.simulation import (
-    sm,
-    states,
-    transitions,
-)
-from cr_kyoushi.simulation.model import WorkSchedule
-
-from ..core.selenium import (
-    SeleniumConfig,
-    get_webdriver,
-    install_webdriver,
-)
+from ..core.selenium import SeleniumStatemachine
 from ..core.transitions import IdleTransition
+from .activities import get_browser_activity
 from .config import (
     Context,
+    ContextModel,
     StatemachineConfig,
 )
-from .states import (
-    ActivitySelectionState,
-    WebsiteState,
-)
-from .transitions import (
-    OpenLink,
-    VisitWebsite,
-    background_website,
-    close_website,
-    leave_website,
-)
+from .states import ActivitySelectionState
 
 
 __all__ = ["Statemachine", "StatemachineFactory"]
 
 
-class Statemachine(sm.WorkHoursStatemachine):
-    _selenium_config: SeleniumConfig
-    _webdriver_path: Optional[str]
-
-    def __init__(
-        self,
-        initial_state: str,
-        states: List[states.State],
-        selenium_config: SeleniumConfig,
-        start_time: Optional[datetime] = None,
-        end_time: Optional[datetime] = None,
-        work_schedule: Optional[WorkSchedule] = None,
-        max_errors: int = 0,
-    ):
-        super().__init__(
-            initial_state,
-            states,
-            start_time=start_time,
-            end_time=end_time,
-            work_schedule=work_schedule,
-            max_errors=max_errors,
-        )
-        self._selenium_config = selenium_config
-        self._webdriver_path = None
-        self.context: Optional[Context] = None
-
+class Statemachine(SeleniumStatemachine[Context]):
     def setup_context(self):
-        # we assume we only install once at the start of the sm
-        if self._webdriver_path is None:
-            self._webdriver_path = install_webdriver(self._selenium_config)
-
-        self.context = Context(
-            driver=get_webdriver(
-                self._selenium_config,
-                self._webdriver_path,
-            )
+        driver = self.get_driver()
+        self.context = ContextModel(
+            driver=driver,
+            main_window=driver.current_window_handle,
+            fake=self.fake,
         )
-
-    def destroy_context(self):
-        if self.context is not None:
-            self.context.driver.quit()
-
-    def _resume_work(self):
-        self.current_state = self.initial_state
-        # reset context
-        self.destroy_context()
-        self.setup_context()
 
 
 class StatemachineFactory(sm.StatemachineFactory):
@@ -99,55 +37,24 @@ class StatemachineFactory(sm.StatemachineFactory):
         # setup transitions
 
         idle_transition = IdleTransition(
-            idle_amount=config.user.idle_time,
+            idle_amount=config.idle.big,
             end_time=config.end_time,
             name="idle",
             target="selecting_activity",
         )
 
-        website_transition = transitions.DelayedTransition(
-            transition_function=VisitWebsite(
-                config.user.websites,
-                "selecting_activity",
-            ),
-            name="visit_website",
-            target="on_website",
-            delay_after=config.user.wait_time,
-        )
-
-        link_transition = transitions.DelayedTransition(
-            transition_function=OpenLink("selecting_activity"),
-            name="visit_link",
-            target="on_website",
-            delay_after=config.user.wait_time,
+        (website_transition, on_website, leaving_website) = get_browser_activity(
+            config.idle, config.user, config.states
         )
 
         # setup states
         selecting_activity = ActivitySelectionState(
             name="selecting_activity",
-            max_websites_day=config.user.max_websites_day,
+            max_daily=config.user.max_daily,
             website_transition=website_transition,
             website_weight=config.states.selecting_activity.visit_website,
             idle_transition=idle_transition,
             idle_weight=config.states.selecting_activity.idle,
-        )
-
-        on_website = WebsiteState(
-            name="on_website",
-            website_transition=link_transition,
-            website_weight=config.states.on_website.visit_link,
-            leave_transition=leave_website,
-            leave_weight=config.states.on_website.leave_website,
-            max_depth=config.user.max_depth,
-        )
-
-        leaving_website = states.ProbabilisticState(
-            name="leaving_website",
-            transitions=[background_website, close_website],
-            weights=[
-                config.states.leaving_website.background,
-                config.states.leaving_website.close,
-            ],
         )
 
         return Statemachine(

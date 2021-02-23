@@ -1,7 +1,6 @@
-from datetime import (
-    date,
-    datetime,
-)
+import sys
+
+from datetime import date
 from typing import (
     List,
     Optional,
@@ -12,18 +11,22 @@ from pydantic import (
     BaseModel,
     Field,
 )
-from selenium import webdriver
 from selenium.webdriver.remote.webelement import WebElement
 
-from cr_kyoushi.simulation.model import (
-    ApproximateFloat,
-    WorkSchedule,
-)
 from cr_kyoushi.simulation.util import now
 
 from ..core.config import ProbabilisticStateConfig
-from ..core.selenium import SeleniumConfig
+from ..core.selenium import (
+    SeleniumContext,
+    SeleniumContextModel,
+    SeleniumStatemachineConfig,
+)
 
+
+if sys.version_info >= (3, 8):
+    from typing import Protocol
+else:
+    from typing_extensions import Protocol
 
 __all__ = [
     "UserConfig",
@@ -44,7 +47,7 @@ class UserConfig(BaseModel):
         description="The web site URLs the user can visit",
     )
 
-    max_websites_day: int = Field(
+    max_daily: int = Field(
         5,
         description="The maximum websites to visit per day",
     )
@@ -52,16 +55,6 @@ class UserConfig(BaseModel):
     max_depth: int = Field(
         2,
         description="The maximum link depth the user will browse to on a website",
-    )
-
-    wait_time: ApproximateFloat = Field(
-        ApproximateFloat(min=0.5, max=3.0),
-        description="The approximate time the user waits before clicking a link on a website",
-    )
-
-    idle_time: ApproximateFloat = Field(
-        ApproximateFloat(min=60, max=60 * 60 * 2),
-        description="The time to wait in between website visits",
     )
 
 
@@ -107,13 +100,8 @@ class LeaveWebsiteStateConfig(ProbabilisticStateConfig):
     )
 
 
-class StatesConfig(BaseModel):
-    """State transition configuration for the web browser state machine"""
-
-    selecting_activity: ActivitySelectionStateConfig = Field(
-        ActivitySelectionStateConfig(),
-        description="The transition probabilities configuration for the `selecting_activity` state",
-    )
+class WebBrowserStates(BaseModel):
+    """State transition configuration for the web browser states"""
 
     on_website: WebsiteStateConfig = Field(
         WebsiteStateConfig(),
@@ -126,12 +114,21 @@ class StatesConfig(BaseModel):
     )
 
 
-class StatemachineConfig(BaseModel):
+class StatesConfig(WebBrowserStates):
+    """State transition configuration for the web browser state machine"""
+
+    selecting_activity: ActivitySelectionStateConfig = Field(
+        ActivitySelectionStateConfig(),
+        description="The transition probabilities configuration for the `selecting_activity` state",
+    )
+
+
+class StatemachineConfig(SeleniumStatemachineConfig):
     """Web browser state machine configuration model
 
     Example:
         ```yaml
-        max_error: 0
+        max_errors: 0
         start_time: 2021-01-23T9:00
         end_time: 2021-01-29T00:01
         schedule:
@@ -150,7 +147,7 @@ class StatemachineConfig(BaseModel):
             window_height: 600
             accept_insecure_ssl: yes
         user:
-            max_websites_day: 5
+            max_daily: 5
             max_depth: 2
             wait_time:
                 min: 3.5 # seconds
@@ -175,31 +172,6 @@ class StatemachineConfig(BaseModel):
         ```
     """
 
-    max_errors: int = Field(
-        0,
-        description="The maximum amount of times to try to recover from an error",
-    )
-
-    start_time: Optional[datetime] = Field(
-        None,
-        description="The state machines start time",
-    )
-
-    end_time: Optional[datetime] = Field(
-        None,
-        description="The state machines end time",
-    )
-
-    schedule: Optional[WorkSchedule] = Field(
-        None,
-        description="The work schedule for the web browser user",
-    )
-
-    selenium: SeleniumConfig = Field(
-        SeleniumConfig(),
-        description="Selenium configuration for the web browser user",
-    )
-
     user: UserConfig = Field(
         UserConfig(),
         description="The web browser user configuration",
@@ -211,10 +183,7 @@ class StatemachineConfig(BaseModel):
     )
 
 
-class Context(BaseModel):
-    driver: webdriver.Remote
-    """The selenium web driver"""
-
+class WebBrowserContextModel(BaseModel):
     current_website: Optional[AnyUrl] = Field(
         None,
         description="The website currently being visited",
@@ -242,3 +211,16 @@ class Context(BaseModel):
 
     class Config:
         arbitrary_types_allowed = True
+
+
+class Context(SeleniumContext, Protocol):
+
+    web_browser: WebBrowserContextModel
+    """The web browser user context"""
+
+
+class ContextModel(SeleniumContextModel):
+    web_browser: WebBrowserContextModel = Field(
+        WebBrowserContextModel(),
+        description="The web browser user context",
+    )
