@@ -1,4 +1,7 @@
-from typing import Dict
+from typing import (
+    Dict,
+    Optional,
+)
 
 from cr_kyoushi.simulation import states
 from cr_kyoushi.simulation.transitions import Transition
@@ -14,12 +17,12 @@ class ActivitySelectionState(states.AdaptiveProbabilisticState):
     def __init__(
         self,
         name: str,
-        horde: Transition,
-        owncloud: Transition,
-        ssh_user: Transition,
-        web_browser: Transition,
-        wp_editor: Transition,
-        wpdiscuz: Transition,
+        horde: Optional[Transition],
+        owncloud: Optional[Transition],
+        ssh_user: Optional[Transition],
+        web_browser: Optional[Transition],
+        wp_editor: Optional[Transition],
+        wpdiscuz: Optional[Transition],
         idle: Transition,
         horde_weight: float = 0.3,
         owncloud_weight: float = 0.15,
@@ -28,12 +31,12 @@ class ActivitySelectionState(states.AdaptiveProbabilisticState):
         wp_editor_weight: float = 0,
         wpdiscuz_weight: float = 0.15,
         idle_weight: float = 0.2,
-        horde_max_daily: int = 10,
-        owncloud_max_daily: int = 10,
-        ssh_user_max_daily: int = 10,
-        web_browser_max_daily: int = 10,
-        wp_editor_max_daily: int = 10,
-        wpdiscuz_max_daily: int = 10,
+        horde_max_daily: Optional[int] = 10,
+        owncloud_max_daily: Optional[int] = 10,
+        ssh_user_max_daily: Optional[int] = 10,
+        web_browser_max_daily: Optional[int] = 10,
+        wp_editor_max_daily: Optional[int] = 10,
+        wpdiscuz_max_daily: Optional[int] = 10,
     ):
         """
         Args:
@@ -59,26 +62,37 @@ class ActivitySelectionState(states.AdaptiveProbabilisticState):
             wpdiscuz_weight: The propability of entering the wpdiscuz activity.
             idle_weight: The propability of entering the idle activity.
         """
+        transitions = [idle]
+        weights = [idle_weight]
+
+        if horde is not None:
+            transitions.append(horde)
+            weights.append(horde_weight)
+
+        if owncloud is not None:
+            transitions.append(owncloud)
+            weights.append(owncloud_weight)
+
+        if ssh_user is not None:
+            transitions.append(ssh_user)
+            weights.append(ssh_user_weight)
+
+        if web_browser is not None:
+            transitions.append(web_browser)
+            weights.append(web_browser_weight)
+
+        if wp_editor is not None:
+            transitions.append(wp_editor)
+            weights.append(wp_editor_weight)
+
+        if wpdiscuz is not None:
+            transitions.append(wpdiscuz)
+            weights.append(wpdiscuz_weight)
+
         super().__init__(
             name=name,
-            transitions=[
-                horde,
-                owncloud,
-                ssh_user,
-                web_browser,
-                wp_editor,
-                wpdiscuz,
-                idle,
-            ],
-            weights=[
-                horde_weight,
-                owncloud_weight,
-                ssh_user_weight,
-                web_browser_weight,
-                wp_editor_weight,
-                wpdiscuz_weight,
-                idle_weight,
-            ],
+            transitions=transitions,
+            weights=weights,
         )
 
         self._counts: Dict[Transition, int] = {
@@ -91,12 +105,12 @@ class ActivitySelectionState(states.AdaptiveProbabilisticState):
         }
 
         self._max: Dict[Transition, int] = {
-            horde: horde_max_daily,
-            owncloud: owncloud_max_daily,
-            ssh_user: ssh_user_max_daily,
-            web_browser: web_browser_max_daily,
-            wp_editor: wp_editor_max_daily,
-            wpdiscuz: wpdiscuz_max_daily,
+            horde: horde_max_daily or 0,
+            owncloud: owncloud_max_daily or 0,
+            ssh_user: ssh_user_max_daily or 0,
+            web_browser: web_browser_max_daily or 0,
+            wp_editor: wp_editor_max_daily or 0,
+            wpdiscuz: wpdiscuz_max_daily or 0,
         }
         self.__day = now().date()
 
