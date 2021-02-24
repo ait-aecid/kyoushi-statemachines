@@ -83,35 +83,95 @@ class StatesConfig(BaseModel):
         description="The activity selection states configuration",
     )
 
-    horde: HordeStates = Field(
+    horde: Optional[HordeStates] = Field(
         HordeStates(),
         description="The horde user states config",
     )
 
-    owncloud: OwncloudStates = Field(
+    owncloud: Optional[OwncloudStates] = Field(
         OwncloudStates(),
         description="The owncloud user states config",
     )
 
-    ssh_user: SSHStates = Field(
+    ssh_user: Optional[SSHStates] = Field(
         SSHStates(),
         description="The SSH user states config",
     )
 
-    web_browser: WebBrowserStates = Field(
+    web_browser: Optional[WebBrowserStates] = Field(
         WebBrowserStates(),
         description="The web browser user states config",
     )
 
-    wp_editor: WordpressEditorStates = Field(
+    wp_editor: Optional[WordpressEditorStates] = Field(
         WordpressEditorStates(),
         description="The wordpress editor user states config",
     )
 
-    wpdiscuz: WpDiscuzStates = Field(
+    wpdiscuz: Optional[WpDiscuzStates] = Field(
         WpDiscuzStates(),
         description="The wpdiscuz user states config",
     )
+
+    @validator("wpdiscuz", always=True)
+    def validate_wpdiscuz_states_config_presence(
+        cls, value: Optional[WpDiscuzConfig], values
+    ) -> Optional[WpDiscuzConfig]:
+        if "activities" in values and values["activities"].wpdiscuz > 0:
+            assert (
+                value is not None
+            ), "There must be a wpdiscuz states config if the activity is enabled!"
+        return value
+
+    @validator("wp_editor", always=True)
+    def validate_wp_editor_states_config_presence(
+        cls, value: Optional[WordpressEditorConfig], values
+    ) -> Optional[WordpressEditorConfig]:
+        if "activities" in values and values["activities"].wp_editor > 0:
+            assert (
+                value is not None
+            ), "There must be a wp_editor states config if the activity is enabled!"
+        return value
+
+    @validator("web_browser", always=True)
+    def validate_web_browser_states_config_presence(
+        cls, value: Optional[WebBrowserConfig], values
+    ) -> Optional[WebBrowserConfig]:
+        if "activities" in values and values["activities"].web_browser > 0:
+            assert (
+                value is not None
+            ), "There must be a web_browser states config if the activity is enabled!"
+        return value
+
+    @validator("ssh_user", always=True)
+    def validate_ssh_user_states_config_presence(
+        cls, value: Optional[SSHUserConfig], values
+    ) -> Optional[SSHUserConfig]:
+        if "activities" in values and values["activities"].ssh_user > 0:
+            assert (
+                value is not None
+            ), "There must be a ssh_user states config if the activity is enabled!"
+        return value
+
+    @validator("owncloud", always=True)
+    def validate_owncloud_states_config_presence(
+        cls, value: Optional[OwncloudUserConfig], values
+    ) -> Optional[OwncloudUserConfig]:
+        if "activities" in values and values["activities"].owncloud > 0:
+            assert (
+                value is not None
+            ), "There must be a owncloud states config if the activity is enabled!"
+        return value
+
+    @validator("horde", always=True)
+    def validate_horde_states_config_presence(
+        cls, value: Optional[HordeConfig], values
+    ) -> Optional[HordeConfig]:
+        if "activities" in values and values["activities"].horde > 0:
+            assert (
+                value is not None
+            ), "There must be a horde states config if the activity is enabled!"
+        return value
 
 
 class VPNConfig(BaseModel):
@@ -203,33 +263,33 @@ class StatemachineConfig(SeleniumStatemachineConfig):
         description="The horde state machines states configuration",
     )
 
-    horde: HordeConfig = Field(
-        HordeConfig(),
+    horde: Optional[HordeConfig] = Field(
+        None,
         description="The horde user specific configuration",
     )
 
-    owncloud: OwncloudUserConfig = Field(
-        OwncloudUserConfig(),
+    owncloud: Optional[OwncloudUserConfig] = Field(
+        None,
         description="The owncloud user config",
     )
 
-    ssh_user: SSHUserConfig = Field(
-        SSHUserConfig(),
+    ssh_user: Optional[SSHUserConfig] = Field(
+        None,
         description="The SSH user config",
     )
 
-    web_browser: WebBrowserConfig = Field(
-        WebBrowserConfig(),
+    web_browser: Optional[WebBrowserConfig] = Field(
+        None,
         description="The web browser user config",
     )
 
-    wp_editor: WordpressEditorConfig = Field(
-        WordpressEditorConfig(),
+    wp_editor: Optional[WordpressEditorConfig] = Field(
+        None,
         description="The wordpress editor user config",
     )
 
-    wpdiscuz: WpDiscuzConfig = Field(
-        WpDiscuzConfig(),
+    wpdiscuz: Optional[WpDiscuzConfig] = Field(
+        None,
         description="The wpdiscuz user config",
     )
 
@@ -238,4 +298,64 @@ class StatemachineConfig(SeleniumStatemachineConfig):
         assert (
             value.download.prompt is False
         ), "The selenium browser download prompt must be turned of for this sm!"
+        return value
+
+    @validator("wpdiscuz", always=True)
+    def validate_wpdiscuz_config_presence(
+        cls, value: Optional[WpDiscuzConfig], values
+    ) -> Optional[WpDiscuzConfig]:
+        if "states" in values and values["states"].activities.wpdiscuz > 0:
+            assert (
+                value is not None
+            ), "There must be a wpdiscuz config if the activity is enabled!"
+        return value
+
+    @validator("wp_editor", always=True)
+    def validate_wp_editor_config_presence(
+        cls, value: Optional[WordpressEditorConfig], values
+    ) -> Optional[WordpressEditorConfig]:
+        if "states" in values and values["states"].activities.wp_editor > 0:
+            assert (
+                value is not None
+            ), "There must be a wp_editor config if the activity is enabled!"
+        return value
+
+    @validator("web_browser", always=True)
+    def validate_web_browser_config_presence(
+        cls, value: Optional[WebBrowserConfig], values
+    ) -> Optional[WebBrowserConfig]:
+        if "states" in values and values["states"].activities.web_browser > 0:
+            assert (
+                value is not None
+            ), "There must be a web_browser config if the activity is enabled!"
+        return value
+
+    @validator("ssh_user", always=True)
+    def validate_ssh_user_config_presence(
+        cls, value: Optional[SSHUserConfig], values
+    ) -> Optional[SSHUserConfig]:
+        if "states" in values and values["states"].activities.ssh_user > 0:
+            assert (
+                value is not None
+            ), "There must be a ssh_user config if the activity is enabled!"
+        return value
+
+    @validator("owncloud", always=True)
+    def validate_owncloud_config_presence(
+        cls, value: Optional[OwncloudUserConfig], values
+    ) -> Optional[OwncloudUserConfig]:
+        if "states" in values and values["states"].activities.owncloud > 0:
+            assert (
+                value is not None
+            ), "There must be a owncloud config if the activity is enabled!"
+        return value
+
+    @validator("horde", always=True)
+    def validate_horde_config_presence(
+        cls, value: Optional[HordeConfig], values
+    ) -> Optional[HordeConfig]:
+        if "states" in values and values["states"].activities.horde > 0:
+            assert (
+                value is not None
+            ), "There must be a horde config if the activity is enabled!"
         return value
