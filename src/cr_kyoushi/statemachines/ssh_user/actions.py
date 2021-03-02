@@ -160,7 +160,7 @@ def disconnect(
 
     if user.shell is not None:
         log.info("Disconnecting from SSH Host")
-        # user.shell.sendline("exit")
+        user.shell.sendline("exit")
         user.shell.close()
         log.info("Disconnected from SSH Host")
 
