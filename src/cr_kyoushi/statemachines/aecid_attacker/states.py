@@ -45,7 +45,10 @@ class AttackStepTransition:
 
     @property
     def transitions(self) -> List[Transition]:
-        return [self.transition] + [child.transitions for child in self.children]
+        t = [self.transition]
+        for child in self.children:
+            t.extend(child.transitions)
+        return t
 
 
 class AttackStep:
@@ -82,7 +85,7 @@ class AttackStep:
     ) -> AttackStepTransition:
         return AttackStepTransition(
             transition=self.transition(target, name_prefix),
-            children=[child.transition(target, name_prefix) for child in self.children],
+            children=[child.convert(target, name_prefix) for child in self.children],
         )
 
 

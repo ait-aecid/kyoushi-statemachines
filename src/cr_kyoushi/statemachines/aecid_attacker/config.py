@@ -6,7 +6,6 @@ from ipaddress import (
     IPv4Address,
     IPv4Network,
 )
-from pathlib import Path
 from typing import (
     List,
     Pattern,
@@ -115,7 +114,8 @@ class WordpressAttackConfig(BaseModel):
     )
 
     admin_ajax: str = Field(
-        ..., description="The path to admin ajax endpoint (without leading slash)."
+        "wp-admin/admin-ajax.php",
+        description="The path to admin ajax endpoint (without leading slash).",
     )
 
     dirb_wordlists: List[FilePath] = Field(
@@ -236,7 +236,7 @@ class StatemachineConfig(BaseModel):
     )
 
     vpn: FilePath = Field(
-        Path("~/connection.ovpn"),
+        ...,
         description="The VPN connection config to use",
     )
 

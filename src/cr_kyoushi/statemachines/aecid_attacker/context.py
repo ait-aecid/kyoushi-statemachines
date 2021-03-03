@@ -2,6 +2,7 @@
 
 import sys
 
+from subprocess import Popen
 from typing import Optional
 
 from pwnlib.tubes.listen import listen
@@ -20,6 +21,9 @@ else:
 class Context(Protocol):
     """AECID attacker context"""
 
+    vpn_process: Optional[Popen]
+    """The VPN process for remote users"""
+
     web_shell: Optional[str]
     """The url to the uploaded web shell"""
 
@@ -29,6 +33,9 @@ class Context(Protocol):
 
 class ContextModel(BaseModel):
     """Beta user state machine context class"""
+
+    vpn_process: Optional[Popen]
+    """The VPN process for remote users"""
 
     web_shell: Optional[str] = Field(
         None,
