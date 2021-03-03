@@ -856,7 +856,7 @@ class ShellChangeUser:
         username: str,
         password: str,
         expect_prompt: Pattern = SU_PASSWORD_PROMPT,
-        expect_after: Pattern = BASH_PATTERN,
+        expect_after: Pattern = SH_PATTERN,
         encoding: str = "utf-8",
         timeout: int = 60 * 2,
     ):
@@ -914,7 +914,7 @@ class ExecShellCommand:
     def __init__(
         self,
         cmd: str,
-        expect_after: Pattern = BASH_PATTERN,
+        expect_after: Pattern = SH_PATTERN,
         encoding: str = "utf-8",
         timeout: int = 60 * 2,
     ):

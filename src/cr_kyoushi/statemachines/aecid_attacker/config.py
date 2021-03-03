@@ -25,7 +25,7 @@ from ..core.config import (
     Idle,
     IdleConfig,
 )
-from .expect import BASH_PATTERN
+from .expect import SH_PATTERN
 
 
 class CommandConfigBase(BaseModel):
@@ -63,7 +63,7 @@ class HostCMD(CommandConfigBase):
     )
 
     expect: Pattern = Field(
-        BASH_PATTERN,
+        SH_PATTERN,
         descrition="The regex pattern to wait for after executing the command.",
     )
 
