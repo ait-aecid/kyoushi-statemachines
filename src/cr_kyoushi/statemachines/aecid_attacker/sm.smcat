@@ -1,0 +1,53 @@
+"Scenario 1 - Attacker" {
+  initial,
+  vpn_connected,
+  recon_networks,
+  recon_intranet,
+  recon_host,
+  ^skip_wait,
+  cracking_passwords,
+  cracked_passwords,
+  vpn_reconnected,
+  reverse_shell,
+  escalated,
+  final;
+
+  initial -> vpn_connected: vpn_connect;
+  vpn_connected -> recon_networks: tracert_internet;
+
+  recon_networks -> recon_networks: host_discovery_dmz;
+  recon_networks -> recon_networks: dns_brute_force;
+  recon_networks -> recon_networks: host_discovery_lan;
+  recon_networks -> recon_networks: service_scans;
+  recon_networks -> recon_intranet: next_phase;
+
+  recon_intranet -> recon_intranet: dir_scan;
+  recon_intranet -> recon_intranet: wpscan;
+  recon_intranet -> recon_host: upload_rce_shell; // CVE-2020-24186
+
+  recon_host -> recon_host: check_user_id;
+  recon_host -> recon_host: check_pwd;
+  recon_host -> recon_host: check_network_interfaces;
+  recon_host -> recon_host: list_web_dir;
+  recon_host -> recon_host: read_wp_config;
+  recon_host -> recon_host: read_passwd;
+  recon_host -> recon_host: dump_wp_db;
+  recon_host -> ^skip_wait: next_phase;
+
+  ^skip_wait -> cracking_passwords: vpn_disconnect ["current time < escalate_start"];
+  ^skip_wait -> reverse_shell: open_reverse_shell ["current time >= escalate_start"];
+
+  cracking_passwords -> cracked_passwords: wait_until_start;
+  cracked_passwords -> vpn_reconnected: vpn_connect;
+  vpn_reconnected -> reverse_shell: open_reverse_shell;
+
+  reverse_shell -> escalated: login_cracked_user;
+
+  escalated -> escalated: check_groups;
+  escalated -> escalated: check_ssh_keys;
+  escalated -> escalated: check_sudo;
+  escalated -> escalated: read_shadow;
+  escalated -> escalated: check_ssh_keys_root;
+
+  escalated -> final: vpn_disconnect;
+};
