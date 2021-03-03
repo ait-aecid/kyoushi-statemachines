@@ -4,6 +4,7 @@ import sys
 
 from typing import Optional
 
+from pwnlib.tubes.listen import listen
 from pydantic import (
     BaseModel,
     Field,
@@ -22,6 +23,9 @@ class Context(Protocol):
     web_shell: Optional[str]
     """The url to the uploaded web shell"""
 
+    reverse_shell: Optional[listen]
+    """The reverse shell connection the attacker has created"""
+
 
 class ContextModel(BaseModel):
     """Beta user state machine context class"""
@@ -30,3 +34,9 @@ class ContextModel(BaseModel):
         None,
         description="The url to the uploaded web shell",
     )
+
+    reverse_shell: Optional[listen]
+    """The reverse shell connection the attacker has created"""
+
+    class Config:
+        arbitrary_types_allowed = True

