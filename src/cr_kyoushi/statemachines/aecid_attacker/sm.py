@@ -38,6 +38,14 @@ class Statemachine(sm.StartEndTimeStatemachine):
     def setup_context(self):
         self.context = ContextModel()
 
+    def destroy_context(self):
+        if self.context is not None:
+            if self.context.reverse_shell is not None:
+                self.context.reverse_shell.close()
+            if self.context.vpn_process is not None:
+                f_vpn_disconnect(self.log, self.current_state, self.context, None)
+        super().destroy_context()
+
 
 def _to_datetime(v: Union[timedelta, datetime], base: datetime) -> datetime:
     if isinstance(v, timedelta):
@@ -142,6 +150,12 @@ class StatemachineFactory(sm.StatemachineFactory):
             delay_after=idle.small,
         )
 
+        open_pty = DelayedTransition(
+            actions.OpenPTY(),
+            name="open_pty",
+            target="pty_shell",
+        )
+
         login_user = DelayedTransition(
             actions.ShellChangeUser(config.escalate.user, config.escalate.password),
             name="login_user",
@@ -222,6 +236,11 @@ class StatemachineFactory(sm.StatemachineFactory):
 
         reverse_shell = states.ReverseShell(
             name="reverse_shell",
+            transition=open_pty,
+        )
+
+        pty_shell = states.PTYShell(
+            name="pty_shell",
             transition=login_user,
         )
 
@@ -249,6 +268,7 @@ class StatemachineFactory(sm.StatemachineFactory):
                 reverse_shell_listening,
                 opening_reverse_shell,
                 reverse_shell,
+                pty_shell,
                 escalated,
                 end,
             ],

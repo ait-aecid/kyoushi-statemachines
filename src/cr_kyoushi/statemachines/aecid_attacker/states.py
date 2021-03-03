@@ -257,6 +257,7 @@ VPNReconnected = SequentialState
 ListeningReverseShell = SequentialState
 OpeningReverseShell = SequentialState
 ReverseShell = SequentialState
+PTYShell = SequentialState
 
 
 def host_cmd_to_step(cmd: HostCMD, idle: IdleConfig) -> AttackStep:

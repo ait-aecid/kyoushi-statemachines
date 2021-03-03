@@ -13,7 +13,7 @@ from typing import (
 from pydantic import FilePath
 from structlog.stdlib import BoundLogger
 
-from .context import Context
+from .context import VPNContext
 
 
 def wait_process_output(
@@ -75,7 +75,7 @@ class VPNConnect:
         self,
         log: BoundLogger,
         current_state: str,
-        context: Context,
+        context: VPNContext,
         target: Optional[str],
     ):
         if context.vpn_process is None:
@@ -114,7 +114,7 @@ class VPNConnect:
 def vpn_disconnect(
     log: BoundLogger,
     current_state: str,
-    context: Context,
+    context: VPNContext,
     target: Optional[str],
 ):
     """Shutsdown the OpenVPN connection
