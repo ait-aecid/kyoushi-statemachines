@@ -20,6 +20,7 @@ packages = [
 "ait.owncloud_user" = "cr_kyoushi.statemachines.owncloud_user:StatemachineFactory"
 "ait.ssh_user" = "cr_kyoushi.statemachines.ssh_user:StatemachineFactory"
 "ait.beta_user" = "cr_kyoushi.statemachines.beta_user:StatemachineFactory"
+"ait.aecid.attacker.wpdiscuz" = "cr_kyoushi.statemachines.aecid_attacker:StatemachineFactory"
 
 [[tool.poetry.source]]
 name = "simulation"
