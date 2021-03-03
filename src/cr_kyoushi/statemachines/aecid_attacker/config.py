@@ -53,6 +53,9 @@ class WebShellCMD(CommandConfigBase):
     )
 
 
+WebShellCMD.update_forward_refs()
+
+
 class HostCMD(CommandConfigBase):
     cmd: str = Field(
         ...,
