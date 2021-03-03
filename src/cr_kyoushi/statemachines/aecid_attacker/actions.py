@@ -34,6 +34,7 @@ from cr_kyoushi.simulation.util import (
 from .context import Context
 from .expect import (
     BASH_PATTERN,
+    SH_PATTERN,
     SU_FAIL,
     SU_PASSWORD_PROMPT,
 )
@@ -809,7 +810,7 @@ class OpenPTY:
     def __init__(
         self,
         spawn_command: str = "python -c 'import pty; pty.spawn(\"/bin/bash\")'",
-        expect_after: Pattern = BASH_PATTERN,
+        expect_after: Pattern = SH_PATTERN,
         encoding: str = "utf-8",
         timeout: int = 60 * 2,
     ):
