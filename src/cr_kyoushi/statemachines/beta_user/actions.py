@@ -149,5 +149,6 @@ def vpn_disconnect(
             log.info("Disconnected from VPN")
         else:
             log.error("Failed to disconnect from VPN")
+        context.vpn_process = None
     else:
         log.info("VPN process not running")
