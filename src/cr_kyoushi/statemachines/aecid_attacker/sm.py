@@ -134,7 +134,9 @@ class StatemachineFactory(sm.StatemachineFactory):
         )
 
         wait_reverse_shell = DelayedTransition(
-            actions.WaitReverseShellConnection(),
+            actions.WaitReverseShellConnection(
+                expect_after=config.escalate.reverse_prompts_expect
+            ),
             name="wait_reverse_shell",
             target="reverse_shell",
             delay_after=idle.small,

@@ -122,7 +122,7 @@ class AttackPhaseState(State):
             self.steps.extend(step.children)
             # remove selected step from available steps
             self.steps.remove(step)
-            return step
+            return step.transition
         else:
             # if we have no steps in this phase left
             # then execute the transition leading to the next phase

