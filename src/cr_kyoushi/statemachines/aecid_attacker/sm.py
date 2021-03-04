@@ -151,13 +151,17 @@ class StatemachineFactory(sm.StatemachineFactory):
         )
 
         open_pty = DelayedTransition(
-            actions.OpenPTY(),
+            actions.OpenPTY(expect_after=config.escalate.pty_expect),
             name="open_pty",
             target="pty_shell",
         )
 
         login_user = DelayedTransition(
-            actions.ShellChangeUser(config.escalate.user, config.escalate.password),
+            actions.ShellChangeUser(
+                config.escalate.user,
+                config.escalate.password,
+                expect_after=config.escalate.user_expect,
+            ),
             name="login_user",
             target="escalated",
             delay_after=idle.small,

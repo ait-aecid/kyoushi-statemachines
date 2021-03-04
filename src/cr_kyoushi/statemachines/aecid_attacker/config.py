@@ -162,6 +162,16 @@ class EscalateConfig(BaseModel):
         description="The password to use for escalation",
     )
 
+    pty_expect: Pattern = Field(
+        SH_PATTERN,
+        description="The pattern to expect after opening the pty shell",
+    )
+
+    user_expect: Pattern = Field(
+        SH_PATTERN,
+        description="The pattern to expect after changing the user",
+    )
+
     reverse_cmd: List[str] = Field(
         [
             "bash",
