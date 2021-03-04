@@ -167,8 +167,7 @@ class StatemachineFactory(sm.StatemachineFactory):
             delay_after=idle.small,
         )
 
-        vpn_disconnect = Transition(
-            f_vpn_disconnect,
+        ending = NoopTransition(
             name="vpn_disconnect",
             target="end",
         )
@@ -252,7 +251,7 @@ class StatemachineFactory(sm.StatemachineFactory):
             name="escalated",
             config=config.escalate,
             idle=idle,
-            next_phase=vpn_disconnect,
+            next_phase=ending,
         )
 
         end = FinalState("end")
