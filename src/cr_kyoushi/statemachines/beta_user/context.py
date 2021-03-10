@@ -25,6 +25,13 @@ else:
     from typing_extensions import Protocol
 
 
+class VPNContext(Protocol):
+    """VPN connection context"""
+
+    vpn_process: Optional[Popen]
+    """The VPN process for remote users"""
+
+
 class Context(
     HordeContext,
     OwncloudContext,
@@ -32,12 +39,10 @@ class Context(
     BrowserContext,
     WPEditorContext,
     WPDiscuzContext,
+    VPNContext,
     Protocol,
 ):
     """Beta user state machine context protocol"""
-
-    vpn_process: Optional[Popen]
-    """The VPN process for remote users"""
 
 
 class ContextModel(

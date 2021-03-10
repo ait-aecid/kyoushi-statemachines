@@ -20,6 +20,7 @@ packages = [
 "ait.owncloud_user" = "cr_kyoushi.statemachines.owncloud_user:StatemachineFactory"
 "ait.ssh_user" = "cr_kyoushi.statemachines.ssh_user:StatemachineFactory"
 "ait.beta_user" = "cr_kyoushi.statemachines.beta_user:StatemachineFactory"
+"ait.aecid.attacker.wpdiscuz" = "cr_kyoushi.statemachines.aecid_attacker:StatemachineFactory"
 
 [[tool.poetry.source]]
 name = "simulation"
@@ -36,6 +37,7 @@ numpy = "^1.19.5"
 email-validator = "^1.1.2"
 idna = "^2.8"
 pwntools = "^4.3.1"
+beautifulsoup4 = "^4.9.3"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
