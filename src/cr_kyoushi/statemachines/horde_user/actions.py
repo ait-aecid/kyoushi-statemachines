@@ -599,7 +599,6 @@ class SendMail:
                 mail.attachment = np.random.choice(
                     a=list(self.attachments.keys()),
                     p=list(self.attachments.values()),
-                    size=1,
                 )
 
             log = log.bind(mail=mail)
