@@ -649,7 +649,11 @@ class OpenReverseShell(ExecWebShellCommand):
         log.info("Starting reverse shell")
         try:
             super().__call__(log, current_state, context, target)
-        except (TimeoutError, requests.exceptions.ReadTimeout):
+        except (
+            TimeoutError,
+            requests.exceptions.ReadTimeout,
+            requests.exceptions.ConnectionError,
+        ):
             log.info("Received request timeout")
 
 
