@@ -300,7 +300,7 @@ class WPScan(CommandAction):
         self,
         url: str,
         executable: str = "/usr/local/bin/wpscan",
-        extra_args: List[str] = ["--disable-tls-checks"],
+        extra_args: List[str] = ["--disable-tls-checks", "--no-update"],
     ):
         """
         Args:
