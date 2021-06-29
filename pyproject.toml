@@ -5,7 +5,7 @@ description = ""
 authors = ["Maximilian Frank <maximilian.frank@ait.ac.at>"]
 license = "MIT"
 readme = 'README.md'  # Markdown files are supported
-repository = "https://ait-aecid.github.io/kyoushi-statemachines"
+repository = "https://github.com/ait-aecid/kyoushi-statemachines"
 homepage = "https://ait-aecid.github.io/kyoushi-statemachines"
 packages = [
   { include = "cr_kyoushi", from = "src" }

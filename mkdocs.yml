@@ -1,5 +1,5 @@
 site_name: Cyber Range Kyoushi State Machines
-
+site_url: https://ait-aecid.github.io/kyoushi-statemachines
 site_description: State machine based simulated actors.
 strict: true
 
@@ -19,8 +19,8 @@ extra_javascript:
   - js/jquery-3.5.1.min.js
   - js/jquery.fancybox.min.js
 
-repo_name: kyoushi/statemachines
-repo_url: https://git-service.ait.ac.at/sct-cyberrange/tools/kyoushi/statemachines
+repo_name: kyoushi-statemachines
+repo_url: https://github.com/ait-aecid/kyoushi-statemachines
 # need to set manually since we use a private gitlab instance
 edit_uri: edit/master/docs/
 
