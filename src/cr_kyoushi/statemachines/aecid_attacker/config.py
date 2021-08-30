@@ -107,6 +107,26 @@ class NetworkReconConfig(BaseModel):
         description="The hosts to target for the service scan",
     )
 
+    service_scan_extra_args: List[str] = Field(
+        [],
+        description="Extra args of the service scan"
+    )
+
+    intranet_scan_extra_args: List[str] = Field(
+        [],
+        description="Extra args of the intranet scan"
+    )
+
+    dns_scan_extra_args: List[str] = Field(
+        [],
+        description="Extra args of the dns scan"
+    )
+
+    dmz_scan_extra_args: List[str] = Field(
+        [],
+        description="Extra args of the dmz scan"
+    )
+
 
 class WordpressAttackConfig(BaseModel):
     url: HttpUrl = Field(

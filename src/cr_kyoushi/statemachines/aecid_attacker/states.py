@@ -144,28 +144,28 @@ class ReconNetworks(AttackPhaseState):
 
         service_scan = AttackStep(
             name="service_scan",
-            action=actions.NmapServiceScan([str(h) for h in config.hosts]),
+            action=actions.NmapServiceScan([str(h) for h in config.hosts], extra_args=config.service_scan_extra_args),
             delay_after=idle.small,
             children=[],
         )
 
         intranet_scan = AttackStep(
             name="host_discover_local",
-            action=actions.NmapHostScan([str(config.intranet)]),
+            action=actions.NmapHostScan([str(config.intranet)], extra_args=config.intranet_scan_extra_args),
             delay_after=idle.small,
             children=[service_scan],
         )
 
         dns_scan = AttackStep(
             name="dns_brute_force",
-            action=actions.NmapDNSBrute([str(config.dns)], config.domain),
+            action=actions.NmapDNSBrute([str(config.dns)], config.domain, extra_args=config.dns_scan_extra_args),
             delay_after=idle.small,
             children=[intranet_scan],
         )
 
         dmz_scan = AttackStep(
             name="host_discover_dmz",
-            action=actions.NmapHostScan([str(config.dmz)]),
+            action=actions.NmapHostScan([str(config.dmz)], extra_args=config.dmz_scan_extra_args),
             delay_after=idle.small,
             children=[],
         )
