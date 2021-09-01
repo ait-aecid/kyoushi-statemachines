@@ -186,7 +186,7 @@ class ReconWordpress(AttackPhaseState):
     ):
         wpscan = AttackStep(
             name="wpscan",
-            action=actions.WPScan(str(config.url)),
+            action=actions.WPScan(str(config.url), extra_args=config.wordpress_extra_args),
             delay_after=idle.small,
         )
 
@@ -195,6 +195,7 @@ class ReconWordpress(AttackPhaseState):
             action=actions.Dirb(
                 [str(config.url)],
                 wordlists=[str(p.absolute) for p in config.dirb_wordlists],
+                extra_args=config.dirb_extra_args
             ),
             delay_after=idle.small,
         )

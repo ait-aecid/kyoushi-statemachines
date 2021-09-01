@@ -163,6 +163,16 @@ class WordpressAttackConfig(BaseModel):
         description="The commands to execute via the web shell",
     )
 
+    wordpress_extra_args: List[str] = Field(
+        ["--disable-tls-checks", "--no-update"],
+        description="Extra args of the wordpress scan",
+    )
+
+    dirb_extra_args: List[str] = Field(
+        [],
+        description="Extra args of the dirb scan",
+    )
+
     @validator("admin_ajax")
     def no_slash(cls, v: str) -> str:
         assert (
