@@ -31,6 +31,7 @@ from ..owncloud_user.config import (
     OwncloudUserConfig,
 )
 from ..ssh_user import activities as ssh_activities
+from ..ssh_user.actions import disconnect as ssh_disconnect
 from ..ssh_user.config import (
     SSHStates,
     SSHUserConfig,
@@ -133,14 +134,17 @@ class Statemachine(SeleniumStatemachine[Context]):
         )
 
     def destroy_context(self):
-        # disconnect from the VPN
-        if (
-            # when we have a context
-            self.context is not None
+        # when we have a context
+        if self.context is not None:
+
+            # and a shell
+            if self.context.ssh_user.shell is not None:
+                ssh_disconnect(self.log, self.current_state, self.context, None)
+
             # and a vpn process
-            and self.context.vpn_process is not None
-        ):
-            vpn_disconnect(self.log, self.current_state, self.context, None)
+            if self.context.vpn_process is not None:
+                # disconnect from the VPN
+                vpn_disconnect(self.log, self.current_state, self.context, None)
 
         # need to destroy after our code as we still need the context
         super().destroy_context()
