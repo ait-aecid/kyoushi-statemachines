@@ -107,6 +107,18 @@ class NetworkReconConfig(BaseModel):
         description="The hosts to target for the service scan",
     )
 
+    service_scan_extra_args: List[str] = Field(
+        [], description="Extra args of the service scan"
+    )
+
+    intranet_scan_extra_args: List[str] = Field(
+        [], description="Extra args of the intranet scan"
+    )
+
+    dns_scan_extra_args: List[str] = Field([], description="Extra args of the dns scan")
+
+    dmz_scan_extra_args: List[str] = Field([], description="Extra args of the dmz scan")
+
 
 class WordpressAttackConfig(BaseModel):
     url: HttpUrl = Field(
@@ -141,6 +153,16 @@ class WordpressAttackConfig(BaseModel):
             WebShellCMD(name="read_passwd", cmd=["cat", "/etc/passwd"]),
         ],
         description="The commands to execute via the web shell",
+    )
+
+    wordpress_extra_args: List[str] = Field(
+        ["--disable-tls-checks", "--no-update"],
+        description="Extra args of the wordpress scan",
+    )
+
+    dirb_extra_args: List[str] = Field(
+        [],
+        description="Extra args of the dirb scan",
     )
 
     @validator("admin_ajax")
