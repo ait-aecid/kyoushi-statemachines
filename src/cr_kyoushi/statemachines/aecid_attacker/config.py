@@ -144,6 +144,21 @@ class WordpressAttackConfig(BaseModel):
         description="The JPEG image to use to for the web shell upload exploit",
     )
 
+    wl_host: str = Field(
+        ...,
+        description="The host where the wordlist for cracking is available",
+    )
+
+    attacked_user: str = Field(
+        ...,
+        description="The name of the WP user where password is cracked",
+    )
+
+    offline_cracking_probability: float = Field(
+        0.5,
+        description="The probability that cracking is assumed to take place offline",
+    )
+
     commands: List[WebShellCMD] = Field(
         [
             WebShellCMD(name="check_user_id", cmd=["id"]),

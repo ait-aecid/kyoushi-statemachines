@@ -12,6 +12,7 @@ from structlog.stdlib import BoundLogger
 from cr_kyoushi.simulation.model import ApproximateFloat
 from cr_kyoushi.simulation.states import (
     ChoiceState,
+    ProbabilisticState,
     SequentialState,
     State,
 )
@@ -247,7 +248,7 @@ class WaitChoice(ChoiceState):
         name: str,
         escalate_time: datetime,
         listen_reverse_shell: Transition,
-        vpn_disconnect: Transition,
+        decide_cracking_method: Transition,
         name_prefix: Optional[str] = None,
     ):
         self.escalate_time: datetime = escalate_time
@@ -255,12 +256,29 @@ class WaitChoice(ChoiceState):
             name,
             self.check_escalate_time,
             listen_reverse_shell,
-            vpn_disconnect,
+            decide_cracking_method,
             name_prefix=name_prefix,
         )
 
     def check_escalate_time(self, log: BoundLogger, context: Context) -> bool:
         return now() >= self.escalate_time
+
+
+class CrackChoice(ProbabilisticState):
+    def __init__(
+        self,
+        name: str,
+        offline_cracking: Transition,
+        wphashcrack: Transition,
+        offline_cracking_probability: float,
+        name_prefix: Optional[str] = None,
+    ):
+        super().__init__(
+            name,
+            [offline_cracking, wphashcrack],
+            [offline_cracking_probability, 1 - offline_cracking_probability],
+            name_prefix=name_prefix,
+        )
 
 
 CrackingPasswords = SequentialState

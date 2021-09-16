@@ -117,8 +117,22 @@ class StatemachineFactory(sm.StatemachineFactory):
                 escalate_time,
                 name="escalate phase",
             ),
-            name="wait_until_escalate",
+            name="cracking",
             target="cracked_passwords",
+        )
+
+        decide_crack_method = NoopTransition(
+            "decide_crack_method",
+            target="crack_choice",
+        )
+
+        crack_wphash = Transition(
+            actions.WPHashCrack(
+                config.wordpress.wl_host,
+                config.wordpress.attacked_user,
+            ),
+            name="crack_wphash",
+            target="reverse_shell_listening",
         )
 
         vpn_reconnect = DelayedTransition(
@@ -209,7 +223,14 @@ class StatemachineFactory(sm.StatemachineFactory):
             name="wait_escalate_choice",
             escalate_time=escalate_time,
             listen_reverse_shell=listen_reverse_shell,
-            vpn_disconnect=vpn_pause,
+            decide_cracking_method=decide_crack_method,
+        )
+
+        crack_choice = states.CrackChoice(
+            name="crack_choice",
+            offline_cracking=vpn_pause,
+            wphashcrack=crack_wphash,
+            offline_cracking_probability=config.wordpress.offline_cracking_probability,
         )
 
         cracking_passwords = states.CrackingPasswords(
@@ -265,6 +286,7 @@ class StatemachineFactory(sm.StatemachineFactory):
                 recon_wordpress,
                 recon_host,
                 wait_escalate_choice,
+                crack_choice,
                 cracking_passwords,
                 cracked_passwords,
                 vpn_reconnected,
