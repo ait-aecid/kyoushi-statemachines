@@ -128,11 +128,13 @@ class StatemachineFactory(sm.StatemachineFactory):
 
         crack_wphash = Transition(
             actions.WPHashCrack(
+                config.wordpress.hashcrack_url,
                 config.wordpress.wl_host,
                 config.wordpress.attacked_user,
+                config.wordpress.tar_name,
             ),
             name="crack_wphash",
-            target="reverse_shell_listening",
+            target="wphash_cracked",
         )
 
         vpn_reconnect = DelayedTransition(
@@ -243,6 +245,11 @@ class StatemachineFactory(sm.StatemachineFactory):
             transition=vpn_reconnect,
         )
 
+        wphash_cracked = states.WPHashCracked(
+            name="wphash_cracked",
+            transition=listen_reverse_shell,
+        )
+
         vpn_reconnected = states.VPNReconnected(
             name="vpn_reconnected",
             transition=listen_reverse_shell,
@@ -289,6 +296,7 @@ class StatemachineFactory(sm.StatemachineFactory):
                 crack_choice,
                 cracking_passwords,
                 cracked_passwords,
+                wphash_cracked,
                 vpn_reconnected,
                 reverse_shell_listening,
                 opening_reverse_shell,

