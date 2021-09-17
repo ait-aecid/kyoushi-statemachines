@@ -159,6 +159,11 @@ class WordpressAttackConfig(BaseModel):
         description="The url to the host and path where the wordlist for cracking is available",
     )
 
+    wl_name: str = Field(
+        ...,
+        description="The name of the wordlist",
+    )
+
     attacked_user: str = Field(
         ...,
         description="The name of the WP user where password is cracked",

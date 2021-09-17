@@ -131,6 +131,7 @@ class StatemachineFactory(sm.StatemachineFactory):
                 config.wordpress.hashcrack_url,
                 config.wordpress.file_name,
                 config.wordpress.wl_host,
+                config.wordpress.wl_name,
                 config.wordpress.attacked_user,
                 config.wordpress.tar_download_name,
                 sleep_time=idle.tiny,

