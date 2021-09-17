@@ -24,6 +24,7 @@ import requests
 
 from bs4 import BeautifulSoup
 from pwnlib.tubes.listen import listen
+from pydantic import HttpUrl
 from structlog.stdlib import BoundLogger
 
 from cr_kyoushi.simulation.model import ApproximateFloat
@@ -516,9 +517,9 @@ class WPHashCrack:
 
     def __init__(
         self,
-        hashcrack_url: str,
+        hashcrack_url: HttpUrl,
         file_name: str,
-        wl_url: str,
+        wl_url: HttpUrl,
         wl_name: str,
         attacked_user: str,
         tar_download_name: str = None,
