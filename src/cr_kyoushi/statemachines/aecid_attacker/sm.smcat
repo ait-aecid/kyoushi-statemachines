@@ -5,6 +5,7 @@
   recon_intranet,
   recon_host,
   ^skip_wait,
+  crack_choice,
   cracking_passwords,
   cracked_passwords,
   vpn_reconnected,
@@ -34,8 +35,13 @@
   recon_host -> recon_host: dump_wp_db;
   recon_host -> ^skip_wait: next_phase;
 
-  ^skip_wait -> cracking_passwords: vpn_disconnect ["current time < escalate_start"];
+  ^skip_wait -> crack_choice: decide_crack_method ["current time < escalate_start"];
   ^skip_wait -> reverse_shell: open_reverse_shell ["current time >= escalate_start"];
+
+  crack_choice -> cracking_passwords: vpn_pause ["probability"];
+  crack_choice -> wphash_cracked: crack_wphash ["1 - probability"];
+
+  wphash_cracked -> reverse_shell: open_reverse_shell;
 
   cracking_passwords -> cracked_passwords: wait_until_start;
   cracked_passwords -> vpn_reconnected: vpn_connect;

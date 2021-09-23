@@ -144,6 +144,41 @@ class WordpressAttackConfig(BaseModel):
         description="The JPEG image to use to for the web shell upload exploit",
     )
 
+    hashcrack_url: HttpUrl = Field(
+        ...,
+        description="The url to the hashcrack repo",
+    )
+
+    file_name: str = Field(
+        ...,
+        description="The name of the hashcrack tar",
+    )
+
+    wl_url: HttpUrl = Field(
+        ...,
+        description="The url to the host and path where the wordlist for cracking is available",
+    )
+
+    wl_name: str = Field(
+        ...,
+        description="The name of the wordlist",
+    )
+
+    attacked_user: str = Field(
+        ...,
+        description="The name of the WP user where password is cracked",
+    )
+
+    tar_download_name: str = Field(
+        None,
+        description="The name of the downloaded tar file",
+    )
+
+    offline_cracking_probability: float = Field(
+        0.5,
+        description="The probability that cracking is assumed to take place offline",
+    )
+
     commands: List[WebShellCMD] = Field(
         [
             WebShellCMD(name="check_user_id", cmd=["id"]),

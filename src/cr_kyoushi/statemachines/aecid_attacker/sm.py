@@ -117,8 +117,27 @@ class StatemachineFactory(sm.StatemachineFactory):
                 escalate_time,
                 name="escalate phase",
             ),
-            name="wait_until_escalate",
+            name="cracking",
             target="cracked_passwords",
+        )
+
+        decide_crack_method = NoopTransition(
+            "decide_crack_method",
+            target="crack_choice",
+        )
+
+        crack_wphash = Transition(
+            actions.WPHashCrack(
+                config.wordpress.hashcrack_url,
+                config.wordpress.file_name,
+                config.wordpress.wl_url,
+                config.wordpress.wl_name,
+                config.wordpress.attacked_user,
+                config.wordpress.tar_download_name,
+                sleep_time=idle.tiny,
+            ),
+            name="crack_wphash",
+            target="wphash_cracked",
         )
 
         vpn_reconnect = DelayedTransition(
@@ -209,7 +228,14 @@ class StatemachineFactory(sm.StatemachineFactory):
             name="wait_escalate_choice",
             escalate_time=escalate_time,
             listen_reverse_shell=listen_reverse_shell,
-            vpn_disconnect=vpn_pause,
+            decide_cracking_method=decide_crack_method,
+        )
+
+        crack_choice = states.CrackChoice(
+            name="crack_choice",
+            offline_cracking=vpn_pause,
+            wphashcrack=crack_wphash,
+            offline_cracking_probability=config.wordpress.offline_cracking_probability,
         )
 
         cracking_passwords = states.CrackingPasswords(
@@ -220,6 +246,11 @@ class StatemachineFactory(sm.StatemachineFactory):
         cracked_passwords = states.CrackedPasswords(
             name="cracked_passwords",
             transition=vpn_reconnect,
+        )
+
+        wphash_cracked = states.WPHashCracked(
+            name="wphash_cracked",
+            transition=listen_reverse_shell,
         )
 
         vpn_reconnected = states.VPNReconnected(
@@ -265,8 +296,10 @@ class StatemachineFactory(sm.StatemachineFactory):
                 recon_wordpress,
                 recon_host,
                 wait_escalate_choice,
+                crack_choice,
                 cracking_passwords,
                 cracked_passwords,
+                wphash_cracked,
                 vpn_reconnected,
                 reverse_shell_listening,
                 opening_reverse_shell,
