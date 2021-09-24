@@ -1,0 +1,2158 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="State machine based simulated actors.">
+      
+      
+      
+      
+        <link rel="canonical" href="https://ait-aecid.github.io/kyoushi-statemachines/statemachines/horde_user/states/">
+      
+      <link rel="shortcut icon" href="../../../images/favicon.ico">
+      <meta name="generator" content="mkdocs-1.2.2, mkdocs-material-6.2.8">
+    
+    
+      
+        <title>States - Cyber Range Kyoushi State Machines</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.cb6bc1d0.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.39b8e14a.min.css">
+        
+      
+    
+    
+    
+      
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>body,input{font-family:"Roboto",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono",SFMono-Regular,Consolas,Menlo,monospace}</style>
+      
+    
+    
+    
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+    
+      <link rel="stylesheet" href="../../../stylesheets/jquery.fancybox.min.css">
+    
+    
+      
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="ait" data-md-color-primary="" data-md-color-accent="">
+      
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#cr_kyoushi.statemachines.horde_user.states.AdminCLIShellPage" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid" aria-label="Header">
+    <a href="https://ait-aecid.github.io/kyoushi-statemachines/" title="Cyber Range Kyoushi State Machines" class="md-header-nav__button md-logo" aria-label="Cyber Range Kyoushi State Machines">
+      
+  <img src="../../../images/cr_icon.svg" alt="logo">
+
+    </a>
+    <label class="md-header-nav__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header-nav__title" data-md-component="header-title">
+      <div class="md-header-nav__ellipsis">
+        <div class="md-header-nav__topic">
+          <span class="md-ellipsis">
+            Cyber Range Kyoushi State Machines
+          </span>
+        </div>
+        <div class="md-header-nav__topic">
+          <span class="md-ellipsis">
+            
+              States
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      <label class="md-header-nav__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" data-md-component="search-reset" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header-nav__source">
+        
+<a href="https://github.com/ait-aecid/kyoushi-statemachines/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 00-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 01-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 000 40.81l195.61 195.6a28.86 28.86 0 0040.8 0l194.69-194.69a28.86 28.86 0 000-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    kyoushi-statemachines
+  </div>
+</a>
+      </div>
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="https://ait-aecid.github.io/kyoushi-statemachines/" title="Cyber Range Kyoushi State Machines" class="md-nav__button md-logo" aria-label="Cyber Range Kyoushi State Machines">
+      
+  <img src="../../../images/cr_icon.svg" alt="logo">
+
+    </a>
+    Cyber Range Kyoushi State Machines
+  </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/ait-aecid/kyoushi-statemachines/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 00-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 01-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 000 40.81l195.61 195.6a28.86 28.86 0 0040.8 0l194.69-194.69a28.86 28.86 0 000-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    kyoushi-statemachines
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../contributing/" class="md-nav__link">
+        Contributing
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3" >
+      
+      <label class="md-nav__link" for="nav-3">
+        Code Reference
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Code Reference" data-md-level="1">
+        <label class="md-nav__title" for="nav-3">
+          <span class="md-nav__icon md-icon"></span>
+          Code Reference
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3-1" type="checkbox" id="nav-3-1" >
+      
+      <label class="md-nav__link" for="nav-3-1">
+        Core
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Core" data-md-level="2">
+        <label class="md-nav__title" for="nav-3-1">
+          <span class="md-nav__icon md-icon"></span>
+          Core
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/core/model/" class="md-nav__link">
+        Model
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/core/util/" class="md-nav__link">
+        Util
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/core/selenium/" class="md-nav__link">
+        Selenium
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-4" type="checkbox" id="nav-4" checked>
+      
+      <label class="md-nav__link" for="nav-4">
+        State Machines
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="State Machines" data-md-level="1">
+        <label class="md-nav__title" for="nav-4">
+          <span class="md-nav__icon md-icon"></span>
+          State Machines
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../web_browser/" class="md-nav__link">
+        Web Browser
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-4-2" type="checkbox" id="nav-4-2" checked>
+      
+      <label class="md-nav__link" for="nav-4-2">
+        Horde User
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Horde User" data-md-level="2">
+        <label class="md-nav__title" for="nav-4-2">
+          <span class="md-nav__icon md-icon"></span>
+          Horde User
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sm/" class="md-nav__link">
+        State Machine
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          States
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        States
+      </a>
+      
+        
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.AdminCLIShellPage" class="md-nav__link">
+    AdminCLIShellPage
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.AdminGroupAdded" class="md-nav__link">
+    AdminGroupAdded
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.AdminGroupDeleting" class="md-nav__link">
+    AdminGroupDeleting
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.AdminPHPShellPage" class="md-nav__link">
+    AdminPHPShellPage
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.AdminSQLShellPage" class="md-nav__link">
+    AdminSQLShellPage
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.ContactCompose" class="md-nav__link">
+    ContactCompose
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.ContactDeleteConfirming" class="md-nav__link">
+    ContactDeleteConfirming
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.EventCompose" class="md-nav__link">
+    EventCompose
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.MailCompose" class="md-nav__link">
+    MailCompose
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.NoteCreator" class="md-nav__link">
+    NoteCreator
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.PreferencesPage" class="md-nav__link">
+    PreferencesPage
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.PreferencesPersonalPage" class="md-nav__link">
+    PreferencesPersonalPage
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.TaskCreator" class="md-nav__link">
+    TaskCreator
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.TaskEditor" class="md-nav__link">
+    TaskEditor
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.ActivitySelectionState" class="md-nav__link">
+    ActivitySelectionState
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.AddressBookPage" class="md-nav__link">
+    AddressBookPage
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.AdminGroupsPage" class="md-nav__link">
+    AdminGroupsPage
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.AdminPage" class="md-nav__link">
+    AdminPage
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.CalendarPage" class="md-nav__link">
+    CalendarPage
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.ContactInfo" class="md-nav__link">
+    ContactInfo
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.ContactsBrowser" class="md-nav__link">
+    ContactsBrowser
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.EventEdit" class="md-nav__link">
+    EventEdit
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.LoggedInCheck" class="md-nav__link">
+    LoggedInCheck
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.LoginPage" class="md-nav__link">
+    LoginPage
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.LogoutChoice" class="md-nav__link">
+    LogoutChoice
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.MailInfo" class="md-nav__link">
+    MailInfo
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.MailsPage" class="md-nav__link">
+    MailsPage
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.MailView" class="md-nav__link">
+    MailView
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.NoteEditor" class="md-nav__link">
+    NoteEditor
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.NotesPage" class="md-nav__link">
+    NotesPage
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.SelectingMenu" class="md-nav__link">
+    SelectingMenu
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.TasksPage" class="md-nav__link">
+    TasksPage
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../activities/" class="md-nav__link">
+        Activities
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nav/" class="md-nav__link">
+        Selenium Navigation
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../actions/" class="md-nav__link">
+        Selenium Actions
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../license/" class="md-nav__link">
+        License
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.AdminCLIShellPage" class="md-nav__link">
+    AdminCLIShellPage
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.AdminGroupAdded" class="md-nav__link">
+    AdminGroupAdded
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.AdminGroupDeleting" class="md-nav__link">
+    AdminGroupDeleting
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.AdminPHPShellPage" class="md-nav__link">
+    AdminPHPShellPage
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.AdminSQLShellPage" class="md-nav__link">
+    AdminSQLShellPage
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.ContactCompose" class="md-nav__link">
+    ContactCompose
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.ContactDeleteConfirming" class="md-nav__link">
+    ContactDeleteConfirming
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.EventCompose" class="md-nav__link">
+    EventCompose
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.MailCompose" class="md-nav__link">
+    MailCompose
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.NoteCreator" class="md-nav__link">
+    NoteCreator
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.PreferencesPage" class="md-nav__link">
+    PreferencesPage
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.PreferencesPersonalPage" class="md-nav__link">
+    PreferencesPersonalPage
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.TaskCreator" class="md-nav__link">
+    TaskCreator
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.TaskEditor" class="md-nav__link">
+    TaskEditor
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.ActivitySelectionState" class="md-nav__link">
+    ActivitySelectionState
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.AddressBookPage" class="md-nav__link">
+    AddressBookPage
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.AdminGroupsPage" class="md-nav__link">
+    AdminGroupsPage
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.AdminPage" class="md-nav__link">
+    AdminPage
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.CalendarPage" class="md-nav__link">
+    CalendarPage
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.ContactInfo" class="md-nav__link">
+    ContactInfo
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.ContactsBrowser" class="md-nav__link">
+    ContactsBrowser
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.EventEdit" class="md-nav__link">
+    EventEdit
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.LoggedInCheck" class="md-nav__link">
+    LoggedInCheck
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.LoginPage" class="md-nav__link">
+    LoginPage
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.LogoutChoice" class="md-nav__link">
+    LogoutChoice
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.MailInfo" class="md-nav__link">
+    MailInfo
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.MailsPage" class="md-nav__link">
+    MailsPage
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.MailView" class="md-nav__link">
+    MailView
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.NoteEditor" class="md-nav__link">
+    NoteEditor
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.NotesPage" class="md-nav__link">
+    NotesPage
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.SelectingMenu" class="md-nav__link">
+    SelectingMenu
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.states.TasksPage" class="md-nav__link">
+    TasksPage
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/ait-aecid/kyoushi-statemachines/edit/master/docs/statemachines/horde_user/states.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
+                
+                  <h1>States</h1>
+                
+                <div class="doc doc-object doc-module">
+<div class="doc doc-contents first">
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.AdminCLIShellPage">
+
+        <code class="highlight">
+AdminCLIShellPage        </code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.AdminCLIShellPage" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The horde cli shell state</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.AdminGroupAdded">
+
+        <code class="highlight">
+AdminGroupAdded        </code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.AdminGroupAdded" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The horde group added state</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.AdminGroupDeleting">
+
+        <code class="highlight">
+AdminGroupDeleting        </code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.AdminGroupDeleting" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The horde admin group deleting state</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.AdminPHPShellPage">
+
+        <code class="highlight">
+AdminPHPShellPage        </code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.AdminPHPShellPage" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The horde php shell page state</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.AdminSQLShellPage">
+
+        <code class="highlight">
+AdminSQLShellPage        </code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.AdminSQLShellPage" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The horde sql shell state</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.ContactCompose">
+
+        <code class="highlight">
+ContactCompose        </code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.ContactCompose" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The horde contact compose state</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.ContactDeleteConfirming">
+
+        <code class="highlight">
+ContactDeleteConfirming        </code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.ContactDeleteConfirming" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The horde contact delete confirming state</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.EventCompose">
+
+        <code class="highlight">
+EventCompose        </code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.EventCompose" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The horde event compose state</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.MailCompose">
+
+        <code class="highlight">
+MailCompose        </code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.MailCompose" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The horde mail compose state</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.NoteCreator">
+
+        <code class="highlight">
+NoteCreator        </code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.NoteCreator" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The horde note creator state</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.PreferencesPage">
+
+        <code class="highlight">
+PreferencesPage        </code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.PreferencesPage" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The horde preferences page state</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.PreferencesPersonalPage">
+
+        <code class="highlight">
+PreferencesPersonalPage        </code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.PreferencesPersonalPage" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The horde preferences personal page state</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.TaskCreator">
+
+        <code class="highlight">
+TaskCreator        </code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.TaskCreator" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The horde task creator state</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.TaskEditor">
+
+        <code class="highlight">
+TaskEditor        </code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.TaskEditor" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The horde task editor state</p>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.ActivitySelectionState">
+
+        <code>ActivitySelectionState</code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.ActivitySelectionState" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The main activity selection state for the horde user.</p>
+<p>This will decide between either entering the horde activity or idling.</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-method">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.ActivitySelectionState.__init__">
+
+        <code class="highlight language-python">
+__init__<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">horde_transition</span><span class="p">,</span> <span class="n">idle_transition</span><span class="p">,</span> <span class="n">horde_max_daily</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">horde_weight</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">idle_weight</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span> <span class="n">name_prefix</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-special"><code>special</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.ActivitySelectionState.__init__" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td><code>str</code></td>
+<td>
+<p>The states name</p>
+</td>
+<td><em>required</em></td>
+</tr>
+<tr>
+<td><code>horde_transition</code></td>
+<td><code>Transition</code></td>
+<td>
+<p>The transition to enter the horde activity</p>
+</td>
+<td><em>required</em></td>
+</tr>
+<tr>
+<td><code>idle_transition</code></td>
+<td><code>Transition</code></td>
+<td>
+<p>The idle transition</p>
+</td>
+<td><em>required</em></td>
+</tr>
+<tr>
+<td><code>horde_max_daily</code></td>
+<td><code>int</code></td>
+<td>
+<p>The maximum amount of times to enter the horde activity per day.</p>
+</td>
+<td><code>10</code></td>
+</tr>
+<tr>
+<td><code>horde_weight</code></td>
+<td><code>float</code></td>
+<td>
+<p>The propability of entering the horde activity.</p>
+</td>
+<td><code>0.6</code></td>
+</tr>
+<tr>
+<td><code>idle_weight</code></td>
+<td><code>float</code></td>
+<td>
+<p>The propability of entering the idle activity.</p>
+</td>
+<td><code>0.4</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="doc doc-object doc-method">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.ActivitySelectionState.adapt_after">
+
+        <code class="highlight language-python">
+adapt_after<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">selected</span><span class="p">)</span>        </code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.ActivitySelectionState.adapt_after" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>Increases the horde activity enter count</p>
+</div>
+</div>
+<div class="doc doc-object doc-method">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.ActivitySelectionState.adapt_before">
+
+        <code class="highlight language-python">
+adapt_before<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>        </code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.ActivitySelectionState.adapt_before" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>Sets the propability of entering the horde activity to 0 if the daylie maximum is reached</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.AddressBookPage">
+
+        <code>AddressBookPage</code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.AddressBookPage" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The horde address book page state</p>
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.AdminGroupsPage">
+
+        <code>AdminGroupsPage</code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.AdminGroupsPage" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The horde admin groups page state</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-method">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.AdminGroupsPage.adapt_before">
+
+        <code class="highlight language-python">
+adapt_before<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>        </code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.AdminGroupsPage.adapt_before" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>Hook to update the weight modifiers before the transition selection.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>log</code></td>
+<td><code></code></td>
+<td>
+<p>The logger for the sm context</p>
+</td>
+<td><em>required</em></td>
+</tr>
+<tr>
+<td><code>context</code></td>
+<td><code></code></td>
+<td>
+<p>The state machine context</p>
+</td>
+<td><em>required</em></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.AdminPage">
+
+        <code>AdminPage</code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.AdminPage" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The horde admin page state</p>
+<p>Used to control the selection of all admin sub activities.
+Similar to how the selecting menu state is used to switch between the
+higher level horder sub activities.</p>
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.CalendarPage">
+
+        <code>CalendarPage</code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.CalendarPage" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The horde calendar page state</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-method">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.CalendarPage.adapt_before">
+
+        <code class="highlight language-python">
+adapt_before<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>        </code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.CalendarPage.adapt_before" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>Hook to update the weight modifiers before the transition selection.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>log</code></td>
+<td><code></code></td>
+<td>
+<p>The logger for the sm context</p>
+</td>
+<td><em>required</em></td>
+</tr>
+<tr>
+<td><code>context</code></td>
+<td><code></code></td>
+<td>
+<p>The state machine context</p>
+</td>
+<td><em>required</em></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.ContactInfo">
+
+        <code>ContactInfo</code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.ContactInfo" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The horde contact info state</p>
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.ContactsBrowser">
+
+        <code>ContactsBrowser</code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.ContactsBrowser" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The horde contacts browser state</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-method">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.ContactsBrowser.adapt_before">
+
+        <code class="highlight language-python">
+adapt_before<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>        </code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.ContactsBrowser.adapt_before" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>Hook to update the weight modifiers before the transition selection.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>log</code></td>
+<td><code></code></td>
+<td>
+<p>The logger for the sm context</p>
+</td>
+<td><em>required</em></td>
+</tr>
+<tr>
+<td><code>context</code></td>
+<td><code></code></td>
+<td>
+<p>The state machine context</p>
+</td>
+<td><em>required</em></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.EventEdit">
+
+        <code>EventEdit</code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.EventEdit" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The horde event edit state</p>
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.LoggedInCheck">
+
+        <code>LoggedInCheck</code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.LoggedInCheck" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>Dummy state used to detect if the user is already logged in or not.</p>
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.LoginPage">
+
+        <code>LoginPage</code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.LoginPage" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The horde login page state</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-method">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.LoginPage.adapt_after">
+
+        <code class="highlight language-python">
+adapt_after<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">selected</span><span class="p">)</span>        </code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.LoginPage.adapt_after" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>Reduces the chance of a failing login after each fail</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.LogoutChoice">
+
+        <code>LogoutChoice</code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.LogoutChoice" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The horde logout choice state</p>
+<p>Used as a decision state to decide wether the user should logout
+of horde or simply leave it open in background when pausing the activity.</p>
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.MailInfo">
+
+        <code>MailInfo</code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.MailInfo" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The horde mail info state</p>
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.MailsPage">
+
+        <code>MailsPage</code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.MailsPage" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The state controling the transitions when the user is on the mails page.</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-method">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.MailsPage.__init__">
+
+        <code class="highlight language-python">
+__init__<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">view_mail</span><span class="p">,</span> <span class="n">new_mail</span><span class="p">,</span> <span class="n">refresh_mail</span><span class="p">,</span> <span class="n">ret_transition</span><span class="p">,</span> <span class="n">view_mail_weight</span><span class="o">=</span><span class="mf">0.45</span><span class="p">,</span> <span class="n">new_mail_weight</span><span class="o">=</span><span class="mf">0.35</span><span class="p">,</span> <span class="n">refresh_mail_weight</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">ret_weight</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">ret_increase</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span> <span class="n">name_prefix</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-special"><code>special</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.MailsPage.__init__" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td><code>str</code></td>
+<td>
+<p>The states name</p>
+</td>
+<td><em>required</em></td>
+</tr>
+<tr>
+<td><code>view_mail</code></td>
+<td><code>Transition</code></td>
+<td>
+<p>The transition used to view an email on the page</p>
+</td>
+<td><em>required</em></td>
+</tr>
+<tr>
+<td><code>new_mail</code></td>
+<td><code>Transition</code></td>
+<td>
+<p>The transition used to initiate writing a new email</p>
+</td>
+<td><em>required</em></td>
+</tr>
+<tr>
+<td><code>ret_transition</code></td>
+<td><code>Transition</code></td>
+<td>
+<p>The return to parent activity transition</p>
+</td>
+<td><em>required</em></td>
+</tr>
+<tr>
+<td><code>view_mail_weight</code></td>
+<td><code>float</code></td>
+<td>
+<p>The base weight of the view mail transition</p>
+</td>
+<td><code>0.45</code></td>
+</tr>
+<tr>
+<td><code>new_mail_weight</code></td>
+<td><code>float</code></td>
+<td>
+<p>The base weight of the new mail transition</p>
+</td>
+<td><code>0.35</code></td>
+</tr>
+<tr>
+<td><code>ret_weight</code></td>
+<td><code>float</code></td>
+<td>
+<p>The base weight of the return transition</p>
+</td>
+<td><code>0.1</code></td>
+</tr>
+<tr>
+<td><code>ret_increase</code></td>
+<td><code></code></td>
+<td>
+<p>The factor to increase the return transitions weight by
+          until it is selected.</p>
+</td>
+<td><code>1.2</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="doc doc-object doc-method">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.MailsPage.adapt_before">
+
+        <code class="highlight language-python">
+adapt_before<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>        </code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.MailsPage.adapt_before" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>Checks if mails are present in the inbox and disables the view mail transition if not.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.MailView">
+
+        <code>MailView</code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.MailView" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The horde mail view state</p>
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.NoteEditor">
+
+        <code>NoteEditor</code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.NoteEditor" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The horde note editor state</p>
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.NotesPage">
+
+        <code>NotesPage</code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.NotesPage" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The horde notes page state</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-method">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.NotesPage.adapt_before">
+
+        <code class="highlight language-python">
+adapt_before<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>        </code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.NotesPage.adapt_before" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>Hook to update the weight modifiers before the transition selection.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>log</code></td>
+<td><code></code></td>
+<td>
+<p>The logger for the sm context</p>
+</td>
+<td><em>required</em></td>
+</tr>
+<tr>
+<td><code>context</code></td>
+<td><code></code></td>
+<td>
+<p>The state machine context</p>
+</td>
+<td><em>required</em></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.SelectingMenu">
+
+        <code>SelectingMenu</code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.SelectingMenu" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The horde selecting menu state.</p>
+<p>This is the main state used to switch between the various horde
+sub activities.</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-method">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.SelectingMenu.__init__">
+
+        <code class="highlight language-python">
+__init__<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">nav_mail</span><span class="p">,</span> <span class="n">nav_preferences</span><span class="p">,</span> <span class="n">nav_admin</span><span class="p">,</span> <span class="n">nav_notes</span><span class="p">,</span> <span class="n">nav_tasks</span><span class="p">,</span> <span class="n">nav_address_book</span><span class="p">,</span> <span class="n">nav_calendar</span><span class="p">,</span> <span class="n">ret_transition</span><span class="p">,</span> <span class="n">nav_mail_weight</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">nav_preferences_weight</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">nav_admin_weight</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">nav_notes_weight</span><span class="o">=</span><span class="mf">0.15</span><span class="p">,</span> <span class="n">nav_tasks_weight</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">nav_address_book_weight</span><span class="o">=</span><span class="mf">0.125</span><span class="p">,</span> <span class="n">nav_calendar_weight</span><span class="o">=</span><span class="mf">0.15</span><span class="p">,</span> <span class="n">ret_weight</span><span class="o">=</span><span class="mf">0.075</span><span class="p">,</span> <span class="n">ret_increase</span><span class="o">=</span><span class="mf">1.25</span><span class="p">,</span> <span class="n">name_prefix</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-special"><code>special</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.SelectingMenu.__init__" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td><code>str</code></td>
+<td>
+<p>The states name</p>
+</td>
+<td><em>required</em></td>
+</tr>
+<tr>
+<td><code>ret_transition</code></td>
+<td><code>Transition</code></td>
+<td>
+<p>The return to parent activity transition</p>
+</td>
+<td><em>required</em></td>
+</tr>
+<tr>
+<td><code>ret_weight</code></td>
+<td><code>float</code></td>
+<td>
+<p>The base weight of the return transition</p>
+</td>
+<td><code>0.075</code></td>
+</tr>
+<tr>
+<td><code>ret_increase</code></td>
+<td><code></code></td>
+<td>
+<p>The factor to increase the return transitions weight by
+          until it is selected.</p>
+</td>
+<td><code>1.25</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="doc doc-object doc-method">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.SelectingMenu.adapt_after">
+
+        <code class="highlight language-python">
+adapt_after<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">selected</span><span class="p">)</span>        </code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.SelectingMenu.adapt_after" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>Hook to update the weight modifiers after the transition selection.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>log</code></td>
+<td><code></code></td>
+<td>
+<p>The logger for the sm context</p>
+</td>
+<td><em>required</em></td>
+</tr>
+<tr>
+<td><code>context</code></td>
+<td><code></code></td>
+<td>
+<p>The state machine context</p>
+</td>
+<td><em>required</em></td>
+</tr>
+<tr>
+<td><code>selected</code></td>
+<td><code></code></td>
+<td>
+<p>The transition selected in this next call</p>
+</td>
+<td><em>required</em></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="doc doc-object doc-method">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.SelectingMenu.adapt_before">
+
+        <code class="highlight language-python">
+adapt_before<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>        </code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.SelectingMenu.adapt_before" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>Hook to update the weight modifiers before the transition selection.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>log</code></td>
+<td><code></code></td>
+<td>
+<p>The logger for the sm context</p>
+</td>
+<td><em>required</em></td>
+</tr>
+<tr>
+<td><code>context</code></td>
+<td><code></code></td>
+<td>
+<p>The state machine context</p>
+</td>
+<td><em>required</em></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.TasksPage">
+
+        <code>TasksPage</code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.TasksPage" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The horde tasks page state</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-method">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.states.TasksPage.adapt_before">
+
+        <code class="highlight language-python">
+adapt_before<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>        </code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.states.TasksPage.adapt_before" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>Hook to update the weight modifiers before the transition selection.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>log</code></td>
+<td><code></code></td>
+<td>
+<p>The logger for the sm context</p>
+</td>
+<td><em>required</em></td>
+</tr>
+<tr>
+<td><code>context</code></td>
+<td><code></code></td>
+<td>
+<p>The state machine context</p>
+</td>
+<td><em>required</em></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
+        
+          <a href="../sm/" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+            </div>
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                State Machine
+              </div>
+            </div>
+          </a>
+        
+        
+          <a href="../activities/" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Next
+                </span>
+                Activities
+              </div>
+            </div>
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    </div>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="../../../assets/javascripts/vendor.18f0862e.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.994580cf.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing"}</script>
+      
+      <script>
+        app = initialize({
+          base: "../../..",
+          features: [],
+          search: Object.assign({
+            worker: "../../../assets/javascripts/worker/search.9c0e82ba.min.js"
+          }, typeof search !== "undefined" && search)
+        })
+      </script>
+      
+        <script src="../../../js/jquery-3.5.1.min.js"></script>
+      
+        <script src="../../../js/jquery.fancybox.min.js"></script>
+      
+    
+  </body>
+</html>

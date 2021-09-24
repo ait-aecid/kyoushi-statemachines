@@ -1,0 +1,3710 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="State machine based simulated actors.">
+      
+      
+      
+      
+        <link rel="canonical" href="https://ait-aecid.github.io/kyoushi-statemachines/statemachines/horde_user/sm/">
+      
+      <link rel="shortcut icon" href="../../../images/favicon.ico">
+      <meta name="generator" content="mkdocs-1.2.2, mkdocs-material-6.2.8">
+    
+    
+      
+        <title>State Machine - Cyber Range Kyoushi State Machines</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.cb6bc1d0.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.39b8e14a.min.css">
+        
+      
+    
+    
+    
+      
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>body,input{font-family:"Roboto",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono",SFMono-Regular,Consolas,Menlo,monospace}</style>
+      
+    
+    
+    
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+    
+      <link rel="stylesheet" href="../../../stylesheets/jquery.fancybox.min.css">
+    
+    
+      
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="ait" data-md-color-primary="" data-md-color-accent="">
+      
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#horde-user-aithorde_user" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid" aria-label="Header">
+    <a href="https://ait-aecid.github.io/kyoushi-statemachines/" title="Cyber Range Kyoushi State Machines" class="md-header-nav__button md-logo" aria-label="Cyber Range Kyoushi State Machines">
+      
+  <img src="../../../images/cr_icon.svg" alt="logo">
+
+    </a>
+    <label class="md-header-nav__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header-nav__title" data-md-component="header-title">
+      <div class="md-header-nav__ellipsis">
+        <div class="md-header-nav__topic">
+          <span class="md-ellipsis">
+            Cyber Range Kyoushi State Machines
+          </span>
+        </div>
+        <div class="md-header-nav__topic">
+          <span class="md-ellipsis">
+            
+              State Machine
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      <label class="md-header-nav__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 019.5 16 6.5 6.5 0 013 9.5 6.5 6.5 0 019.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" data-md-component="search-reset" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header-nav__source">
+        
+<a href="https://github.com/ait-aecid/kyoushi-statemachines/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 00-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 01-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 000 40.81l195.61 195.6a28.86 28.86 0 0040.8 0l194.69-194.69a28.86 28.86 0 000-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    kyoushi-statemachines
+  </div>
+</a>
+      </div>
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="https://ait-aecid.github.io/kyoushi-statemachines/" title="Cyber Range Kyoushi State Machines" class="md-nav__button md-logo" aria-label="Cyber Range Kyoushi State Machines">
+      
+  <img src="../../../images/cr_icon.svg" alt="logo">
+
+    </a>
+    Cyber Range Kyoushi State Machines
+  </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/ait-aecid/kyoushi-statemachines/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 00-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 01-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 000 40.81l195.61 195.6a28.86 28.86 0 0040.8 0l194.69-194.69a28.86 28.86 0 000-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    kyoushi-statemachines
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../contributing/" class="md-nav__link">
+        Contributing
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3" >
+      
+      <label class="md-nav__link" for="nav-3">
+        Code Reference
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Code Reference" data-md-level="1">
+        <label class="md-nav__title" for="nav-3">
+          <span class="md-nav__icon md-icon"></span>
+          Code Reference
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3-1" type="checkbox" id="nav-3-1" >
+      
+      <label class="md-nav__link" for="nav-3-1">
+        Core
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Core" data-md-level="2">
+        <label class="md-nav__title" for="nav-3-1">
+          <span class="md-nav__icon md-icon"></span>
+          Core
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/core/model/" class="md-nav__link">
+        Model
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/core/util/" class="md-nav__link">
+        Util
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/core/selenium/" class="md-nav__link">
+        Selenium
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-4" type="checkbox" id="nav-4" checked>
+      
+      <label class="md-nav__link" for="nav-4">
+        State Machines
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="State Machines" data-md-level="1">
+        <label class="md-nav__title" for="nav-4">
+          <span class="md-nav__icon md-icon"></span>
+          State Machines
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../web_browser/" class="md-nav__link">
+        Web Browser
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="nav-4-2" type="checkbox" id="nav-4-2" checked>
+      
+      <label class="md-nav__link" for="nav-4-2">
+        Horde User
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Horde User" data-md-level="2">
+        <label class="md-nav__title" for="nav-4-2">
+          <span class="md-nav__icon md-icon"></span>
+          Horde User
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+          
+            
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          State Machine
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        State Machine
+      </a>
+      
+        
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    Configuration
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.ActivitySelectionConfig" class="md-nav__link">
+    ActivitySelectionConfig
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.AddressBookPageConfig" class="md-nav__link">
+    AddressBookPageConfig
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.AdminGroupsPageConfig" class="md-nav__link">
+    AdminGroupsPageConfig
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.AdminPageConfig" class="md-nav__link">
+    AdminPageConfig
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.CalendarPageConfig" class="md-nav__link">
+    CalendarPageConfig
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.ContactInfoConfig" class="md-nav__link">
+    ContactInfoConfig
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.ContactsBrowserConfig" class="md-nav__link">
+    ContactsBrowserConfig
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.EventEditConfig" class="md-nav__link">
+    EventEditConfig
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.HordeConfig" class="md-nav__link">
+    HordeConfig
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.HordeMailConfig" class="md-nav__link">
+    HordeMailConfig
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.HordeStates" class="md-nav__link">
+    HordeStates
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.HordeUserStates" class="md-nav__link">
+    HordeUserStates
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.LoginPageConfig" class="md-nav__link">
+    LoginPageConfig
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.LogoutChoiceConfig" class="md-nav__link">
+    LogoutChoiceConfig
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.MailInfoConfig" class="md-nav__link">
+    MailInfoConfig
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.MailsPageConfig" class="md-nav__link">
+    MailsPageConfig
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.MailViewConfig" class="md-nav__link">
+    MailViewConfig
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.NoteEditorConfig" class="md-nav__link">
+    NoteEditorConfig
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.NotesPageConfig" class="md-nav__link">
+    NotesPageConfig
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.SelectingMenuConfig" class="md-nav__link">
+    SelectingMenuConfig
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.StatemachineConfig" class="md-nav__link">
+    StatemachineConfig
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.TasksPageConfig" class="md-nav__link">
+    TasksPageConfig
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#context" class="md-nav__link">
+    Context
+  </a>
+  
+    <nav class="md-nav" aria-label="Context">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.context.CalendarEventInfo" class="md-nav__link">
+    CalendarEventInfo
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.context.ContactInfo" class="md-nav__link">
+    ContactInfo
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.context.Context" class="md-nav__link">
+    Context
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.context.ContextModel" class="md-nav__link">
+    ContextModel
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.context.GroupInfo" class="md-nav__link">
+    GroupInfo
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.context.HordeContext" class="md-nav__link">
+    HordeContext
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.context.MailInfo" class="md-nav__link">
+    MailInfo
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.context.MailSendType" class="md-nav__link">
+    MailSendType
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.context.MemoInfo" class="md-nav__link">
+    MemoInfo
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.context.TaskInfo" class="md-nav__link">
+    TaskInfo
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../states/" class="md-nav__link">
+        States
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../activities/" class="md-nav__link">
+        Activities
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nav/" class="md-nav__link">
+        Selenium Navigation
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../actions/" class="md-nav__link">
+        Selenium Actions
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../license/" class="md-nav__link">
+        License
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    Configuration
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.ActivitySelectionConfig" class="md-nav__link">
+    ActivitySelectionConfig
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.AddressBookPageConfig" class="md-nav__link">
+    AddressBookPageConfig
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.AdminGroupsPageConfig" class="md-nav__link">
+    AdminGroupsPageConfig
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.AdminPageConfig" class="md-nav__link">
+    AdminPageConfig
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.CalendarPageConfig" class="md-nav__link">
+    CalendarPageConfig
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.ContactInfoConfig" class="md-nav__link">
+    ContactInfoConfig
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.ContactsBrowserConfig" class="md-nav__link">
+    ContactsBrowserConfig
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.EventEditConfig" class="md-nav__link">
+    EventEditConfig
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.HordeConfig" class="md-nav__link">
+    HordeConfig
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.HordeMailConfig" class="md-nav__link">
+    HordeMailConfig
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.HordeStates" class="md-nav__link">
+    HordeStates
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.HordeUserStates" class="md-nav__link">
+    HordeUserStates
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.LoginPageConfig" class="md-nav__link">
+    LoginPageConfig
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.LogoutChoiceConfig" class="md-nav__link">
+    LogoutChoiceConfig
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.MailInfoConfig" class="md-nav__link">
+    MailInfoConfig
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.MailsPageConfig" class="md-nav__link">
+    MailsPageConfig
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.MailViewConfig" class="md-nav__link">
+    MailViewConfig
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.NoteEditorConfig" class="md-nav__link">
+    NoteEditorConfig
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.NotesPageConfig" class="md-nav__link">
+    NotesPageConfig
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.SelectingMenuConfig" class="md-nav__link">
+    SelectingMenuConfig
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.StatemachineConfig" class="md-nav__link">
+    StatemachineConfig
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.config.TasksPageConfig" class="md-nav__link">
+    TasksPageConfig
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#context" class="md-nav__link">
+    Context
+  </a>
+  
+    <nav class="md-nav" aria-label="Context">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.context.CalendarEventInfo" class="md-nav__link">
+    CalendarEventInfo
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.context.ContactInfo" class="md-nav__link">
+    ContactInfo
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.context.Context" class="md-nav__link">
+    Context
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.context.ContextModel" class="md-nav__link">
+    ContextModel
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.context.GroupInfo" class="md-nav__link">
+    GroupInfo
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.context.HordeContext" class="md-nav__link">
+    HordeContext
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.context.MailInfo" class="md-nav__link">
+    MailInfo
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.context.MailSendType" class="md-nav__link">
+    MailSendType
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.context.MemoInfo" class="md-nav__link">
+    MemoInfo
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cr_kyoushi.statemachines.horde_user.context.TaskInfo" class="md-nav__link">
+    TaskInfo
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/ait-aecid/kyoushi-statemachines/edit/master/docs/statemachines/horde_user/sm.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
+                
+                <h1 id="horde-user-aithorde_user">Horde User (<code>ait.horde_user</code>)<a class="headerlink" href="#horde-user-aithorde_user" title="Permanent link">&para;</a></h1>
+<p>The Horde user activity simulates a user of the group ware software <a href="https://www.horde.org/">Horde</a> most notably its web mail feature.
+It has various sub activities for the specific horde menus e.g.m mails, calendar, etc.</p>
+<figure>
+  <a data-fancybox="gallery" href="https://ait-aecid.github.io/kyoushi-statemachines/statemachines/horde_user/horde_user.svg">
+  <img src="https://ait-aecid.github.io/kyoushi-statemachines/statemachines/horde_user/horde_user.svg" alt="Horde user state machine" />
+  <figcaption>Horde user state machine</figcaption>
+  </a>
+</figure>
+
+<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
+<div class="doc doc-object doc-module">
+<div class="doc doc-contents first">
+<p>Configuration classes for the horde user activity and state machine</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.ActivitySelectionConfig">
+
+        <code>ActivitySelectionConfig</code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-model"><code>pydantic-model</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.ActivitySelectionConfig" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>Horde user state machines selecting activity states configuration.</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.ActivitySelectionConfig.horde">
+
+        <code class="highlight">
+horde: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.ActivitySelectionConfig.horde" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that horde will be selected.</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.ActivitySelectionConfig.idle">
+
+        <code class="highlight">
+idle: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.ActivitySelectionConfig.idle" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that idle will be selected.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.AddressBookPageConfig">
+
+        <code>AddressBookPageConfig</code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-model"><code>pydantic-model</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.AddressBookPageConfig" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The address book page states configuration</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.AddressBookPageConfig.browse_contacts">
+
+        <code class="highlight">
+browse_contacts: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.AddressBookPageConfig.browse_contacts" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that browse contacts will be selected.</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.AddressBookPageConfig.extra">
+
+        <code class="highlight">
+extra: <span class="n">ActivityExtraConfig</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.AddressBookPageConfig.extra" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>Extra configuration for the state</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.AddressBookPageConfig.new_contact">
+
+        <code class="highlight">
+new_contact: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.AddressBookPageConfig.new_contact" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that new contact will be selected.</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.AddressBookPageConfig.return_">
+
+        <code class="highlight">
+return_: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.AddressBookPageConfig.return_" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that the activity will be left.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.AdminGroupsPageConfig">
+
+        <code>AdminGroupsPageConfig</code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-model"><code>pydantic-model</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.AdminGroupsPageConfig" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The admin groups pages states configuration</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.AdminGroupsPageConfig.extra">
+
+        <code class="highlight">
+extra: <span class="n">ActivityExtraConfig</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.AdminGroupsPageConfig.extra" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>Extra configuration for the state</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.AdminGroupsPageConfig.group_add">
+
+        <code class="highlight">
+group_add: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.AdminGroupsPageConfig.group_add" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that group add will be selected.</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.AdminGroupsPageConfig.group_delete">
+
+        <code class="highlight">
+group_delete: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.AdminGroupsPageConfig.group_delete" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that groupe delete will be selected.</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.AdminGroupsPageConfig.return_">
+
+        <code class="highlight">
+return_: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.AdminGroupsPageConfig.return_" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that the activity will be left.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.AdminPageConfig">
+
+        <code>AdminPageConfig</code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-model"><code>pydantic-model</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.AdminPageConfig" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The admin page states configuration</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.AdminPageConfig.extra">
+
+        <code class="highlight">
+extra: <span class="n">ActivityExtraConfig</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.AdminPageConfig.extra" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>Extra configuration for the state</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.AdminPageConfig.nav_alarms">
+
+        <code class="highlight">
+nav_alarms: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.AdminPageConfig.nav_alarms" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that nav alarms will be selected.</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.AdminPageConfig.nav_cli_shell">
+
+        <code class="highlight">
+nav_cli_shell: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.AdminPageConfig.nav_cli_shell" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that nav cli shell will be selected.</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.AdminPageConfig.nav_config">
+
+        <code class="highlight">
+nav_config: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.AdminPageConfig.nav_config" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that nav config will be selected.</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.AdminPageConfig.nav_groups">
+
+        <code class="highlight">
+nav_groups: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.AdminPageConfig.nav_groups" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that nav groups will be selected.</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.AdminPageConfig.nav_locks">
+
+        <code class="highlight">
+nav_locks: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.AdminPageConfig.nav_locks" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that nav locks will be selected.</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.AdminPageConfig.nav_permissions">
+
+        <code class="highlight">
+nav_permissions: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.AdminPageConfig.nav_permissions" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that nav permissions will be selected.</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.AdminPageConfig.nav_php_shell">
+
+        <code class="highlight">
+nav_php_shell: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.AdminPageConfig.nav_php_shell" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that nav php shell will be selected.</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.AdminPageConfig.nav_sessions">
+
+        <code class="highlight">
+nav_sessions: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.AdminPageConfig.nav_sessions" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that nav sessions will be selected.</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.AdminPageConfig.nav_sql_shell">
+
+        <code class="highlight">
+nav_sql_shell: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.AdminPageConfig.nav_sql_shell" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that nav sql shell will be selected.</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.AdminPageConfig.nav_users">
+
+        <code class="highlight">
+nav_users: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.AdminPageConfig.nav_users" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that nav users will be selected.</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.AdminPageConfig.return_">
+
+        <code class="highlight">
+return_: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.AdminPageConfig.return_" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that the activity will be left.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.CalendarPageConfig">
+
+        <code>CalendarPageConfig</code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-model"><code>pydantic-model</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.CalendarPageConfig" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The calendar page  states configuration</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.CalendarPageConfig.edit_event">
+
+        <code class="highlight">
+edit_event: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.CalendarPageConfig.edit_event" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that edit event will be selected.</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.CalendarPageConfig.extra">
+
+        <code class="highlight">
+extra: <span class="n">ActivityExtraConfig</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.CalendarPageConfig.extra" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>Extra configuration for the state</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.CalendarPageConfig.new_event">
+
+        <code class="highlight">
+new_event: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.CalendarPageConfig.new_event" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that new event will be selected.</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.CalendarPageConfig.return_">
+
+        <code class="highlight">
+return_: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.CalendarPageConfig.return_" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that the activity will be left.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.ContactInfoConfig">
+
+        <code>ContactInfoConfig</code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-model"><code>pydantic-model</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.ContactInfoConfig" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The contact info  states configuration</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.ContactInfoConfig.delete_contact">
+
+        <code class="highlight">
+delete_contact: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.ContactInfoConfig.delete_contact" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that delete contact will be selected.</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.ContactInfoConfig.do_nothing">
+
+        <code class="highlight">
+do_nothing: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.ContactInfoConfig.do_nothing" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that do nothing will be selected.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.ContactsBrowserConfig">
+
+        <code>ContactsBrowserConfig</code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-model"><code>pydantic-model</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.ContactsBrowserConfig" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The contacts browser states configuration</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.ContactsBrowserConfig.new_contact">
+
+        <code class="highlight">
+new_contact: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.ContactsBrowserConfig.new_contact" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that new contact will be selected.</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.ContactsBrowserConfig.view_contact">
+
+        <code class="highlight">
+view_contact: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.ContactsBrowserConfig.view_contact" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that view contact will be selected.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.EventEditConfig">
+
+        <code>EventEditConfig</code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-model"><code>pydantic-model</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.EventEditConfig" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The event edit  states configuration</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.EventEditConfig.delete_event">
+
+        <code class="highlight">
+delete_event: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.EventEditConfig.delete_event" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that delete event will be selected.</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.EventEditConfig.write_event">
+
+        <code class="highlight">
+write_event: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.EventEditConfig.write_event" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that write event will be selected.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.HordeConfig">
+
+        <code>HordeConfig</code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-model"><code>pydantic-model</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.HordeConfig" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>Configuration class for the horde user</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.HordeConfig.first_name">
+
+        <code class="highlight">
+first_name: <span class="nb">str</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.HordeConfig.first_name" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The firstname of the horde user</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.HordeConfig.last_name">
+
+        <code class="highlight">
+last_name: <span class="nb">str</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.HordeConfig.last_name" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The lastname of the horde user</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.HordeConfig.mail">
+
+        <code class="highlight">
+mail: <span class="n">HordeMailConfig</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.HordeConfig.mail" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The mail configuration for the horde user</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.HordeConfig.max_daily">
+
+        <code class="highlight">
+max_daily: <span class="nb">int</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.HordeConfig.max_daily" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The maximum amount of times the horde activity will be entered per day</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.HordeConfig.password">
+
+        <code class="highlight">
+password: <span class="nb">str</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.HordeConfig.password" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The horde users password</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.HordeConfig.url">
+
+        <code class="highlight">
+url: <span class="n">HttpUrl</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.HordeConfig.url" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The horde servers base URL</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.HordeConfig.username">
+
+        <code class="highlight">
+username: <span class="nb">str</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.HordeConfig.username" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The horde user</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.HordeMailConfig">
+
+        <code>HordeMailConfig</code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-model"><code>pydantic-model</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.HordeMailConfig" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>Configuration class for the horde users mail activities</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.HordeMailConfig.attachment">
+
+        <code class="highlight">
+attachment: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.HordeMailConfig.attachment" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The propability that an attachment is added to a new email</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.HordeMailConfig.attachment_reply">
+
+        <code class="highlight">
+attachment_reply: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.HordeMailConfig.attachment_reply" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The propability that an attachment is added to a reply</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.HordeMailConfig.attachments">
+
+        <code class="highlight">
+attachments: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.HordeMailConfig.attachments" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>A dict of attachment files the user might send</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.HordeMailConfig.contacts">
+
+        <code class="highlight">
+contacts: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.HordeMailConfig.contacts" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The email contacts for the horde user</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.HordeMailConfig.extra_recipient">
+
+        <code class="highlight">
+extra_recipient: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.HordeMailConfig.extra_recipient" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The propability that an additional recipient is added to a mail</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.HordeMailConfig.max_recipients">
+
+        <code class="highlight">
+max_recipients: <span class="nb">int</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.HordeMailConfig.max_recipients" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The maximum amount of recipients</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.HordeStates">
+
+        <code>HordeStates</code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-model"><code>pydantic-model</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.HordeStates" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>Configuration class for all horde activity states.</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.HordeStates.address_book_page">
+
+        <code class="highlight">
+address_book_page: <span class="n">AddressBookPageConfig</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.HordeStates.address_book_page" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The address book page states config</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.HordeStates.admin_groups_page">
+
+        <code class="highlight">
+admin_groups_page: <span class="n">AdminGroupsPageConfig</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.HordeStates.admin_groups_page" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The admin groups page states config</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.HordeStates.admin_page">
+
+        <code class="highlight">
+admin_page: <span class="n">AdminPageConfig</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.HordeStates.admin_page" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The admin page states config</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.HordeStates.calendar_page">
+
+        <code class="highlight">
+calendar_page: <span class="n">CalendarPageConfig</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.HordeStates.calendar_page" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The calendar page states config</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.HordeStates.contact_info">
+
+        <code class="highlight">
+contact_info: <span class="n">ContactInfoConfig</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.HordeStates.contact_info" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The contact info states config</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.HordeStates.contacts_browser">
+
+        <code class="highlight">
+contacts_browser: <span class="n">ContactsBrowserConfig</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.HordeStates.contacts_browser" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The contacts browser states config</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.HordeStates.event_edit">
+
+        <code class="highlight">
+event_edit: <span class="n">EventEditConfig</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.HordeStates.event_edit" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The event edit states config</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.HordeStates.login_page">
+
+        <code class="highlight">
+login_page: <span class="n">LoginPageConfig</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.HordeStates.login_page" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The login page states config</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.HordeStates.logout_choice">
+
+        <code class="highlight">
+logout_choice: <span class="n">LogoutChoiceConfig</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.HordeStates.logout_choice" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The logout choice states config</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.HordeStates.mail_info">
+
+        <code class="highlight">
+mail_info: <span class="n">MailInfoConfig</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.HordeStates.mail_info" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The mail info states config</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.HordeStates.mail_view">
+
+        <code class="highlight">
+mail_view: <span class="n">MailViewConfig</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.HordeStates.mail_view" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The mail view states config</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.HordeStates.mails_page">
+
+        <code class="highlight">
+mails_page: <span class="n">MailsPageConfig</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.HordeStates.mails_page" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The mails page states config</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.HordeStates.note_editor">
+
+        <code class="highlight">
+note_editor: <span class="n">NoteEditorConfig</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.HordeStates.note_editor" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The note editor states config</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.HordeStates.notes_page">
+
+        <code class="highlight">
+notes_page: <span class="n">NotesPageConfig</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.HordeStates.notes_page" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The notes page states config</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.HordeStates.selecting_menu">
+
+        <code class="highlight">
+selecting_menu: <span class="n">SelectingMenuConfig</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.HordeStates.selecting_menu" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The selecting menu states config</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.HordeStates.tasks_page">
+
+        <code class="highlight">
+tasks_page: <span class="n">TasksPageConfig</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.HordeStates.tasks_page" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The tasks page states config</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.HordeUserStates">
+
+        <code>HordeUserStates</code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-model"><code>pydantic-model</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.HordeUserStates" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>Configuration class for the horde state machine states</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.HordeUserStates.selecting_activity">
+
+        <code class="highlight">
+selecting_activity: <span class="n">ActivitySelectionConfig</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.HordeUserStates.selecting_activity" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The selecting activity states config</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.LoginPageConfig">
+
+        <code>LoginPageConfig</code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-model"><code>pydantic-model</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.LoginPageConfig" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The login page states configuration</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.LoginPageConfig.fail_chance">
+
+        <code class="highlight">
+fail_chance: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.LoginPageConfig.fail_chance" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The chance the user will use an incorrect password</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.LoginPageConfig.fail_decrease">
+
+        <code class="highlight">
+fail_decrease: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.LoginPageConfig.fail_decrease" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>Multiplicative modifier used for decreasing the chance of failed logins with each consecutive fail</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.LogoutChoiceConfig">
+
+        <code>LogoutChoiceConfig</code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-model"><code>pydantic-model</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.LogoutChoiceConfig" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The logout choice states configuration</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.LogoutChoiceConfig.logout_chance">
+
+        <code class="highlight">
+logout_chance: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.LogoutChoiceConfig.logout_chance" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The chance the user will logout when stopping the horde activity</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.MailInfoConfig">
+
+        <code>MailInfoConfig</code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-model"><code>pydantic-model</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.MailInfoConfig" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The mail info states configuration</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.MailInfoConfig.delete_mail">
+
+        <code class="highlight">
+delete_mail: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.MailInfoConfig.delete_mail" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that delete mail will be selected.</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.MailInfoConfig.reply_mail">
+
+        <code class="highlight">
+reply_mail: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.MailInfoConfig.reply_mail" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that reply mail will be selected.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.MailsPageConfig">
+
+        <code>MailsPageConfig</code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-model"><code>pydantic-model</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.MailsPageConfig" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The mails page states configuration</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.MailsPageConfig.extra">
+
+        <code class="highlight">
+extra: <span class="n">ActivityExtraConfig</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.MailsPageConfig.extra" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>Extra configuration for the state</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.MailsPageConfig.new_mail">
+
+        <code class="highlight">
+new_mail: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.MailsPageConfig.new_mail" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that new mail will be selected.</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.MailsPageConfig.refresh_mail">
+
+        <code class="highlight">
+refresh_mail: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.MailsPageConfig.refresh_mail" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that refresh mail will be selected.</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.MailsPageConfig.return_">
+
+        <code class="highlight">
+return_: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.MailsPageConfig.return_" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that the activity will be left.</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.MailsPageConfig.view_mail">
+
+        <code class="highlight">
+view_mail: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.MailsPageConfig.view_mail" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that view mail will be selected.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.MailViewConfig">
+
+        <code>MailViewConfig</code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-model"><code>pydantic-model</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.MailViewConfig" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The mail view states configuration</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.MailViewConfig.delete_mail">
+
+        <code class="highlight">
+delete_mail: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.MailViewConfig.delete_mail" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that delete mail will be selected.</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.MailViewConfig.do_nothing">
+
+        <code class="highlight">
+do_nothing: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.MailViewConfig.do_nothing" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that do nothing will be selected.</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.MailViewConfig.open_mail">
+
+        <code class="highlight">
+open_mail: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.MailViewConfig.open_mail" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that open mail will be selected.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.NoteEditorConfig">
+
+        <code>NoteEditorConfig</code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-model"><code>pydantic-model</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.NoteEditorConfig" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The note editor states configuration</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.NoteEditorConfig.delete_note">
+
+        <code class="highlight">
+delete_note: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.NoteEditorConfig.delete_note" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that delete note will be selected.</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.NoteEditorConfig.write_note">
+
+        <code class="highlight">
+write_note: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.NoteEditorConfig.write_note" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that write note will be selected.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.NotesPageConfig">
+
+        <code>NotesPageConfig</code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-model"><code>pydantic-model</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.NotesPageConfig" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The notes page states configuration</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.NotesPageConfig.edit_note">
+
+        <code class="highlight">
+edit_note: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.NotesPageConfig.edit_note" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that edit note will be selected.</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.NotesPageConfig.extra">
+
+        <code class="highlight">
+extra: <span class="n">ActivityExtraConfig</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.NotesPageConfig.extra" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>Extra configuration for the state</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.NotesPageConfig.new_note">
+
+        <code class="highlight">
+new_note: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.NotesPageConfig.new_note" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that new note will be selected.</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.NotesPageConfig.return_">
+
+        <code class="highlight">
+return_: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.NotesPageConfig.return_" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that the activity will be left.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.SelectingMenuConfig">
+
+        <code>SelectingMenuConfig</code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-model"><code>pydantic-model</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.SelectingMenuConfig" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The selecting menu states configuration</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.SelectingMenuConfig.extra">
+
+        <code class="highlight">
+extra: <span class="n">ActivityExtraConfig</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.SelectingMenuConfig.extra" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>Extra configuration for the state</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.SelectingMenuConfig.nav_address_book">
+
+        <code class="highlight">
+nav_address_book: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.SelectingMenuConfig.nav_address_book" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that nav_address_book will be selected.</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.SelectingMenuConfig.nav_admin">
+
+        <code class="highlight">
+nav_admin: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.SelectingMenuConfig.nav_admin" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that nav_admin will be selected.</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.SelectingMenuConfig.nav_calendar">
+
+        <code class="highlight">
+nav_calendar: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.SelectingMenuConfig.nav_calendar" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that nav_calendar will be selected.</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.SelectingMenuConfig.nav_mail">
+
+        <code class="highlight">
+nav_mail: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.SelectingMenuConfig.nav_mail" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that nav_mail will be selected.</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.SelectingMenuConfig.nav_notes">
+
+        <code class="highlight">
+nav_notes: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.SelectingMenuConfig.nav_notes" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that nav_notes will be selected.</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.SelectingMenuConfig.nav_preferences">
+
+        <code class="highlight">
+nav_preferences: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.SelectingMenuConfig.nav_preferences" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that nav_preferences will be selected.</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.SelectingMenuConfig.nav_tasks">
+
+        <code class="highlight">
+nav_tasks: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.SelectingMenuConfig.nav_tasks" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that nav_tasks will be selected.</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.SelectingMenuConfig.return_">
+
+        <code class="highlight">
+return_: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.SelectingMenuConfig.return_" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that the activity will be left.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.StatemachineConfig">
+
+        <code>StatemachineConfig</code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-model"><code>pydantic-model</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.StatemachineConfig" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>Web browser state machine configuration model</p>
+<p><strong>Examples:</strong></p>
+<div class="highlight">
+<pre><span></span><code><span class="nt">max_errors</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="nt">start_time</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2021-01-23T9:00</span>
+<span class="nt">end_time</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2021-01-29T00:01</span>
+<span class="nt">schedule</span><span class="p">:</span>
+<span class="nt">work_days</span><span class="p">:</span>
+    <span class="nt">monday</span><span class="p">:</span>
+        <span class="nt">start_time</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">09:00</span>
+        <span class="nt">end_time</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">17:30</span>
+    <span class="nt">friday</span><span class="p">:</span>
+        <span class="nt">start_time</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">11:21</span>
+        <span class="nt">end_time</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">19:43</span>
+<span class="nt">selenium</span><span class="p">:</span>
+    <span class="nt">driver_manager</span><span class="p">:</span>
+        <span class="nt">cache_valid_range</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">5</span> <span class="c1"># days</span>
+    <span class="nt">type</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">firefox</span>
+    <span class="nt">window_width</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">800</span>
+    <span class="nt">window_height</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">600</span>
+    <span class="nt">accept_insecure_ssl</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">yes</span>
+</code></pre>
+</div>
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.StatemachineConfig.horde">
+
+        <code class="highlight">
+horde: <span class="n">HordeConfig</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.StatemachineConfig.horde" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The horde user specific configuration</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.StatemachineConfig.states">
+
+        <code class="highlight">
+states: <span class="n">HordeUserStates</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.StatemachineConfig.states" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The horde state machines states configuration</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.TasksPageConfig">
+
+        <code>TasksPageConfig</code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-model"><code>pydantic-model</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.TasksPageConfig" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>The tasks page states configuration</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.TasksPageConfig.edit_task">
+
+        <code class="highlight">
+edit_task: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.TasksPageConfig.edit_task" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that edit task will be selected.</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.TasksPageConfig.extra">
+
+        <code class="highlight">
+extra: <span class="n">ActivityExtraConfig</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.TasksPageConfig.extra" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>Extra configuration for the state</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.TasksPageConfig.new_task">
+
+        <code class="highlight">
+new_task: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.TasksPageConfig.new_task" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that new task will be selected.</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.config.TasksPageConfig.return_">
+
+        <code class="highlight">
+return_: <span class="nb">float</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.config.TasksPageConfig.return_" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The base propability that the activity will be left.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<h2 id="context">Context<a class="headerlink" href="#context" title="Permanent link">&para;</a></h2>
+<div class="doc doc-object doc-module">
+<div class="doc doc-contents first">
+<p>The horde activities context model classes</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.CalendarEventInfo">
+
+        <code>CalendarEventInfo</code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-model"><code>pydantic-model</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.CalendarEventInfo" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>Info context class used to pass calendar event info between states</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.CalendarEventInfo.calendar">
+
+        <code class="highlight">
+calendar: <span class="nb">str</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.CalendarEventInfo.calendar" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The calendar id</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.CalendarEventInfo.description">
+
+        <code class="highlight">
+description: <span class="nb">str</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.CalendarEventInfo.description" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The event description</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.CalendarEventInfo.end">
+
+        <code class="highlight">
+end: <span class="n">datetime</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.CalendarEventInfo.end" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The event end date and time</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.CalendarEventInfo.id">
+
+        <code class="highlight">
+id: <span class="nb">str</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.CalendarEventInfo.id" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The event id</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.CalendarEventInfo.location">
+
+        <code class="highlight">
+location: <span class="nb">str</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.CalendarEventInfo.location" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The event location</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.CalendarEventInfo.start">
+
+        <code class="highlight">
+start: <span class="n">datetime</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.CalendarEventInfo.start" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The event start date and time</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.CalendarEventInfo.title">
+
+        <code class="highlight">
+title: <span class="nb">str</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.CalendarEventInfo.title" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The event title</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.ContactInfo">
+
+        <code>ContactInfo</code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-model"><code>pydantic-model</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.ContactInfo" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>Info context class used to pass contact info between states</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.ContactInfo.key">
+
+        <code class="highlight">
+key: <span class="nb">str</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.ContactInfo.key" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The contact key</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.ContactInfo.name">
+
+        <code class="highlight">
+name: <span class="nb">str</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.ContactInfo.name" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The contact full name</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.ContactInfo.source">
+
+        <code class="highlight">
+source: <span class="nb">str</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.ContactInfo.source" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The contact source id</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.Context">
+
+        <code>Context</code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.Context" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>Horde state machine context protocol</p>
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.ContextModel">
+
+        <code>ContextModel</code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-model"><code>pydantic-model</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.ContextModel" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>Horde state machine context class</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.ContextModel.horde">
+
+        <code class="highlight">
+horde: <span class="n">HordeContext</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.ContextModel.horde" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The horde specific context variables</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.GroupInfo">
+
+        <code>GroupInfo</code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-model"><code>pydantic-model</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.GroupInfo" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>Info context class used to pass group info between states</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.GroupInfo.gid">
+
+        <code class="highlight">
+gid: <span class="nb">int</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.GroupInfo.gid" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The horde group id</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.GroupInfo.name">
+
+        <code class="highlight">
+name: <span class="nb">str</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.GroupInfo.name" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The horde group name</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.HordeContext">
+
+        <code>HordeContext</code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-model"><code>pydantic-model</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.HordeContext" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>Horde activity specific context class containing various info fields.</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.HordeContext.contact">
+
+        <code class="highlight">
+contact: <span class="n">ContactInfo</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.HordeContext.contact" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The contact that is currently beeing modified</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.HordeContext.event">
+
+        <code class="highlight">
+event: <span class="n">CalendarEventInfo</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.HordeContext.event" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The calendar event that is currently being modified</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.HordeContext.form_field_delay">
+
+        <code class="highlight">
+form_field_delay: <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">cr_kyoushi</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">ApproximateFloat</span><span class="p">]</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.HordeContext.form_field_delay" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The delay to use in between form fields to fill out</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.HordeContext.group">
+
+        <code class="highlight">
+group: <span class="n">GroupInfo</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.HordeContext.group" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The group that is currently being modified</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.HordeContext.mail">
+
+        <code class="highlight">
+mail: <span class="n">MailInfo</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.HordeContext.mail" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The mail that is currently beeing viewed/modified</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.HordeContext.memo">
+
+        <code class="highlight">
+memo: <span class="n">MemoInfo</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.HordeContext.memo" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The memo that is currently beeing modified</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.HordeContext.task">
+
+        <code class="highlight">
+task: <span class="n">TaskInfo</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.HordeContext.task" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The task that is currently beeing modified</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.MailInfo">
+
+        <code>MailInfo</code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-model"><code>pydantic-model</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.MailInfo" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>Info context class used to pass mail info between states</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.MailInfo.attachment">
+
+        <code class="highlight">
+attachment: <span class="n">FilePath</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.MailInfo.attachment" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The source path of the mail attachment</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.MailInfo.buid">
+
+        <code class="highlight">
+buid: <span class="nb">int</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.MailInfo.buid" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The mail id that is being viewed/replied to</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.MailInfo.content">
+
+        <code class="highlight">
+content: <span class="nb">str</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.MailInfo.content" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The mail content</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.MailInfo.mailbox">
+
+        <code class="highlight">
+mailbox: <span class="nb">str</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.MailInfo.mailbox" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The mailbox id of the message that is being viewed/replied to</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.MailInfo.recipients">
+
+        <code class="highlight">
+recipients: <span class="nb">str</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.MailInfo.recipients" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The mail recipients</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.MailInfo.send_type">
+
+        <code class="highlight">
+send_type: <span class="n">MailSendType</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.MailInfo.send_type" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The mail send type that is being composed for</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.MailInfo.subject">
+
+        <code class="highlight">
+subject: <span class="nb">str</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.MailInfo.subject" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The mail subject line</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.MailSendType">
+
+        <code>MailSendType</code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.MailSendType" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>Mail send types enum</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.MailSendType.FORWARD">
+
+        <code class="highlight">
+FORWARD        </code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.MailSendType.FORWARD" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>Email forwards</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.MailSendType.NEW">
+
+        <code class="highlight">
+NEW        </code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.MailSendType.NEW" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>New emails</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.MailSendType.REPLY">
+
+        <code class="highlight">
+REPLY        </code>
+
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.MailSendType.REPLY" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>Email replies</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.MemoInfo">
+
+        <code>MemoInfo</code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-model"><code>pydantic-model</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.MemoInfo" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>Info context class used to pass memo (note) info between states</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.MemoInfo.content">
+
+        <code class="highlight">
+content: <span class="nb">str</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.MemoInfo.content" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The memo content</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.MemoInfo.id">
+
+        <code class="highlight">
+id: <span class="nb">str</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.MemoInfo.id" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The memo id</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.MemoInfo.list_id">
+
+        <code class="highlight">
+list_id: <span class="nb">str</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.MemoInfo.list_id" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The memolist id</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.MemoInfo.tags">
+
+        <code class="highlight">
+tags: <span class="nb">str</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.MemoInfo.tags" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The memos tags</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.MemoInfo.target_list_id">
+
+        <code class="highlight">
+target_list_id: <span class="nb">str</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.MemoInfo.target_list_id" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The target memolist when editing a memo</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.MemoInfo.title">
+
+        <code class="highlight">
+title: <span class="nb">str</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.MemoInfo.title" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The memo name</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="doc doc-object doc-class">
+<h3 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.TaskInfo">
+
+        <code>TaskInfo</code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-model"><code>pydantic-model</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.TaskInfo" title="Permanent link">&para;</a></h3>
+<div class="doc doc-contents ">
+<p>Info context class used to pass task info between states</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.TaskInfo.id">
+
+        <code class="highlight">
+id: <span class="nb">str</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.TaskInfo.id" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The task id</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.TaskInfo.list_id">
+
+        <code class="highlight">
+list_id: <span class="nb">str</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.TaskInfo.list_id" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The tasklist id</p>
+</div>
+</div>
+<div class="doc doc-object doc-attribute">
+<h4 class="doc doc-heading" id="cr_kyoushi.statemachines.horde_user.context.TaskInfo.name">
+
+        <code class="highlight">
+name: <span class="nb">str</span>        </code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+      <a class="headerlink" href="#cr_kyoushi.statemachines.horde_user.context.TaskInfo.name" title="Permanent link">&para;</a></h4>
+<div class="doc doc-contents ">
+<p>The task name</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
+        
+          <a href="../../web_browser/" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+            </div>
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                Web Browser
+              </div>
+            </div>
+          </a>
+        
+        
+          <a href="../states/" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Next
+                </span>
+                States
+              </div>
+            </div>
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    </div>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="../../../assets/javascripts/vendor.18f0862e.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.994580cf.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing"}</script>
+      
+      <script>
+        app = initialize({
+          base: "../../..",
+          features: [],
+          search: Object.assign({
+            worker: "../../../assets/javascripts/worker/search.9c0e82ba.min.js"
+          }, typeof search !== "undefined" && search)
+        })
+      </script>
+      
+        <script src="../../../js/jquery-3.5.1.min.js"></script>
+      
+        <script src="../../../js/jquery.fancybox.min.js"></script>
+      
+    
+  </body>
+</html>
