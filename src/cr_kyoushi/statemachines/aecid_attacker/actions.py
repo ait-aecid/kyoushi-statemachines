@@ -693,6 +693,7 @@ def send_request(
     get_params = {cmd_param: encode_cmd(cmd)}
     log = log.bind(params=get_params)
     count = 0
+    r = None
 
     log.info("Sending web shell command")
     while r is None:
