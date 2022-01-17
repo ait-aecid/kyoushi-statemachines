@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "kyoushi-statemachines"
-version = "0.4.1"
+version = "0.5.0"
 description = ""
 authors = ["Maximilian Frank <maximilian.frank@ait.ac.at>"]
 license = "MIT"
