@@ -5,18 +5,11 @@ from pydantic import (
     ValidationError,
 )
 from pytest_mock import MockFixture
-from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.firefox import GeckoDriverManager
-from webdriver_manager.microsoft import (
-    EdgeChromiumDriverManager,
-    IEDriverManager,
-)
-from webdriver_manager.opera import OperaDriverManager
 
 from cr_kyoushi.statemachines.core.selenium import (
     SeleniumConfig,
     WebdriverType,
-    get_webdriver_manager,
     install_webdriver,
 )
 
@@ -144,34 +137,6 @@ def test_selenium_config_validation(config, expected):
     expected_config.arguments = expected["arguments"]
 
     assert SeleniumConfig(**config) == expected_config
-
-
-@pytest.mark.parametrize(
-    "config, expected_manager",
-    [
-        pytest.param(SeleniumConfig(type="chrome"), ChromeDriverManager, id="chrome"),
-        pytest.param(
-            SeleniumConfig(type="chromium"), ChromeDriverManager, id="chromium"
-        ),
-        pytest.param(SeleniumConfig(type="firefox"), GeckoDriverManager, id="firefox"),
-        pytest.param(SeleniumConfig(type="ie"), IEDriverManager, id="ie"),
-        pytest.param(SeleniumConfig(type="edge"), EdgeChromiumDriverManager, id="edge"),
-        pytest.param(SeleniumConfig(type="opera"), OperaDriverManager, id="opera"),
-    ],
-)
-def test_get_webdriver_manager_returns_correct_manager(
-    mocker: MockFixture,
-    config,
-    expected_manager,
-):
-    # need to mock the chrome version call in case chrome or chromium is not installed
-    chrome_version_mock = mocker.Mock()
-    chrome_version_mock.return_value = "87.0.4280.141"
-    mocker.patch(
-        "webdriver_manager.driver.chrome_version",
-    )
-
-    assert isinstance(get_webdriver_manager(config), expected_manager)
 
 
 def test_install_webdriver_calls_manager_install(mocker: MockFixture):
