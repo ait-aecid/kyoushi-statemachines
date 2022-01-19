@@ -12,10 +12,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install Python 3.7
+      - name: Install Python 3.8
         uses: actions/setup-python@v1
         with:
-          python-version: 3.7
+          python-version: 3.8
 
       - name: Setup Poetry
         uses: Gr1N/setup-poetry@v4
@@ -33,14 +33,4 @@ jobs:
       - run: make check-isort
       - run: make check-mypy
       - run: make check-safety
-      - name: Run Unit-Tests with python3.7
-        run: make test-junit
-
-      - name: Install Python 3.8
-        uses: actions/setup-python@v1
-        with:
-          python-version: 3.8
-
-      - name: Run Unit-Tests with python3.8
-        run: make test-junit
-
+      - run: make test-junit

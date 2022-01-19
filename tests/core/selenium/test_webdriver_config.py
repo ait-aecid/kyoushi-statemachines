@@ -146,34 +146,6 @@ def test_selenium_config_validation(config, expected):
     assert SeleniumConfig(**config) == expected_config
 
 
-@pytest.mark.parametrize(
-    "config, expected_manager",
-    [
-        pytest.param(SeleniumConfig(type="chrome"), ChromeDriverManager, id="chrome"),
-        pytest.param(
-            SeleniumConfig(type="chromium"), ChromeDriverManager, id="chromium"
-        ),
-        pytest.param(SeleniumConfig(type="firefox"), GeckoDriverManager, id="firefox"),
-        pytest.param(SeleniumConfig(type="ie"), IEDriverManager, id="ie"),
-        pytest.param(SeleniumConfig(type="edge"), EdgeChromiumDriverManager, id="edge"),
-        pytest.param(SeleniumConfig(type="opera"), OperaDriverManager, id="opera"),
-    ],
-)
-def test_get_webdriver_manager_returns_correct_manager(
-    mocker: MockFixture,
-    config,
-    expected_manager,
-):
-    # need to mock the chrome version call in case chrome or chromium is not installed
-    chrome_version_mock = mocker.Mock()
-    chrome_version_mock.return_value = "87.0.4280.141"
-    mocker.patch(
-        "webdriver_manager.driver.chrome_version",
-    )
-
-    assert isinstance(get_webdriver_manager(config), expected_manager)
-
-
 def test_install_webdriver_calls_manager_install(mocker: MockFixture):
     expected_driver_path = "installed"
 

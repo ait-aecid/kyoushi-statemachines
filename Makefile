@@ -30,9 +30,6 @@ clean: clean-docs
 clean-docs:
 	@rm -rf site
 
-# install all dependencies
-setup: setup-python
-
 # test your application (tests in the tests/ directory)
 test:
 	@poetry run pytest --cov=src/cr_kyoushi/statemachines/core --cov-config .coveragerc --cov-report xml --cov-report term tests/ -sq
