@@ -35,12 +35,11 @@ idna = "^2.8"
 pwntools = "^4.7.0"
 beautifulsoup4 = "^4.10.0"
 
-
 [tool.poetry.dev-dependencies]
 pytest = "^6.2"
 flake8 = "^4.0.1"
 typed-ast = "^1.5.1"
-pre-commit = "^2.9.0"
+pre-commit = "^2.17.0"
 black = "^21.12b0"
 mypy = "^0.930"
 pytest-cov = "^2.10.1"
@@ -57,7 +56,8 @@ mkdocstrings = "^0.13.6"
 mkdocs-click = "^0.2.0"
 markdown-include = "^0.6.0"
 pymdown-extensions = "^8.0.1"
-mkdocs-macros-plugin = "^0.5.0"
+mkdocs-macros-plugin = "^0.6.3"
+types-requests = "^2.27.7"
 
 [tool.isort]
 profile = "black"
