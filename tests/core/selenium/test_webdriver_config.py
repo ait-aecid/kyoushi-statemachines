@@ -5,18 +5,11 @@ from pydantic import (
     ValidationError,
 )
 from pytest_mock import MockFixture
-from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.firefox import GeckoDriverManager
-from webdriver_manager.microsoft import (
-    EdgeChromiumDriverManager,
-    IEDriverManager,
-)
-from webdriver_manager.opera import OperaDriverManager
 
 from cr_kyoushi.statemachines.core.selenium import (
     SeleniumConfig,
     WebdriverType,
-    get_webdriver_manager,
     install_webdriver,
 )
 

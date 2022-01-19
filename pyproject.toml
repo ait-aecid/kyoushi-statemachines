@@ -24,7 +24,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.8"
-kyoushi-simulation = "^0.3.8"
+kyoushi-simulation = "^0.3.10"
 selenium = "^4.1.0"
 webdriver-manager = "^3.5.2"
 Faker = "^11.3.0"
